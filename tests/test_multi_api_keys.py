@@ -39,16 +39,24 @@ async def test_multi_api_key_role_restrictions():
         )
         assert res_fail_claude.status_code == 403
 
-        # 3. Test Hybrid Key (Gemini + GPT)
+        # 3. Test Hybrid-1 Key (Gemini only)
         hybrid_headers = {"Authorization": "Bearer agw-code-hybrid-1-4a29"}
         res_hybrid_models = await client.get("/v1/models", headers=hybrid_headers)
         assert res_hybrid_models.status_code == 200
         hybrid_ids = [m["id"] for m in res_hybrid_models.json()["data"]]
         assert any("gemini" in m for m in hybrid_ids)
-        assert any("gpt" in m for m in hybrid_ids)
         assert not any("claude" in m for m in hybrid_ids)
+        assert not any("gpt" in m for m in hybrid_ids)
 
-        # 4. Test Debugging Key (All models)
+        # 4. Test Hybrid-2 Key (Claude only)
+        hybrid2_headers = {"Authorization": "Bearer agw-code-hybrid-2-6e83"}
+        res_hybrid2_models = await client.get("/v1/models", headers=hybrid2_headers)
+        assert res_hybrid2_models.status_code == 200
+        hybrid2_ids = [m["id"] for m in res_hybrid2_models.json()["data"]]
+        assert any("claude" in m for m in hybrid2_ids)
+        assert not any("gemini" in m for m in hybrid2_ids)
+
+        # 5. Test Debugging Key (All models)
         debug_headers = {"Authorization": "Bearer agw-debug-all-9c37"}
         res_debug_models = await client.get("/v1/models", headers=debug_headers)
         assert res_debug_models.status_code == 200
@@ -57,7 +65,7 @@ async def test_multi_api_key_role_restrictions():
         assert any("gemini" in m for m in debug_ids)
         assert any("gpt" in m for m in debug_ids)
 
-        # 5. Test Invalid Key
+        # 6. Test Invalid Key
         bad_headers = {"Authorization": "Bearer invalid-key-xyz"}
         res_bad = await client.get("/v1/models", headers=bad_headers)
         assert res_bad.status_code == 401

@@ -155,13 +155,83 @@ class CloudCodeClient:
                     if resp.status_code == 200:
                         return resp.status_code, parsed, raw_text
                     last_err_tuple = (resp.status_code, parsed, raw_text)
-                    # For non-network 4xx errors (e.g. rate limit, bad request), don't blindly re-hit next endpoint
-                    if resp.status_code in (400, 401, 403, 429):
+                    # For 429, attempt fallback to stream aggregation for streaming-only models like gpt-oss
+                    if resp.status_code == 429:
+                        try:
+                            aggregated = await self._aggregate_stream_response(access_token, envelope)
+                            if aggregated:
+                                return 200, aggregated, json.dumps(aggregated)
+                        except Exception:
+                            pass
+                        return resp.status_code, parsed, raw_text
+                    # For other non-network 4xx errors (e.g. bad request, auth error), don't blindly re-hit next endpoint
+                    if resp.status_code in (400, 401, 403):
                         return resp.status_code, parsed, raw_text
                 except Exception as e:
                     last_err_tuple = (503, {}, str(e))
 
         return last_err_tuple
+
+    async def _aggregate_stream_response(
+        self, access_token: str, envelope: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Collect and aggregate SSE stream chunks into a complete response."""
+        parts: List[Dict[str, Any]] = []
+        finish_reason = "STOP"
+        usage_metadata = {}
+        model_version = envelope.get("model", "")
+        response_id = ""
+
+        try:
+            async for status, line in self.stream_generate_content(access_token, envelope):
+                if status != 200:
+                    return None
+                if not line or not line.startswith("data:"):
+                    continue
+                raw_data = line[5:].strip()
+                if raw_data == "[DONE]":
+                    break
+                try:
+                    payload = json.loads(raw_data)
+                except Exception:
+                    continue
+
+                resp_obj = payload.get("response", payload)
+                if "responseId" in resp_obj:
+                    response_id = resp_obj["responseId"]
+                if "modelVersion" in resp_obj:
+                    model_version = resp_obj["modelVersion"]
+                if "usageMetadata" in resp_obj:
+                    usage_metadata = resp_obj["usageMetadata"]
+
+                candidates = resp_obj.get("candidates", [])
+                for cand in candidates:
+                    cand_finish = cand.get("finishReason")
+                    if cand_finish:
+                        finish_reason = cand_finish
+                    content = cand.get("content", {})
+                    for p in content.get("parts", []):
+                        parts.append(p)
+
+            if not parts:
+                return None
+
+            return {
+                "candidates": [
+                    {
+                        "content": {
+                            "role": "model",
+                            "parts": parts,
+                        },
+                        "finishReason": finish_reason,
+                    }
+                ],
+                "usageMetadata": usage_metadata,
+                "modelVersion": model_version,
+                "responseId": response_id,
+            }
+        except Exception:
+            return None
 
     async def stream_generate_content(
         self, access_token: str, envelope: Dict[str, Any]

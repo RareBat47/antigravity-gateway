@@ -100,111 +100,55 @@ FAMILY_GEMINI = "gemini"
 FAMILY_CLAUDE = "claude"
 FAMILY_GPT = "gpt"
 
-# Default Model Specifications
+# Default Model Specifications — Exclusively the 7 models
 DEFAULT_MODELS = {
-    "gemini-3.5-flash": {
-        "upstream_id": "gemini-3.5-flash-low",
-        "family": FAMILY_GEMINI,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 65536,
-        "description": "Google Gemini 3.5 Flash (Antigravity)",
-    },
-    "gemini-3.1-pro": {
-        "upstream_id": "gemini-3.1-pro-low",
-        "family": FAMILY_GEMINI,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 65536,
-        "description": "Google Gemini 3.1 Pro (Antigravity)",
-    },
-    "gemini-3-flash": {
-        "upstream_id": "gemini-3-flash",
-        "family": FAMILY_GEMINI,
-        "capabilities": ["tools", "streaming", "vision"],
-        "max_output_tokens": 32768,
-        "description": "Google Gemini 3 Flash (Antigravity)",
-    },
-    "gemini-2.5-pro": {
-        "upstream_id": "gemini-2.5-pro",
-        "family": FAMILY_GEMINI,
-        "capabilities": ["tools", "streaming", "vision"],
-        "max_output_tokens": 32768,
-        "description": "Google Gemini 2.5 Pro (Antigravity)",
-    },
-    "gemini-2.5-flash": {
-        "upstream_id": "gemini-2.5-flash",
-        "family": FAMILY_GEMINI,
-        "capabilities": ["tools", "streaming", "vision"],
-        "max_output_tokens": 32768,
-        "description": "Google Gemini 2.5 Flash (Antigravity)",
-    },
-    "claude-sonnet-4-6": {
-        "upstream_id": "claude-sonnet-4-6",
-        "family": FAMILY_CLAUDE,
-        "capabilities": ["tools", "streaming", "vision"],
-        "max_output_tokens": 16384,
-        "description": "Anthropic Claude 4.6 Sonnet via Antigravity",
-    },
-    "claude-opus-4-6": {
-        "upstream_id": "claude-opus-4-6-thinking",
-        "family": FAMILY_CLAUDE,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 16384,
-        "description": "Anthropic Claude 4.6 Opus Thinking via Antigravity",
-    },
-    "gpt-4o": {
-        "upstream_id": "gemini-2.5-pro",
-        "family": FAMILY_GPT,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 32768,
-        "description": "GPT-4o compatibility alias (served by Gemini 2.5 Pro)",
-    },
-    "gpt-oss-120b-medium": {
-        "upstream_id": "gpt-oss-120b-medium",
-        "family": FAMILY_GPT,
-        "capabilities": ["tools", "streaming"],
-        "max_output_tokens": 16384,
-        "description": "GPT OSS 120B Medium (Antigravity)",
-    },
-    "claude-opus-4-6-thinking": {
-        "upstream_id": "claude-opus-4-6-thinking",
-        "family": FAMILY_CLAUDE,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 16384,
-        "description": "Anthropic Claude 4.6 Opus Thinking (Antigravity)",
-    },
-    "gemini-3.8-flash-tiered": {
+    "gemini-3.8-flash-high": {
         "upstream_id": "gemini-3.8-flash-tiered",
         "family": FAMILY_GEMINI,
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 65536,
-        "description": "Google Gemini 3.8 Flash Tiered (Antigravity)",
+        "description": "Gemini 3.8 Flash High (Fast Thinking)",
     },
-    "gemini-3.6-flash-low": {
-        "upstream_id": "gemini-3.6-flash-low",
+    "gemini-3.7-flash-medium": {
+        "upstream_id": "gemini-3.7-flash-tiered",
         "family": FAMILY_GEMINI,
-        "capabilities": ["tools", "streaming", "vision"],
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 65536,
-        "description": "Google Gemini 3.6 Flash Low (Antigravity)",
+        "description": "Gemini 3.7 Flash Medium (Fast Thinking)",
     },
     "gemini-3.6-flash-medium": {
         "upstream_id": "gemini-3.6-flash-medium",
         "family": FAMILY_GEMINI,
         "capabilities": ["tools", "streaming", "vision"],
         "max_output_tokens": 65536,
-        "description": "Google Gemini 3.6 Flash Medium (Antigravity)",
+        "description": "Gemini 3.6 Flash Medium (Fast)",
     },
-    "gemini-3.6-flash-high": {
-        "upstream_id": "gemini-3.6-flash-high",
+    "gemini-3.1-pro-low": {
+        "upstream_id": "gemini-3.1-pro-low",
         "family": FAMILY_GEMINI,
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 65536,
-        "description": "Google Gemini 3.6 Flash High (Antigravity Agent Model)",
+        "description": "Gemini 3.1 Pro Low (Pro Reasoning)",
     },
-    "gemini-pro-agent": {
-        "upstream_id": "gemini-pro-agent",
-        "family": FAMILY_GEMINI,
+    "claude-sonnet-4-6": {
+        "upstream_id": "claude-sonnet-4-6",
+        "family": FAMILY_CLAUDE,
         "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 65536,
-        "description": "Google Gemini Pro Agent (Antigravity)",
+        "max_output_tokens": 16384,
+        "description": "Claude Sonnet 4.6 (Thinking)",
+    },
+    "claude-opus-4-6-thinking": {
+        "upstream_id": "claude-opus-4-6-thinking",
+        "family": FAMILY_CLAUDE,
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 16384,
+        "description": "Claude Opus 4.6 (Thinking)",
+    },
+    "gpt-oss-120b-medium": {
+        "upstream_id": "gpt-oss-120b-medium",
+        "family": FAMILY_GPT,
+        "capabilities": ["tools", "streaming"],
+        "max_output_tokens": 16384,
+        "description": "GPT-OSS 120B (Medium)",
     },
 }

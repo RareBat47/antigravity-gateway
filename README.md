@@ -7,7 +7,7 @@
 [![Hermes Agent](https://img.shields.io/badge/Hermes%20Agent-Native%207--Provider-ff6b00.svg)](https://hermesagent.com)
 [![Tests: 31 Passing](https://img.shields.io/badge/Tests-31%20Passing-success.svg)](tests/)
 
-A self-hosted, production-grade multi-account proxy and load balancer that exposes Google Antigravity-accessible models (**Gemini 3.5 Flash**, **Gemini 3.6/3.8 Flash Tiered**, **Gemini 3.1 Pro**, **Gemini Pro Agent**, and **Claude 4.6 Opus Thinking & Sonnet**) through an OpenAI-compatible REST endpoint (`/v1/chat/completions`).
+A self-hosted, production-grade multi-account proxy and load balancer that exposes Google Antigravity-accessible models (**Gemini 3.8 Flash High**, **Gemini 3.7 Flash Medium**, **Gemini 3.6 Flash Medium**, **Gemini 3.1 Pro Low**, **Claude Sonnet 4.6 (Thinking)**, **Claude Opus 4.6 (Thinking)**, and **GPT-OSS 120B (Medium)**) through an OpenAI-compatible REST endpoint (`/v1/chat/completions`).
 
 The gateway provides intelligent account scheduling, live quota tracking, isolated per-model-family cooldowns, transparent automatic failover, AES-256 encrypted credential vaults, strict zero-secret logging redaction, an administrative dashboard, and a dedicated CLI (`agw`).
 
@@ -116,36 +116,31 @@ Autonomous coding agents like **Hermes Agent**, **LibreChat**, **Cline**, and **
 
 The gateway natively provides 7 role-specialized provider keys configured with strict model family permissions. This architecture allows Hermes Agent to distribute tasks across specialized roles without hitting rate limits on a single model family:
 
-| Provider Name | API Key Token | Allowed Families | Default Model | Upstream Target | Role & Specialization |
+| Provider Name | API Key Token | Allowed Families | Assigned Model | Upstream Target | Role & Specialization |
 |---|---|---|---|---|---|
 | **`Planning`** | `agw-plan-claude-9x82` | `claude` | `claude-opus-4-6-thinking` | `claude-opus-4-6-thinking` | Deep architectural reasoning and long-horizon system planning |
-| **`Coding-1`** | `agw-code-gemini-1-7b41` | `gemini` | `gemini-3.6-flash-low` | `gemini-3.6-flash-low` | High-volume implementation, quick edits, small iterations |
-| **`Coding-2`** | `agw-code-gemini-2-3f19` | `gemini` | `gemini-3.6-flash-medium` | `gemini-3.6-flash-medium` | General coding, autonomous turn execution, repo exploration |
-| **`Coding-3`** | `agw-code-gemini-3-8d52` | `gemini` | `gemini-3.6-flash-high` | `gemini-3.6-flash-high` | Difficult implementation, multi-file refactoring, reasoning |
-| **`Hybrid-1`** | `agw-code-hybrid-1-4a29` | `gemini`, `gpt` | `gemini-pro-agent` | `gemini-pro-agent` | Strong Google agent-oriented alternative worker |
-| **`Hybrid-2`** | `agw-code-hybrid-2-6e83` | `claude`, `gemini`, `gpt` | `claude-sonnet-4-6` | `claude-sonnet-4-6` | Independent Claude coding path |
-| **`Debugging`** | `agw-debug-all-9c37` | `all` (`claude`, `gemini`, `gpt`) | `claude-opus-4-6-thinking` | `claude-opus-4-6-thinking` | Deep root-cause analysis, complex stack trace diagnoses |
+| **`Coding-1`** | `agw-code-gemini-1-7b41` | `gemini` | `gemini-3.6-flash-medium` | `gemini-3.6-flash-medium` | High-volume implementation, quick edits, small iterations (Fast) |
+| **`Coding-2`** | `agw-code-gemini-2-3f19` | `gemini` | `gemini-3.7-flash-medium` | `gemini-3.7-flash-tiered` | General coding, autonomous turn execution, repo exploration (Fast Thinking) |
+| **`Coding-3`** | `agw-code-gemini-3-8d52` | `gemini` | `gemini-3.8-flash-high` | `gemini-3.8-flash-tiered` | Difficult implementation, multi-file refactoring, reasoning (High Fast) |
+| **`Hybrid-1`** | `agw-code-hybrid-1-4a29` | `gemini` | `gemini-3.1-pro-low` | `gemini-3.1-pro-low` | Strong Google Pro deep reasoning path |
+| **`Hybrid-2`** | `agw-code-hybrid-2-6e83` | `claude` | `claude-sonnet-4-6` | `claude-sonnet-4-6` | Independent Claude coding & thinking path |
+| **`Debugging`** | `agw-debug-all-9c37` | `all` (`claude`, `gemini`, `gpt`) | `gpt-oss-120b-medium` | `gpt-oss-120b-medium` | Deep root-cause analysis, complex stack trace diagnoses (All 7 models) |
 
 ---
 
 ## Model Registry & Aliases
 
-The gateway exposes a built-in model registry that translates standard model IDs and common aliases into verified upstream identifiers:
+The gateway exposes a built-in model registry strictly limited to the 7 verified models and translates common aliases into verified upstream targets:
 
 | Model ID | Aliases Recognized | Upstream Target | Context Window | Max Output | Capabilities |
 |---|---|---|---|---|---|
+| `gemini-3.8-flash-high` | `gemini-3.8-flash`, `gemini-3.8-flash-tiered`, `gemini-3.6-flash-high` | `gemini-3.8-flash-tiered` | 1,048,576 | 65,536 | Tools, Streaming, Vision, Thinking |
+| `gemini-3.7-flash-medium` | `gemini-3.7-flash`, `gemini-3.7-flash-tiered` | `gemini-3.7-flash-tiered` | 1,048,576 | 65,536 | Tools, Streaming, Vision, Thinking |
+| `gemini-3.6-flash-medium` | `gemini-3.6-flash`, `gemini-3.6-flash-low`, `gemini-3.5-flash`, `gemini-flash` | `gemini-3.6-flash-medium` | 1,048,576 | 65,536 | Tools, Streaming, Vision |
+| `gemini-3.1-pro-low` | `gemini-3.1-pro`, `gemini-pro`, `gemini-pro-agent` | `gemini-3.1-pro-low` | 1,048,576 | 65,536 | Tools, Streaming, Vision, Thinking |
+| `claude-sonnet-4-6` | `claude-sonnet`, `claude-3-7-sonnet`, `claude-3.7-sonnet`, `claude-3-5-sonnet` | `claude-sonnet-4-6` | 200,000 | 16,384 | Tools, Streaming, Vision, Thinking |
 | `claude-opus-4-6-thinking` | `claude-opus-4-6`, `claude-opus`, `claude-3-opus`, `claude-3.0-opus` | `claude-opus-4-6-thinking` | 200,000 | 16,384 | Tools, Streaming, Vision, Thinking |
-| `claude-sonnet-4-6` | `claude-3-7-sonnet`, `claude-3.7-sonnet`, `claude-3-5-sonnet`, `claude-3.5-sonnet`, `claude-sonnet` | `claude-sonnet-4-6` | 200,000 | 16,384 | Tools, Streaming, Vision |
-| `gemini-3.8-flash-tiered` | `gemini-3.8-flash` | `gemini-3.8-flash-tiered` | 1,048,576 | 65,536 | Tools, Streaming, Vision, Thinking |
-| `gemini-3.6-flash-low` | `gemini-3.8-flash-low`, `gemini-3.8-flash-tiered-low` | `gemini-3.6-flash-low` | 1,048,576 | 65,536 | Tools, Streaming, Vision |
-| `gemini-3.6-flash-medium` | `gemini-3.8-flash-medium`, `gemini-3.8-flash-tiered-medium` | `gemini-3.6-flash-medium` | 1,048,576 | 65,536 | Tools, Streaming, Vision |
-| `gemini-3.6-flash-high` | `gemini-3.8-flash-high`, `gemini-3.8-flash-tiered-high` | `gemini-3.6-flash-high` | 1,048,576 | 65,536 | Tools, Streaming, Vision, Thinking |
-| `gemini-pro-agent` | — | `gemini-pro-agent` | 1,048,576 | 65,536 | Tools, Streaming, Vision, Thinking |
-| `gemini-3.5-flash` | `gemini-flash` | `gemini-3.5-flash-low` | 1,048,576 | 65,536 | Tools, Streaming, Vision, Thinking |
-| `gemini-3.1-pro` | `gemini-pro` | `gemini-3.1-pro-low` | 1,048,576 | 65,536 | Tools, Streaming, Vision, Thinking |
-| `gemini-2.5-pro` | `gemini-1.5-pro` | `gemini-2.5-pro` | 1,048,576 | 32,768 | Tools, Streaming, Vision |
-| `gemini-2.5-flash` | `gemini-1.5-flash` | `gemini-2.5-flash` | 1,048,576 | 32,768 | Tools, Streaming, Vision |
-| `gpt-4o` | — | `gemini-2.5-pro` | 128,000 | 32,768 | Compatibility alias |
+| `gpt-oss-120b-medium` | `gpt-oss`, `gpt-oss-120b`, `gpt-4o` | `gpt-oss-120b-medium` | 128,000 | 16,384 | Tools, Streaming |
 
 All models automatically strip the `models/` prefix if passed by client SDKs (e.g. `models/claude-opus-4-6`).
 
@@ -252,7 +247,7 @@ Copy and paste this provider configuration block directly into your Hermes confi
 
 ```yaml
 providers:
-  # 1. Planning Provider (Claude Opus 4.6 Thinking)
+  # 1. Planning (Claude Opus 4.6 Thinking)
   Planning:
     type: openai
     base_url: "http://127.0.0.1:8999/v1"
@@ -260,63 +255,54 @@ providers:
     default_model: "claude-opus-4-6-thinking"
     models:
       - id: claude-opus-4-6-thinking
-        name: "Anthropic Claude 4.6 Opus Thinking"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-      - id: claude-sonnet-4-6
-        name: "Anthropic Claude 4.6 Sonnet"
+        name: "Claude Opus 4.6 (Thinking)"
         capabilities: ["tools", "streaming", "thinking", "vision"]
 
-  # 2. Coding Worker 1 (Gemini Flash Low Tier)
+  # 2. Coding Worker 1 (Gemini 3.6 Flash Medium)
   Coding-1:
     type: openai
     base_url: "http://127.0.0.1:8999/v1"
     api_key: "agw-code-gemini-1-7b41"
-    default_model: "gemini-3.6-flash-low"
+    default_model: "gemini-3.6-flash-medium"
     models:
-      - id: gemini-3.6-flash-low
-        name: "Google Gemini 3.8 Flash (Low Tier)"
-        capabilities: ["tools", "streaming", "vision"]
-      - id: gemini-3.8-flash-tiered
+      - id: gemini-3.6-flash-medium
+        name: "Gemini 3.6 Flash Medium"
         capabilities: ["tools", "streaming", "vision"]
 
-  # 3. Coding Worker 2 (Gemini Flash Medium Tier)
+  # 3. Coding Worker 2 (Gemini 3.7 Flash Medium)
   Coding-2:
     type: openai
     base_url: "http://127.0.0.1:8999/v1"
     api_key: "agw-code-gemini-2-3f19"
-    default_model: "gemini-3.6-flash-medium"
+    default_model: "gemini-3.7-flash-medium"
     models:
-      - id: gemini-3.6-flash-medium
-        name: "Google Gemini 3.8 Flash (Medium Tier)"
-        capabilities: ["tools", "streaming", "vision"]
-      - id: gemini-3.8-flash-tiered
-        capabilities: ["tools", "streaming", "vision"]
+      - id: gemini-3.7-flash-medium
+        name: "Gemini 3.7 Flash Medium"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
 
-  # 4. Coding Worker 3 (Gemini Flash High Tier / Agent)
+  # 4. Coding Worker 3 (Gemini 3.8 Flash High)
   Coding-3:
     type: openai
     base_url: "http://127.0.0.1:8999/v1"
     api_key: "agw-code-gemini-3-8d52"
-    default_model: "gemini-3.6-flash-high"
+    default_model: "gemini-3.8-flash-high"
     models:
-      - id: gemini-3.6-flash-high
-        name: "Google Gemini 3.8 Flash (High Tier / Agent)"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-      - id: gemini-3.8-flash-tiered
+      - id: gemini-3.8-flash-high
+        name: "Gemini 3.8 Flash High"
         capabilities: ["tools", "streaming", "thinking", "vision"]
 
-  # 5. Hybrid Worker 1 (Gemini Pro Agent)
+  # 5. Hybrid Worker 1 (Gemini 3.1 Pro Low)
   Hybrid-1:
     type: openai
     base_url: "http://127.0.0.1:8999/v1"
     api_key: "agw-code-hybrid-1-4a29"
-    default_model: "gemini-pro-agent"
+    default_model: "gemini-3.1-pro-low"
     models:
-      - id: gemini-pro-agent
-        name: "Google Gemini Pro Agent"
+      - id: gemini-3.1-pro-low
+        name: "Gemini 3.1 Pro Low"
         capabilities: ["tools", "streaming", "thinking", "vision"]
 
-  # 6. Hybrid Worker 2 (Claude Sonnet 4.6)
+  # 6. Hybrid Worker 2 (Claude Sonnet 4.6 Thinking)
   Hybrid-2:
     type: openai
     base_url: "http://127.0.0.1:8999/v1"
@@ -324,25 +310,28 @@ providers:
     default_model: "claude-sonnet-4-6"
     models:
       - id: claude-sonnet-4-6
-        name: "Anthropic Claude 4.6 Sonnet"
-        capabilities: ["tools", "streaming", "vision"]
+        name: "Claude Sonnet 4.6 (Thinking)"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
 
-  # 7. Debugging Worker (Claude Opus 4.6 Thinking & All Models)
+  # 7. Debugging Worker (GPT-OSS 120B Medium & All 7 Models)
   Debugging:
     type: openai
     base_url: "http://127.0.0.1:8999/v1"
     api_key: "agw-debug-all-9c37"
-    default_model: "claude-opus-4-6-thinking"
+    default_model: "gpt-oss-120b-medium"
     models:
+      - id: gpt-oss-120b-medium
+        name: "GPT-OSS 120B (Medium)"
+        capabilities: ["tools", "streaming"]
       - id: claude-opus-4-6-thinking
-        name: "Anthropic Claude 4.6 Opus Thinking"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-      - id: gemini-3.6-flash-high
+        name: "Claude Opus 4.6 (Thinking)"
         capabilities: ["tools", "streaming", "thinking", "vision"]
       - id: claude-sonnet-4-6
+        name: "Claude Sonnet 4.6 (Thinking)"
         capabilities: ["tools", "streaming", "thinking", "vision"]
-      - id: gpt-4o
-        capabilities: ["tools", "streaming", "vision"]
+      - id: gemini-3.8-flash-high
+        name: "Gemini 3.8 Flash High"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
 ```
 
 ---
@@ -469,11 +458,11 @@ curl http://127.0.0.1:8999/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model": "claude-opus-4-6-thinking", "messages": [{"role": "user", "content": "Respond with OK"}]}'
 
-# Test Coding-1 Role (Gemini 3.8 Flash Low)
+# Test Coding-1 Role (Gemini 3.6 Flash Medium)
 curl http://127.0.0.1:8999/v1/chat/completions \
   -H "Authorization: Bearer agw-code-gemini-1-7b41" \
   -H "Content-Type: application/json" \
-  -d '{"model": "gemini-3.6-flash-low", "messages": [{"role": "user", "content": "Respond with OK"}]}'
+  -d '{"model": "gemini-3.6-flash-medium", "messages": [{"role": "user", "content": "Respond with OK"}]}'
 ```
 
 ---

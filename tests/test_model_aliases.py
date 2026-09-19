@@ -7,14 +7,14 @@ def test_model_alias_resolution():
     registry = ModelRegistry()
 
     # Stripping models/ prefix
-    up_id, family, toks = registry.resolve_upstream("models/gemini-3.5-flash")
-    assert up_id == "gemini-3.5-flash-low"
+    up_id, family, toks = registry.resolve_upstream("models/gemini-3.8-flash-high")
+    assert up_id == "gemini-3.8-flash-tiered"
     assert family == "gemini"
 
     # Gemini aliases
-    up_20, fam_20, _ = registry.resolve_upstream("gemini-2.0-flash")
-    assert up_20 == "gemini-3-flash"
-    assert fam_20 == "gemini"
+    up_37, fam_37, _ = registry.resolve_upstream("gemini-3.7-flash")
+    assert up_37 == "gemini-3.7-flash-tiered"
+    assert fam_37 == "gemini"
 
     # Claude aliases
     up_c35, fam_c35, _ = registry.resolve_upstream("claude-3-5-sonnet")

@@ -10,6 +10,48 @@ security:
   encryption_key: ""
   rate_limit_per_minute: 120
   cors_origins: []
+  api_keys:
+    # 1. Planning (Claude Opus 4.6 Thinking)
+    - key: "agw-plan-claude-9x82"
+      name: "Planning"
+      description: "Planning Agent - Claude Opus 4.6 (Thinking)"
+      allowed_families: ["claude"]
+
+    # 2. Coding Worker 1 (Gemini 3.6 Flash Medium)
+    - key: "agw-code-gemini-1-7b41"
+      name: "Coding-1"
+      description: "Coding Worker 1 - Gemini 3.6 Flash Medium"
+      allowed_families: ["gemini"]
+
+    # 3. Coding Worker 2 (Gemini 3.7 Flash Medium)
+    - key: "agw-code-gemini-2-3f19"
+      name: "Coding-2"
+      description: "Coding Worker 2 - Gemini 3.7 Flash Medium"
+      allowed_families: ["gemini"]
+
+    # 4. Coding Worker 3 (Gemini 3.8 Flash High)
+    - key: "agw-code-gemini-3-8d52"
+      name: "Coding-3"
+      description: "Coding Worker 3 - Gemini 3.8 Flash High"
+      allowed_families: ["gemini"]
+
+    # 5. Hybrid Worker 1 (Gemini 3.1 Pro Low)
+    - key: "agw-code-hybrid-1-4a29"
+      name: "Hybrid-1"
+      description: "Hybrid Worker 1 - Gemini 3.1 Pro Low"
+      allowed_families: ["gemini"]
+
+    # 6. Hybrid Worker 2 (Claude Sonnet 4.6 Thinking)
+    - key: "agw-code-hybrid-2-6e83"
+      name: "Hybrid-2"
+      description: "Hybrid Worker 2 - Claude Sonnet 4.6 (Thinking)"
+      allowed_families: ["claude"]
+
+    # 7. Debugging Worker (GPT-OSS 120B Medium & All 7 Models)
+    - key: "agw-debug-all-9c37"
+      name: "Debugging"
+      description: "Debugging Worker - GPT-OSS 120B (Medium) & All 7 Models"
+      allowed_families: ["all"]
 
 storage:
   database_path: "data/gateway.db"
@@ -39,28 +81,38 @@ quota_monitor:
   stale_threshold_seconds: 600
 
 models:
-  gemini-3.5-flash:
-    upstream_id: "gemini-3.5-flash-low"
+  gemini-3.8-flash-high:
+    upstream_id: "gemini-3.8-flash-tiered"
     family: "gemini"
     capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 65536
-  gemini-3.1-pro:
+  gemini-3.7-flash-medium:
+    upstream_id: "gemini-3.7-flash-tiered"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 65536
+  gemini-3.6-flash-medium:
+    upstream_id: "gemini-3.6-flash-medium"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision"]
+    max_output_tokens: 65536
+  gemini-3.1-pro-low:
     upstream_id: "gemini-3.1-pro-low"
     family: "gemini"
     capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 65536
-  gemini-3-flash:
-    upstream_id: "gemini-3-flash"
-    family: "gemini"
-    capabilities: ["tools", "streaming", "vision"]
-    max_output_tokens: 32768
   claude-sonnet-4-6:
     upstream_id: "claude-sonnet-4-6"
     family: "claude"
-    capabilities: ["tools", "streaming", "vision"]
+    capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 16384
-  claude-opus-4-6:
+  claude-opus-4-6-thinking:
     upstream_id: "claude-opus-4-6-thinking"
     family: "claude"
     capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 16384
+  gpt-oss-120b-medium:
+    upstream_id: "gpt-oss-120b-medium"
+    family: "gpt"
+    capabilities: ["tools", "streaming"]
     max_output_tokens: 16384
