@@ -12,6 +12,22 @@ def test_pkce_generation():
     assert "=" not in challenge
 
 
+def test_build_auth_url_formatting():
+    from agw.auth.oauth import build_auth_url
+    from agw.constants import DEFAULT_CLIENT_ID
+    url = build_auth_url(
+        client_id=DEFAULT_CLIENT_ID,
+        redirect_uri="http://127.0.0.1:8999/auth/callback",
+        state="test-state-123",
+        code_challenge="test-challenge-xyz",
+    )
+    assert "client_id=" in url
+    assert "client_id=client_id=" not in url
+    assert "redirect_uri=redirect_uri=" not in url
+    assert "response_type=code" in url
+    assert "1071006060591" in url
+
+
 def test_token_encryption_roundtrip(temp_dir):
     key_file = f"{temp_dir}/vault.key"
     enc = TokenEncryption(key_file_path=key_file)

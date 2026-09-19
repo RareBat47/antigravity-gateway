@@ -33,6 +33,7 @@ data/*.key
 data/*.enc
 data/quota-state.json
 .env
+config.yaml
 
 # Testing & logs
 .pytest_cache/

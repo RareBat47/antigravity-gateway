@@ -80,6 +80,12 @@ def load_config(config_path: Optional[str] = None) -> AppConfig:
     """Load configuration from YAML file and environment variables."""
     cfg_data: Dict[str, Any] = {}
 
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
+
     target_path = config_path or os.environ.get("GATEWAY_CONFIG_PATH")
     if not target_path:
         for candidate in ["config.yaml", "config.yml", "config.example.yaml"]:
@@ -117,8 +123,13 @@ def load_config(config_path: Optional[str] = None) -> AppConfig:
     oauth_data = cfg_data.get("oauth", {})
     if cid := os.environ.get("GOOGLE_CLIENT_ID"):
         oauth_data["client_id"] = cid
+    elif not oauth_data.get("client_id"):
+        oauth_data["client_id"] = DEFAULT_CLIENT_ID
+
     if csec := os.environ.get("GOOGLE_CLIENT_SECRET"):
         oauth_data["client_secret"] = csec
+    elif not oauth_data.get("client_secret"):
+        oauth_data["client_secret"] = DEFAULT_CLIENT_SECRET
     cfg_data["oauth"] = oauth_data
 
     stor_data = cfg_data.get("storage", {})

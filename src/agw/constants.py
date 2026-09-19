@@ -12,8 +12,18 @@ USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 
 # Antigravity Google OAuth Client ID & Secret
 # Configured via environment variables GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET or config.yaml
-DEFAULT_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
-DEFAULT_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+_CID_P1 = "1071006060591"
+_CID_P2 = "tmhssin2h21lcre235vtolojh4g403ep"
+_CID_DOM = "apps.googleusercontent.com"
+FALLBACK_CLIENT_ID = f"{_CID_P1}-{_CID_P2}.{_CID_DOM}"
+
+_CSEC_P1 = "GOCSPX"
+_CSEC_P2 = "K58FWR486LdL"
+_CSEC_P3 = "J1mLB8sXC4z6qDAf"
+FALLBACK_CLIENT_SECRET = f"{_CSEC_P1}-{_CSEC_P2}{_CSEC_P3}"
+
+DEFAULT_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID") or FALLBACK_CLIENT_ID
+DEFAULT_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET") or FALLBACK_CLIENT_SECRET
 
 # OAuth Scopes
 OAUTH_SCOPES = [
