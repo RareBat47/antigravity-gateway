@@ -1,13 +1,15 @@
 """Administrative endpoints for managing accounts, health, and quotas."""
 
 import logging
+import secrets
 from typing import Any, Dict, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from agw.accounts.manager import AccountManager
 from agw.api.middleware import get_admin_key_auth
+from agw.auth.oauth import build_auth_url, generate_pkce
 from agw.config import AppConfig
 from agw.db.repository import DatabaseRepository
 from agw.quota.monitor import QuotaMonitor
@@ -38,12 +40,26 @@ def create_admin_router(
     @router.get("/dashboard", response_class=HTMLResponse)
     async def get_dashboard():
         """Serve embedded web dashboard UI."""
-        return HTMLResponse(content=dashboard_html_content)
+        from agw.dashboard import get_dashboard_html
+        return HTMLResponse(
+            content=get_dashboard_html(),
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            },
+        )
 
     @router.get("/accounts", dependencies=[Depends(verify_admin)])
     async def list_accounts():
         """List all accounts with status and statistics."""
-        return await account_mgr.list_accounts_summary()
+        summaries = await account_mgr.list_accounts_summary()
+        for s in summaries:
+            aid = s["id"]
+            s["health_score"] = round(health_tracker.get_health_score(aid), 1)
+            s["active_cooldowns"] = await repo.get_account_cooldowns(aid)
+            s["quotas"] = await repo.get_latest_quota(aid)
+        return summaries
 
     @router.get("/accounts/{account_id}", dependencies=[Depends(verify_admin)])
     async def get_account(account_id: str):
@@ -52,11 +68,13 @@ def create_admin_router(
         if not acc:
             raise HTTPException(status_code=404, detail="Account not found")
         quotas = await repo.get_latest_quota(account_id)
-        cooldown = await repo.get_active_cooldown(account_id, "all") or await repo.get_active_cooldown(account_id, "gemini")
+        active_cooldowns = await repo.get_account_cooldowns(account_id)
+        cooldown = active_cooldowns[0] if active_cooldowns else None
         return {
             "account": acc,
             "quotas": quotas,
             "active_cooldown": cooldown,
+            "active_cooldowns": active_cooldowns,
             "health_score": health_tracker.get_health_score(account_id),
             "avg_latency_ms": health_tracker.get_avg_latency(account_id),
         }
@@ -102,6 +120,35 @@ def create_admin_router(
             return {"status": "success", "refreshed": account_id}
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
+
+    @router.post("/accounts/{account_id}/reauth", dependencies=[Depends(verify_admin)])
+    async def reauth_account(account_id: str, request: Request):
+        """Trigger reauthorization flow for an account."""
+        acc = await repo.get_account(account_id)
+        if not acc:
+            raise HTTPException(status_code=404, detail="Account not found")
+
+        await cooldown_mgr.clear(account_id)
+        state = secrets.token_urlsafe(16)
+        verifier, challenge = generate_pkce()
+        base_url = config.server.public_base_url or str(request.base_url).rstrip("/")
+        redirect_uri = f"{base_url}/auth/callback"
+
+        auth_url = build_auth_url(
+            client_id=config.oauth.client_id,
+            redirect_uri=redirect_uri,
+            state=state,
+            code_challenge=challenge,
+        )
+
+        return {
+            "status": "pending_reauth",
+            "account_id": account_id,
+            "auth_url": auth_url,
+            "state": state,
+            "code_verifier": verifier,
+            "redirect_uri": redirect_uri,
+        }
 
     @router.get("/accounts/{account_id}/quota", dependencies=[Depends(verify_admin)])
     async def get_account_quota(account_id: str):
@@ -154,5 +201,21 @@ def create_admin_router(
     async def admin_usage():
         """Aggregate usage analytics."""
         return await repo.get_usage_summary()
+
+    @router.get("/api-keys", dependencies=[Depends(verify_admin)])
+    async def list_api_keys():
+        """List configured API keys and their role permissions."""
+        keys = []
+        if config.security.gateway_api_key:
+            keys.append({
+                "key": config.security.gateway_api_key,
+                "name": "master-default",
+                "description": "Master Gateway Key (Unrestricted)",
+                "allowed_families": ["all"],
+                "allowed_models": [],
+            })
+        for k in config.security.api_keys:
+            keys.append(k.model_dump())
+        return keys
 
     return router

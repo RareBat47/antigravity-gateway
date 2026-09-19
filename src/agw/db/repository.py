@@ -40,16 +40,36 @@ class DatabaseRepository:
                 INSERT INTO accounts (id, email_safe, display_name, project_id, tier, status, enabled, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 ON CONFLICT(id) DO UPDATE SET
-                    email_safe=excluded.email_safe,
+                    email_safe=CASE WHEN excluded.email_safe IN ('revoked', '') THEN accounts.email_safe ELSE excluded.email_safe END,
                     display_name=coalesce(excluded.display_name, accounts.display_name),
                     project_id=coalesce(excluded.project_id, accounts.project_id),
-                    tier=excluded.tier,
+                    tier=CASE WHEN excluded.tier = 'unknown' THEN accounts.tier ELSE excluded.tier END,
                     status=excluded.status,
                     enabled=excluded.enabled,
                     updated_at=CURRENT_TIMESTAMP
                 """,
                 (account_id, email_safe, display_name, project_id, tier, status, 1 if enabled else 0),
             )
+            await db.commit()
+
+    async def update_account_status(
+        self,
+        account_id: str,
+        status: str,
+        enabled: Optional[bool] = None,
+    ) -> None:
+        """Update account status and optionally enable/disable without overwriting profile/metadata."""
+        async with aiosqlite.connect(self.db_path) as db:
+            if enabled is not None:
+                await db.execute(
+                    "UPDATE accounts SET status = ?, enabled = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    (status, 1 if enabled else 0, account_id),
+                )
+            else:
+                await db.execute(
+                    "UPDATE accounts SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    (status, account_id),
+                )
             await db.commit()
 
     async def get_account(self, account_id: str) -> Optional[Dict[str, Any]]:
@@ -194,6 +214,18 @@ class DatabaseRepository:
             row = await cursor.fetchone()
             return dict(row) if row else None
 
+    async def get_account_cooldowns(self, account_id: str) -> List[Dict[str, Any]]:
+        """Fetch all currently active cooldowns for an account across all families."""
+        now_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                "SELECT * FROM cooldowns WHERE account_id = ? AND cooldown_until > ? ORDER BY cooldown_until DESC",
+                (account_id, now_str),
+            )
+            rows = await cursor.fetchall()
+            return [dict(r) for r in rows]
+
     async def clear_cooldown(self, account_id: str, target_family: Optional[str] = None) -> None:
         """Clear active cooldown."""
         async with aiosqlite.connect(self.db_path) as db:
@@ -208,7 +240,7 @@ class DatabaseRepository:
 
     async def list_all_active_cooldowns(self) -> List[Dict[str, Any]]:
         """List all currently active cooldowns."""
-        now_str = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        now_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
             cursor = await db.execute(

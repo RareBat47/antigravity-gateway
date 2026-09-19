@@ -35,6 +35,11 @@ class CooldownManager:
         Returns duration in seconds.
         """
         key = self._make_key(account_id, family)
+        if key not in self._consecutive_rate_limits:
+            # Check if there is an existing active cooldown level in database
+            existing = await self.repo.get_active_cooldown(account_id, family)
+            self._consecutive_rate_limits[key] = existing.get("level", 0) if existing else 0
+
         streak = self._consecutive_rate_limits.get(key, 0)
         tier_idx = min(streak, len(self.tiers) - 1)
         tier_delay = self.tiers[tier_idx]
@@ -55,6 +60,8 @@ class CooldownManager:
         key = self._make_key(account_id, family)
         if key in self._consecutive_rate_limits:
             self._consecutive_rate_limits[key] = max(0, self._consecutive_rate_limits[key] - 1)
+        else:
+            self._consecutive_rate_limits[key] = 0
 
     async def is_cooling_down(self, account_id: str, family: str) -> bool:
         """Check if account is cooling down for specific family or globally."""

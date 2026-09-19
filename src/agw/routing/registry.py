@@ -6,6 +6,41 @@ from agw.constants import DEFAULT_MODELS, FAMILY_CLAUDE, FAMILY_GEMINI
 Tuple_Upstream = Tuple[str, str, int]
 
 
+MODEL_ALIASES: Dict[str, str] = {
+    # Gemini Aliases
+    "gemini-flash": "gemini-3.5-flash",
+    "gemini-pro": "gemini-3.1-pro",
+    "gemini-2.0-flash": "gemini-3-flash",
+    "gemini-2.0-flash-exp": "gemini-3-flash",
+    "gemini-1.5-flash": "gemini-2.5-flash",
+    "gemini-1.5-pro": "gemini-2.5-pro",
+    "gemini-3.8-flash-tiered-low": "gemini-3.6-flash-low",
+    "gemini-3.8-flash-low": "gemini-3.6-flash-low",
+    "gemini-3.8-flash-tiered-medium": "gemini-3.6-flash-medium",
+    "gemini-3.8-flash-medium": "gemini-3.6-flash-medium",
+    "gemini-3.8-flash-tiered-high": "gemini-3.6-flash-high",
+    "gemini-3.8-flash-high": "gemini-3.6-flash-high",
+    # Claude Aliases
+    "claude-3-5-sonnet": "claude-sonnet-4-6",
+    "claude-3.5-sonnet": "claude-sonnet-4-6",
+    "claude-3-7-sonnet": "claude-sonnet-4-6",
+    "claude-3.7-sonnet": "claude-sonnet-4-6",
+    "claude-sonnet": "claude-sonnet-4-6",
+    "claude-3-opus": "claude-opus-4-6-thinking",
+    "claude-3.0-opus": "claude-opus-4-6-thinking",
+    "claude-opus": "claude-opus-4-6-thinking",
+    "claude-opus-4-6": "claude-opus-4-6-thinking",
+}
+
+
+def normalize_model_id(model_id: str) -> str:
+    """Normalize model identifier by removing prefixes and resolving aliases."""
+    cleaned = model_id.strip()
+    if cleaned.startswith("models/"):
+        cleaned = cleaned[7:]
+    return MODEL_ALIASES.get(cleaned, cleaned)
+
+
 class ModelRegistry:
     """Manages models supported by the gateway."""
 
@@ -15,22 +50,24 @@ class ModelRegistry:
             self._models.update(custom_models)
 
     def get_model(self, model_id: str) -> Optional[Dict[str, Any]]:
-        """Get model definition by ID."""
-        return self._models.get(model_id)
+        """Get model definition by ID or alias."""
+        normalized = normalize_model_id(model_id)
+        return self._models.get(normalized) or self._models.get(model_id)
 
     def resolve_upstream(self, model_id: str) -> Tuple_Upstream:
         """Resolve requested model to (upstream_id, family, max_output_tokens)."""
-        model = self.get_model(model_id)
+        normalized = normalize_model_id(model_id)
+        model = self.get_model(normalized)
         if not model:
             # Fallback heuristic
-            is_claude = "claude" in model_id.lower()
+            is_claude = "claude" in normalized.lower()
             return (
-                model_id,
+                normalized,
                 FAMILY_CLAUDE if is_claude else FAMILY_GEMINI,
                 16384 if is_claude else 32768,
             )
         return (
-            model.get("upstream_id", model_id),
+            model.get("upstream_id", normalized),
             model.get("family", FAMILY_GEMINI),
             model.get("max_output_tokens", 32768),
         )

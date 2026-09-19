@@ -67,6 +67,7 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            flex-wrap: wrap;
         }
 
         input, button, select {
@@ -77,17 +78,34 @@
             transition: all 0.2s ease;
         }
 
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
         input[type="password"], input[type="text"] {
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(15, 23, 42, 0.85);
             border: 1px solid var(--surface-border);
             color: var(--text-main);
-            padding: 0.6rem 1rem;
-            min-width: 260px;
+            padding: 0.6rem 2.2rem 0.6rem 1rem;
+            min-width: 290px;
         }
 
         input:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.8rem;
         }
 
         button {
@@ -150,6 +168,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .card-header h2 {
@@ -210,6 +230,8 @@
         .badge-active { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
         .badge-disabled { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
         .badge-cooldown { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
 
         .progress-bar {
             width: 100%;
@@ -236,6 +258,112 @@
             padding: 0.4rem 0.6rem;
             font-size: 0.8rem;
         }
+
+        .notice-box {
+            background: rgba(56, 189, 248, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        /* Documentation & Tabs */
+        .tab-header {
+            display: flex;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--surface-border);
+            border-radius: 10px 10px 0 0;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            padding: 0.75rem 1.25rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            border-radius: 0;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+            background: rgba(56, 189, 248, 0.08);
+        }
+
+        .code-container {
+            background: rgba(10, 15, 25, 0.95);
+            border: 1px solid var(--surface-border);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+        }
+
+        .code-content-wrapper {
+            position: relative;
+        }
+
+        .copy-code-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--surface-border);
+            color: var(--text-main);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .copy-code-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        pre.code-block {
+            padding: 1.25rem;
+            font-family: 'Consolas', 'Cascadia Code', 'Courier New', monospace;
+            font-size: 0.86rem;
+            color: #e2e8f0;
+            overflow-x: auto;
+            line-height: 1.55;
+            margin: 0;
+            max-height: 480px;
+        }
+
+        .chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--surface-border);
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        code.inline-code {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--surface-border);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -245,17 +373,22 @@
             <p>Production Multi-Account Gateway for Hermes Agent</p>
         </div>
         <div class="auth-bar">
-            <input type="password" id="adminKey" placeholder="Enter Admin API Key..." />
-            <button class="btn-primary" onclick="loadData()">Unlock Dashboard</button>
+            <div class="input-group">
+                <input type="password" id="adminKey" placeholder="Admin API Key" />
+                <button type="button" class="toggle-btn" onclick="toggleKeyVisibility()" title="Show/Hide Key">👁️</button>
+            </div>
+            <button class="btn-primary" id="unlockBtn" onclick="loadData()">Unlock Dashboard</button>
             <button class="btn-secondary" onclick="startOAuthLogin()">+ Add Google Account</button>
         </div>
     </header>
+
+    <div id="statusAlert" style="display: none; padding: 0.8rem 1.2rem; border-radius: 8px; font-size: 0.9rem;"></div>
 
     <div class="grid">
         <div class="card">
             <span class="metric-label">Active Accounts</span>
             <div class="metric-value" id="activeAccountsCount">0 / 0</div>
-            <p style="color: var(--text-muted); font-size: 0.85rem;" id="healthSummary">Status: Loading...</p>
+            <p style="color: var(--text-muted); font-size: 0.85rem;" id="healthSummary">Checking status...</p>
         </div>
         <div class="card">
             <span class="metric-label">Total Requests</span>
@@ -269,10 +402,14 @@
         </div>
     </div>
 
+    <!-- Connected Accounts & Quotas -->
     <div class="card">
         <div class="card-header">
-            <h2>Connected Accounts & Live Quota</h2>
-            <button class="btn-secondary" onclick="loadData()">↻ Refresh</button>
+            <h2>Connected Accounts &amp; Live Quota</h2>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span id="lastUpdated" style="font-size: 0.75rem; color: var(--text-muted);"></span>
+                <button class="btn-secondary" onclick="loadData()">↻ Refresh</button>
+            </div>
         </div>
         <div style="overflow-x: auto;">
             <table>
@@ -289,8 +426,11 @@
                 </thead>
                 <tbody id="accountsTableBody">
                     <tr>
-                        <td colspan="7" style="text-align: center; color: var(--text-muted);">
-                            Enter your Admin API Key and click Unlock Dashboard.
+                        <td colspan="7">
+                            <div class="notice-box">
+                                <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Connecting...</h3>
+                                <p style="color: var(--text-muted);">Authenticating with gateway...</p>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -298,14 +438,111 @@
         </div>
     </div>
 
+    <!-- Configured Multi-Keys & Role Permissions -->
+    <div class="card" id="apiKeysCard">
+        <div class="card-header">
+            <div>
+                <h2>Role-Based API Keys &amp; Provider Pool</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">
+                    Pre-configured API keys with isolated model family permissions for planning, agentic jobs, hybrid coding, and debugging.
+                </p>
+            </div>
+            <span class="badge badge-active">7 Configured Keys</span>
+        </div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Provider / Key Name</th>
+                        <th>Role &amp; Purpose</th>
+                        <th>Allowed Families</th>
+                        <th>API Key Token</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="apiKeysTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading API keys...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Hermes Agent Integration Documentation Card -->
+    <div class="card" id="hermesIntegrationCard">
+        <div class="card-header">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;">
+                    <span style="font-size: 1.4rem;">🤖</span>
+                    <h2>Hermes Agent Integration &amp; Setup Guide</h2>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">
+                    Consolidated one-pager document containing all 7 API keys, the setup prompt, YAML config, and remote tunnel instructions.
+                </p>
+            </div>
+            <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn-primary" id="copyAllTopBtn" onclick="copyEntireOnePager()" style="background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);">
+                    📋 Copy Entire One-Pager
+                </button>
+                <button class="btn-secondary" id="downloadDocBtn" onclick="downloadOnePager()" style="background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); padding: 0.5rem 0.9rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500; cursor: pointer;">
+                    📥 Download One-Pager (.md)
+                </button>
+            </div>
+        </div>
+
+        <div class="tab-header">
+            <button class="tab-btn active" id="tab-onepager" onclick="selectHermesTab('onepager')">📄 Complete One-Pager (Everything)</button>
+            <button class="tab-btn" id="tab-prompt" onclick="selectHermesTab('prompt')">⚡ Hermes Prompt Only</button>
+            <button class="tab-btn" id="tab-yaml" onclick="selectHermesTab('yaml')">⚙️ 7-Provider config.yaml</button>
+            <button class="tab-btn" id="tab-env" onclick="selectHermesTab('env')">🔐 Environment (.env)</button>
+            <button class="tab-btn" id="tab-tunnel" onclick="selectHermesTab('tunnel')">🌐 Remote Azure Tunnel</button>
+            <button class="tab-btn" id="tab-curl" onclick="selectHermesTab('curl')">🧪 cURL Tests</button>
+        </div>
+
+        <div class="code-container">
+            <div class="code-content-wrapper">
+                <button class="copy-code-btn" id="copyBtn" onclick="copySnippet()">📋 Copy Snippet</button>
+                <pre class="code-block"><code id="hermesCodeSnippet"></code></pre>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const savedKey = localStorage.getItem('agw_admin_key');
-        if (savedKey) {
-            document.getElementById('adminKey').value = savedKey;
+        const DEFAULT_KEY = "agw-admin-super-secret-key-change-me";
+        const GATEWAY_KEY = "agw-hermes-secret-key-change-me";
+        let autoRefreshInterval = null;
+        let activeTab = 'onepager';
+
+        // Auto-prefill saved key or default configuration key
+        const savedKey = localStorage.getItem('agw_admin_key') || DEFAULT_KEY;
+        const keyInput = document.getElementById('adminKey');
+        keyInput.value = savedKey;
+
+        // Allow pressing Enter in key input
+        keyInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') loadData();
+        });
+
+        function toggleKeyVisibility() {
+            keyInput.type = keyInput.type === 'password' ? 'text' : 'password';
+        }
+
+        function showAlert(msg, isError = false) {
+            const el = document.getElementById('statusAlert');
+            el.style.display = 'block';
+            el.style.background = isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+            el.style.color = isError ? '#fca5a5' : '#34d399';
+            el.style.border = `1px solid ${isError ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`;
+            el.innerText = msg;
+        }
+
+        function hideAlert() {
+            document.getElementById('statusAlert').style.display = 'none';
         }
 
         async function apiFetch(endpoint, options = {}) {
-            const key = document.getElementById('adminKey').value.trim();
+            const key = keyInput.value.trim();
             if (key) localStorage.setItem('agw_admin_key', key);
             const headers = {
                 'Authorization': `Bearer ${key}`,
@@ -315,6 +552,23 @@
             return fetch(endpoint, { ...options, headers });
         }
 
+        async function checkPublicHealth() {
+            try {
+                const res = await fetch('/health');
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('activeAccountsCount').innerText = `${data.active_accounts} / ${data.total_accounts}`;
+                    document.getElementById('totalRequests').innerText = Number(data.total_requests || 0).toLocaleString();
+                    const healthEl = document.getElementById('healthSummary');
+                    if (!healthEl.innerText.includes('Active Cooldowns')) {
+                        healthEl.innerText = `Gateway: Online`;
+                    }
+                }
+            } catch (err) {
+                document.getElementById('healthSummary').innerText = `Gateway: Connecting...`;
+            }
+        }
+
         async function startOAuthLogin() {
             try {
                 const res = await fetch('/auth/login', { method: 'POST' });
@@ -322,20 +576,43 @@
                 if (data.auth_url) {
                     window.open(data.auth_url, '_blank', 'width=600,height=700');
                 } else {
-                    alert('Error starting OAuth: ' + JSON.stringify(data));
+                    showAlert('Error starting OAuth: ' + JSON.stringify(data), true);
                 }
             } catch (err) {
-                alert('Failed to initiate login: ' + err.message);
+                showAlert('Failed to initiate login: ' + err.message);
             }
         }
 
         async function loadData() {
+            const unlockBtn = document.getElementById('unlockBtn');
+            const key = keyInput.value.trim();
+
+            if (!key) {
+                showAlert("Please enter an Admin API Key.", true);
+                unlockBtn.innerText = "Unlock Dashboard";
+                unlockBtn.style.background = "";
+                checkPublicHealth();
+                renderLockedState();
+                return;
+            }
+
+            unlockBtn.innerText = "Connecting...";
+
             try {
                 const healthRes = await apiFetch('/admin/health');
                 if (!healthRes.ok) {
-                    alert('Authentication failed. Check your Admin API Key.');
+                    unlockBtn.innerText = "Unlock Dashboard";
+                    unlockBtn.style.background = "";
+                    showAlert('Authentication failed. Check your Admin API Key (default: agw-admin-super-secret-key-change-me).', true);
+                    checkPublicHealth();
+                    renderLockedState();
                     return;
                 }
+
+                hideAlert();
+                unlockBtn.innerText = "✓ Unlocked";
+                unlockBtn.style.background = "linear-gradient(135deg, #059669 0%, #10b981 100%)";
+
                 const health = await healthRes.json();
                 document.getElementById('activeAccountsCount').innerText = `${health.active_accounts} / ${health.total_accounts}`;
                 document.getElementById('healthSummary').innerText = `Active Cooldowns: ${health.active_cooldowns_count}`;
@@ -353,45 +630,87 @@
                     const accounts = await accRes.json();
                     renderAccounts(accounts);
                 }
+
+                const keysRes = await apiFetch('/admin/api-keys');
+                if (keysRes.ok) {
+                    const keysData = await keysRes.json();
+                    renderApiKeys(keysData);
+                }
+
+                document.getElementById('lastUpdated').innerText = `Updated ${new Date().toLocaleTimeString()}`;
+
+                if (!autoRefreshInterval) {
+                    autoRefreshInterval = setInterval(loadData, 10000);
+                }
             } catch (err) {
                 console.error(err);
+                unlockBtn.innerText = "Unlock Dashboard";
+                unlockBtn.style.background = "";
+                showAlert('Connection error: ' + err.message, true);
             }
+        }
+
+        function renderLockedState() {
+            const tbody = document.getElementById('accountsTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="notice-box">
+                            <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Dashboard Locked</h3>
+                            <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                                Enter your Admin API Key in the top right to inspect connected accounts, monitor quotas, and trigger token refreshes.
+                            </p>
+                            <button class="btn-secondary" onclick="keyInput.value=DEFAULT_KEY; loadData();" style="border-color: var(--primary); color: var(--primary);">
+                                Use Default Key &amp; Unlock
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
         }
 
         function renderAccounts(accounts) {
             const tbody = document.getElementById('accountsTableBody');
             if (!accounts || accounts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">No accounts connected yet. Click "+ Add Google Account" above.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 2rem;">No accounts connected yet. Click "+ Add Google Account" above.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = accounts.map(acc => {
-                const badgeClass = acc.enabled ? 'badge-active' : 'badge-disabled';
-                const statusText = acc.enabled ? 'Enabled' : 'Disabled';
+                const hasCooldown = acc.active_cooldowns && acc.active_cooldowns.length > 0;
+                const statusBadge = !acc.enabled 
+                    ? '<span class="badge badge-disabled">Disabled</span>' 
+                    : (hasCooldown ? '<span class="badge badge-cooldown">Cooldown</span>' : '<span class="badge badge-active">Active</span>');
+                
+                const healthScore = acc.health_score != null ? `${acc.health_score}%` : '100%';
+                
                 return `
                     <tr>
                         <td>
                             <strong>${acc.display_name || acc.id}</strong><br>
-                            <small style="color: var(--text-muted);">${acc.email_safe}</small>
+                            <small style="color: var(--text-muted);">${acc.email_safe || 'No email'}</small>
                         </td>
-                        <td><span class="badge badge-active">${acc.tier || 'unknown'}</span></td>
-                        <td><span class="badge ${badgeClass}">${statusText}</span></td>
-                        <td>98%</td>
+                        <td><span class="badge badge-active">${acc.tier || 'pro'}</span></td>
+                        <td>${statusBadge}</td>
+                        <td><strong style="color: var(--success);">${healthScore}</strong></td>
                         <td>
                             <div style="font-size: 0.8rem; display: flex; justify-content: space-between;">
                                 <span>Gemini / Claude</span>
-                                <span>Active</span>
+                                <span>${hasCooldown ? 'Throttled' : 'Available'}</span>
                             </div>
-                            <div class="progress-bar"><div class="progress-fill" style="width: 85%;"></div></div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${hasCooldown ? '25%' : '100%'}; ${hasCooldown ? 'background: var(--warning);' : ''}"></div>
+                            </div>
                         </td>
                         <td>
-                            <strong>${acc.total_requests}</strong> reqs<br>
+                            <strong>${acc.total_requests || 0}</strong> reqs<br>
                             <small style="color: var(--text-muted);">${(acc.total_tokens || 0).toLocaleString()} toks</small>
                         </td>
                         <td>
                             <div class="actions-cell">
                                 <button class="btn-secondary btn-icon" onclick="toggleAccount('${acc.id}', ${!acc.enabled})">${acc.enabled ? 'Disable' : 'Enable'}</button>
                                 <button class="btn-secondary btn-icon" onclick="refreshToken('${acc.id}')">Refresh</button>
+                                ${hasCooldown ? `<button class="btn-secondary btn-icon" style="color: var(--warning); border-color: var(--warning);" onclick="clearCooldown('${acc.id}')">Reset Cooldown</button>` : ''}
                                 <button class="btn-danger btn-icon" onclick="deleteAccount('${acc.id}')">Delete</button>
                             </div>
                         </td>
@@ -400,14 +719,69 @@
             }).join('');
         }
 
+        function renderApiKeys(keys) {
+            const tbody = document.getElementById('apiKeysTableBody');
+            if (!keys || keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No keys configured.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = keys.map(k => {
+                const fams = (k.allowed_families || ['all']).map(f => {
+                    if (f === 'claude') return '<span class="badge badge-purple">Claude</span>';
+                    if (f === 'gemini') return '<span class="badge badge-blue">Gemini</span>';
+                    if (f === 'gpt') return '<span class="badge badge-active">GPT</span>';
+                    return '<span class="badge badge-active">All Models</span>';
+                }).join(' ');
+
+                return `
+                    <tr>
+                        <td><strong>${k.name}</strong></td>
+                        <td><span style="color: var(--text-muted); font-size: 0.88rem;">${k.description || 'General Purpose'}</span></td>
+                        <td>${fams}</td>
+                        <td><code class="inline-code">${k.key}</code></td>
+                        <td>
+                            <button class="btn-secondary btn-icon" onclick="copyText('${k.key}', this)">📋 Copy Key</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function copyText(str, btn) {
+            navigator.clipboard.writeText(str).then(() => {
+                const old = btn.innerText;
+                btn.innerText = '✓ Copied';
+                btn.style.color = '#34d399';
+                setTimeout(() => {
+                    btn.innerText = old;
+                    btn.style.color = '';
+                }, 1500);
+            });
+        }
+
         async function toggleAccount(id, enable) {
             await apiFetch(`/admin/accounts/${id}/${enable ? 'enable' : 'disable'}`, { method: 'POST' });
             loadData();
         }
 
         async function refreshToken(id) {
-            await apiFetch(`/admin/accounts/${id}/refresh`, { method: 'POST' });
-            alert(`Token refreshed for account ${id}`);
+            const res = await apiFetch(`/admin/accounts/${id}/refresh`, { method: 'POST' });
+            if (res.ok) {
+                showAlert(`Token refreshed for account ${id}`);
+            } else {
+                showAlert(`Failed to refresh token: ${res.statusText}`, true);
+            }
+            loadData();
+        }
+
+        async function clearCooldown(id) {
+            const res = await apiFetch(`/admin/accounts/${id}/cooldown/clear`, { method: 'POST' });
+            if (res.ok) {
+                showAlert(`Cooldown cleared for account ${id}`);
+            } else {
+                showAlert(`Failed to clear cooldown: ${res.statusText}`, true);
+            }
             loadData();
         }
 
@@ -418,9 +792,522 @@
             }
         }
 
-        if (savedKey) {
-            loadData();
+        // --- Hermes Documentation Snippets ---
+        function getHermesSnippets() {
+            const baseUrl = `${window.location.origin}/v1`;
+
+            const onepagerDoc = `# Antigravity Gateway — Hermes Agent Complete Integration One-Pager
+Base URL: ${baseUrl}
+Master Admin Key: ${DEFAULT_KEY}
+Master Gateway Key: ${GATEWAY_KEY}
+
+================================================================================
+1. CONFIGURED ROLE-BASED API KEYS & ROLES
+================================================================================
+1. Planning Agent (Claude Models Only):
+   - Provider Name: Planning
+   - API Key: agw-plan-claude-9x82
+   - Allowed Families: claude
+   - Default Model: claude-opus-4-6-thinking
+   - Optimization: Deep architectural reasoning and long-horizon planning
+
+2. Coding Worker 1 (Gemini Flash Low Tier):
+   - Provider Name: Coding-1
+   - API Key: agw-code-gemini-1-7b41
+   - Allowed Families: gemini
+   - Default Model: gemini-3.6-flash-low
+   - Optimization: High-volume implementation, quick iterations
+
+3. Coding Worker 2 (Gemini Flash Medium Tier):
+   - Provider Name: Coding-2
+   - API Key: agw-code-gemini-2-3f19
+   - Allowed Families: gemini
+   - Default Model: gemini-3.6-flash-medium
+   - Optimization: General coding + agentic work
+
+4. Coding Worker 3 (Gemini Flash High Tier / Agent):
+   - Provider Name: Coding-3
+   - API Key: agw-code-gemini-3-8d52
+   - Allowed Families: gemini
+   - Default Model: gemini-3.6-flash-high
+   - Optimization: Difficult implementation, refactors, multi-file reasoning
+
+5. Coding Hybrid 1 (Google Agent Alternative):
+   - Provider Name: Hybrid-1
+   - API Key: agw-code-hybrid-1-4a29
+   - Allowed Families: gemini, gpt
+   - Default Model: gemini-pro-agent
+   - Optimization: Strong Google agent-oriented alternative
+
+6. Coding Hybrid 2 (Independent Claude Path):
+   - Provider Name: Hybrid-2
+   - API Key: agw-code-hybrid-2-6e83
+   - Allowed Families: claude, gemini, gpt
+   - Default Model: claude-sonnet-4-6
+   - Optimization: Independent Claude coding path
+
+7. Debugging Agent (All Models Allowed):
+   - Provider Name: Debugging
+   - API Key: agw-debug-all-9c37
+   - Allowed Families: all (claude, gemini, gpt)
+   - Default Model: claude-opus-4-6-thinking
+   - Optimization: Deep root-cause analysis and difficult debugging
+
+================================================================================
+2. PROMPT FOR HERMES AGENT (Copy & Paste to Hermes)
+================================================================================
+You are connected to an Antigravity Multi-Account Gateway at ${baseUrl}.
+The gateway has 7 specialized role-based providers with model family permissions. Please configure your internal routing according to these exact provider names and model assignments:
+
+1. PLANNING TASKS:
+   - Provider Name: "Planning"
+   - Base URL: "${baseUrl}"
+   - API Key: "agw-plan-claude-9x82"
+   - Model: "claude-opus-4-6-thinking" (also supports "claude-sonnet-4-6")
+   - Role: Deep architectural reasoning, long-horizon planning, and system design.
+
+2. HIGH-VOLUME CODING & AGENTIC WORK (Tiered Gemini Flash):
+   - Provider "Coding-1": Key "agw-code-gemini-1-7b41", Model "gemini-3.6-flash-low" (High-volume implementation, quick iterations)
+   - Provider "Coding-2": Key "agw-code-gemini-2-3f19", Model "gemini-3.6-flash-medium" (General coding + agentic work)
+   - Provider "Coding-3": Key "agw-code-gemini-3-8d52", Model "gemini-3.6-flash-high" (Difficult implementation, refactors, multi-file reasoning)
+   - Base URL: "${baseUrl}"
+
+3. HYBRID AGENTS:
+   - Provider "Hybrid-1": Key "agw-code-hybrid-1-4a29", Model "gemini-pro-agent" (Strong Google agent-oriented alternative)
+   - Provider "Hybrid-2": Key "agw-code-hybrid-2-6e83", Model "claude-sonnet-4-6" (Independent Claude coding path)
+   - Base URL: "${baseUrl}"
+
+4. DEBUGGING & ROOT CAUSE ANALYSIS (All Models Allowed):
+   - Provider Name: "Debugging"
+   - Base URL: "${baseUrl}"
+   - API Key: "agw-debug-all-9c37"
+   - Model: "claude-opus-4-6-thinking" (also supports "gemini-3.6-flash-high", "claude-sonnet-4-6", "gpt-4o")
+   - Role: Deep root-cause analysis, complex bug diagnosing, and stack trace investigations.
+
+Always supply "Authorization: Bearer <API_KEY>" and enable streaming ("stream": true) with tool calling support.
+
+================================================================================
+3. COMPLETE HERMES AGENT YAML CONFIG (~/.hermes/config.yaml)
+================================================================================
+providers:
+  Planning:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-plan-claude-9x82"
+    default_model: "claude-opus-4-6-thinking"
+    models:
+      - id: claude-opus-4-6-thinking
+        name: "Anthropic Claude 4.6 Opus Thinking"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+      - id: claude-sonnet-4-6
+        name: "Anthropic Claude 4.6 Sonnet"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+
+  Coding-1:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-code-gemini-1-7b41"
+    default_model: "gemini-3.6-flash-low"
+    models:
+      - id: gemini-3.6-flash-low
+        name: "Google Gemini 3.8 Flash (Low Tier)"
+        capabilities: ["tools", "streaming", "vision"]
+      - id: gemini-3.8-flash-tiered
+        capabilities: ["tools", "streaming", "vision"]
+
+  Coding-2:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-code-gemini-2-3f19"
+    default_model: "gemini-3.6-flash-medium"
+    models:
+      - id: gemini-3.6-flash-medium
+        name: "Google Gemini 3.8 Flash (Medium Tier)"
+        capabilities: ["tools", "streaming", "vision"]
+      - id: gemini-3.8-flash-tiered
+        capabilities: ["tools", "streaming", "vision"]
+
+  Coding-3:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-code-gemini-3-8d52"
+    default_model: "gemini-3.6-flash-high"
+    models:
+      - id: gemini-3.6-flash-high
+        name: "Google Gemini 3.8 Flash (High Tier / Agent)"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+      - id: gemini-3.8-flash-tiered
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+
+  Hybrid-1:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-code-hybrid-1-4a29"
+    default_model: "gemini-pro-agent"
+    models:
+      - id: gemini-pro-agent
+        name: "Google Gemini Pro Agent"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+
+  Hybrid-2:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-code-hybrid-2-6e83"
+    default_model: "claude-sonnet-4-6"
+    models:
+      - id: claude-sonnet-4-6
+        name: "Anthropic Claude 4.6 Sonnet"
+        capabilities: ["tools", "streaming", "vision"]
+
+  Debugging:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-debug-all-9c37"
+    default_model: "claude-opus-4-6-thinking"
+    models:
+      - id: claude-opus-4-6-thinking
+        name: "Anthropic Claude 4.6 Opus Thinking"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+      - id: gemini-3.6-flash-high
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+      - id: claude-sonnet-4-6
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+      - id: gpt-4o
+        capabilities: ["tools", "streaming", "vision"]
+
+================================================================================
+4. ENVIRONMENT VARIABLES SETUP (.env)
+================================================================================
+OPENAI_BASE_URL="${baseUrl}"
+# Planning:
+# OPENAI_API_KEY="agw-plan-claude-9x82"
+# DEFAULT_MODEL="claude-opus-4-6-thinking"
+
+# Coding-1:
+# OPENAI_API_KEY="agw-code-gemini-1-7b41"
+# DEFAULT_MODEL="gemini-3.6-flash-low"
+
+# Coding-2:
+# OPENAI_API_KEY="agw-code-gemini-2-3f19"
+# DEFAULT_MODEL="gemini-3.6-flash-medium"
+
+# Coding-3:
+# OPENAI_API_KEY="agw-code-gemini-3-8d52"
+# DEFAULT_MODEL="gemini-3.6-flash-high"
+
+# Hybrid-1:
+# OPENAI_API_KEY="agw-code-hybrid-1-4a29"
+# DEFAULT_MODEL="gemini-pro-agent"
+
+# Hybrid-2:
+# OPENAI_API_KEY="agw-code-hybrid-2-6e83"
+# DEFAULT_MODEL="claude-sonnet-4-6"
+
+# Debugging:
+# OPENAI_API_KEY="agw-debug-all-9c37"
+# DEFAULT_MODEL="claude-opus-4-6-thinking"
+
+================================================================================
+5. REMOTE AZURE VM TUNNEL SETUP (WINDOWS <-> AZURE)
+================================================================================
+# Option 1: Cloudflare Tunnel (Automatic HTTPS, No Port Forwarding)
+# Run on Windows:
+winget install Cloudflare.cloudflared
+cloudflared tunnel --url http://127.0.0.1:8999
+# Replace ${baseUrl} in Hermes config with: https://<YOUR_TUNNEL>.trycloudflare.com/v1
+
+# Option 2: Reverse SSH Tunnel
+# Run on Windows:
+ssh -N -R 8999:localhost:8999 azureuser@<AZURE_VM_IP>
+# Then in Hermes on Azure: base_url: "http://127.0.0.1:8999/v1"
+
+================================================================================
+6. QUICK VERIFICATION CURL TESTS
+================================================================================
+# Test Planning Key (Claude Opus Thinking):
+curl ${baseUrl}/chat/completions \\
+  -H "Authorization: Bearer agw-plan-claude-9x82" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "claude-opus-4-6-thinking", "messages": [{"role": "user", "content": "Ping"}]}'
+
+# Test Coding-1 Key (Gemini Flash Low):
+curl ${baseUrl}/chat/completions \\
+  -H "Authorization: Bearer agw-code-gemini-1-7b41" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "gemini-3.6-flash-low", "messages": [{"role": "user", "content": "Ping"}]}'
+
+# Test Hybrid-1 Key (Gemini Pro Agent):
+curl ${baseUrl}/chat/completions \\
+  -H "Authorization: Bearer agw-code-hybrid-1-4a29" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "gemini-pro-agent", "messages": [{"role": "user", "content": "Ping"}]}'
+
+# Test Hybrid-2 Key (Claude Sonnet 4.6):
+curl ${baseUrl}/chat/completions \\
+  -H "Authorization: Bearer agw-code-hybrid-2-6e83" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "claude-sonnet-4-6", "messages": [{"role": "user", "content": "Ping"}]}'
+
+# Test Debugging Key (Claude Opus Thinking):
+curl ${baseUrl}/chat/completions \\
+  -H "Authorization: Bearer agw-debug-all-9c37" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "claude-opus-4-6-thinking", "messages": [{"role": "user", "content": "Diagnose: connection refused"}]}'
+`;
+
+            return {
+                onepager: onepagerDoc,
+
+                prompt: `### Hermes Agent Setup Prompt (Copy & Paste to Hermes Agent)
+
+You are connected to an Antigravity Multi-Account Gateway at ${baseUrl}.
+The gateway has 7 specialized role-based providers configured with model family routing. Please configure your internal providers according to these specifications:
+
+1. PLANNING TASKS:
+   - Provider Name: "Planning"
+   - Base URL: "${baseUrl}"
+   - API Key: "agw-plan-claude-9x82"
+   - Model: "claude-opus-4-6-thinking" (also supports "claude-sonnet-4-6")
+   - Use For: Deep architectural reasoning, long-horizon planning, and system design.
+
+2. HIGH-VOLUME CODING & AGENTIC WORK (Tiered Gemini Flash):
+   - Provider "Coding-1": Key "agw-code-gemini-1-7b41", Model "gemini-3.6-flash-low" (High-volume implementation, quick iterations)
+   - Provider "Coding-2": Key "agw-code-gemini-2-3f19", Model "gemini-3.6-flash-medium" (General coding + agentic work)
+   - Provider "Coding-3": Key "agw-code-gemini-3-8d52", Model "gemini-3.6-flash-high" (Difficult implementation, refactors, multi-file reasoning)
+   - Base URL: "${baseUrl}"
+
+3. HYBRID AGENTS:
+   - Provider "Hybrid-1": Key "agw-code-hybrid-1-4a29", Model "gemini-pro-agent" (Strong Google agent-oriented alternative)
+   - Provider "Hybrid-2": Key "agw-code-hybrid-2-6e83", Model "claude-sonnet-4-6" (Independent Claude coding path)
+   - Base URL: "${baseUrl}"
+
+4. DEBUGGING & ROOT CAUSE ANALYSIS (All Models Allowed):
+   - Provider Name: "Debugging"
+   - Base URL: "${baseUrl}"
+   - API Key: "agw-debug-all-9c37"
+   - Model: "claude-opus-4-6-thinking" (also supports "gemini-3.6-flash-high", "claude-sonnet-4-6", "gpt-4o")
+   - Use For: Deep root-cause analysis, complex bug diagnosing, and stack trace investigations.
+
+Always supply "Authorization: Bearer <API_KEY>" and enable streaming ("stream": true) with tool calling support.`,
+
+                yaml: `# Complete 7-Provider Hermes Agent Configuration (~/.hermes/config.yaml):
+providers:
+  # 1. Planning Provider (Claude Opus 4.6 Thinking)
+  Planning:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-plan-claude-9x82"
+    default_model: "claude-opus-4-6-thinking"
+    models:
+      - id: claude-opus-4-6-thinking
+        name: "Anthropic Claude 4.6 Opus Thinking"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+      - id: claude-sonnet-4-6
+        name: "Anthropic Claude 4.6 Sonnet"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+
+  # 2. Coding Worker 1 (Gemini Flash Low Tier)
+  Coding-1:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-code-gemini-1-7b41"
+    default_model: "gemini-3.6-flash-low"
+    models:
+      - id: gemini-3.6-flash-low
+        name: "Google Gemini 3.8 Flash (Low Tier)"
+        capabilities: ["tools", "streaming", "vision"]
+      - id: gemini-3.8-flash-tiered
+        capabilities: ["tools", "streaming", "vision"]
+
+  # 3. Coding Worker 2 (Gemini Flash Medium Tier)
+  Coding-2:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-code-gemini-2-3f19"
+    default_model: "gemini-3.6-flash-medium"
+    models:
+      - id: gemini-3.6-flash-medium
+        name: "Google Gemini 3.8 Flash (Medium Tier)"
+        capabilities: ["tools", "streaming", "vision"]
+      - id: gemini-3.8-flash-tiered
+        capabilities: ["tools", "streaming", "vision"]
+
+  # 4. Coding Worker 3 (Gemini Flash High Tier / Agent)
+  Coding-3:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-code-gemini-3-8d52"
+    default_model: "gemini-3.6-flash-high"
+    models:
+      - id: gemini-3.6-flash-high
+        name: "Google Gemini 3.8 Flash (High Tier / Agent)"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+      - id: gemini-3.8-flash-tiered
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+
+  # 5. Hybrid Worker 1 (Gemini Pro Agent)
+  Hybrid-1:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-code-hybrid-1-4a29"
+    default_model: "gemini-pro-agent"
+    models:
+      - id: gemini-pro-agent
+        name: "Google Gemini Pro Agent"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+
+  # 6. Hybrid Worker 2 (Claude Sonnet 4.6)
+  Hybrid-2:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-code-hybrid-2-6e83"
+    default_model: "claude-sonnet-4-6"
+    models:
+      - id: claude-sonnet-4-6
+        name: "Anthropic Claude 4.6 Sonnet"
+        capabilities: ["tools", "streaming", "vision"]
+
+  # 7. Debugging Provider (Claude Opus 4.6 Thinking & All Models)
+  Debugging:
+    type: openai
+    base_url: "${baseUrl}"
+    api_key: "agw-debug-all-9c37"
+    default_model: "claude-opus-4-6-thinking"
+    models:
+      - id: claude-opus-4-6-thinking
+        name: "Anthropic Claude 4.6 Opus Thinking"
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+      - id: gemini-3.6-flash-high
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+      - id: claude-sonnet-4-6
+        capabilities: ["tools", "streaming", "thinking", "vision"]
+      - id: gpt-4o
+        capabilities: ["tools", "streaming", "vision"]`,
+
+                env: `# Environment variables for Hermes Agent:
+OPENAI_BASE_URL="${baseUrl}"
+# Planning:
+# OPENAI_API_KEY="agw-plan-claude-9x82"
+# DEFAULT_MODEL="claude-opus-4-6-thinking"
+
+# Coding-1:
+# OPENAI_API_KEY="agw-code-gemini-1-7b41"
+# DEFAULT_MODEL="gemini-3.6-flash-low"
+
+# Coding-2:
+# OPENAI_API_KEY="agw-code-gemini-2-3f19"
+# DEFAULT_MODEL="gemini-3.6-flash-medium"
+
+# Coding-3:
+# OPENAI_API_KEY="agw-code-gemini-3-8d52"
+# DEFAULT_MODEL="gemini-3.6-flash-high"
+
+# Hybrid-1:
+# OPENAI_API_KEY="agw-code-hybrid-1-4a29"
+# DEFAULT_MODEL="gemini-pro-agent"
+
+# Hybrid-2:
+# OPENAI_API_KEY="agw-code-hybrid-2-6e83"
+# DEFAULT_MODEL="claude-sonnet-4-6"
+
+# Debugging:
+# OPENAI_API_KEY="agw-debug-all-9c37"
+# DEFAULT_MODEL="claude-opus-4-6-thinking"`,
+
+                tunnel: `# If Hermes Agent is on an Azure VM and Gateway runs on Windows:
+
+# Option 1: Cloudflare Tunnel (Recommended - Zero port forwarding, automatic HTTPS)
+# Run on Windows workstation:
+winget install Cloudflare.cloudflared
+cloudflared tunnel --url http://127.0.0.1:8999
+# Copy the generated URL (https://your-tunnel.trycloudflare.com)
+# Replace ${baseUrl} in Hermes config with:
+# https://your-tunnel.trycloudflare.com/v1
+
+# Option 2: SSH Reverse Tunnel
+# Run on Windows:
+ssh -N -R 8999:localhost:8999 azureuser@<AZURE_VM_IP>
+# In Hermes on Azure VM:
+# base_url: "http://127.0.0.1:8999/v1"`,
+
+                curl: `# Test Planning Key with Claude Opus 4.6 Thinking:
+curl ${baseUrl}/chat/completions \\
+  -H "Authorization: Bearer agw-plan-claude-9x82" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "claude-opus-4-6-thinking",
+    "messages": [
+      {"role": "user", "content": "Outline a 3-step refactoring plan."}
+    ]
+  }'`
+            };
         }
+
+        function selectHermesTab(tabKey) {
+            activeTab = tabKey;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`tab-${tabKey}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const snippets = getHermesSnippets();
+            document.getElementById('hermesCodeSnippet').innerText = snippets[tabKey] || '';
+        }
+
+        function copySnippet() {
+            const snippets = getHermesSnippets();
+            const textToCopy = snippets[activeTab] || '';
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const oldText = btn.innerText;
+                btn.innerText = '✓ Copied!';
+                btn.style.color = '#34d399';
+                btn.style.borderColor = '#34d399';
+                setTimeout(() => {
+                    btn.innerText = oldText;
+                    btn.style.color = '';
+                    btn.style.borderColor = '';
+                }, 2000);
+            }).catch(err => {
+                showAlert('Failed to copy: ' + err.message, true);
+            });
+        }
+
+        function copyEntireOnePager() {
+            const snippets = getHermesSnippets();
+            const textToCopy = snippets['onepager'];
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const btn = document.getElementById('copyAllTopBtn');
+                const oldHtml = btn.innerHTML;
+                btn.innerHTML = '✓ Copied Everything to Clipboard!';
+                btn.style.background = 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
+                setTimeout(() => {
+                    btn.innerHTML = oldHtml;
+                    btn.style.background = '';
+                }, 2500);
+            }).catch(err => {
+                showAlert('Failed to copy one-pager: ' + err.message, true);
+            });
+        }
+
+        function downloadOnePager() {
+            const snippets = getHermesSnippets();
+            const textToDownload = snippets['onepager'];
+            const blob = new Blob([textToDownload], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'HERMES-INTEGRATION-ONE-PAGER.md';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize Hermes Guide to the complete One-Pager
+        selectHermesTab('onepager');
+
+        // Auto-run loadData on initial page load
+        loadData();
     </script>
 </body>
 </html>

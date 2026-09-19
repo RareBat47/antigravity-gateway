@@ -40,3 +40,12 @@ async def test_api_auth_and_health(test_config):
         v1_ok = await client.get("/v1/models", headers=v1_headers)
         assert v1_ok.status_code == 200
         assert "data" in v1_ok.json()
+
+        # Create test account and test reauth endpoint
+        await repo.upsert_account("acc-reauth-test", "reauth@test.com")
+        reauth_resp = await client.post("/admin/accounts/acc-reauth-test/reauth", headers=headers)
+        assert reauth_resp.status_code == 200
+        reauth_data = reauth_resp.json()
+        assert reauth_data["status"] == "pending_reauth"
+        assert "auth_url" in reauth_data
+        assert "code_verifier" in reauth_data

@@ -1,0 +1,63 @@
+"""Unit and integration tests for multi-API key management and model family restrictions."""
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+from agw.config import load_config
+from agw.main import create_app
+
+
+@pytest.mark.asyncio
+async def test_multi_api_key_role_restrictions():
+    cfg = load_config()
+    app = create_app(cfg)
+    transport = ASGITransport(app=app)
+
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # 1. Test Planning Key (Claude only)
+        plan_headers = {"Authorization": "Bearer agw-plan-claude-9x82"}
+        res_models = await client.get("/v1/models", headers=plan_headers)
+        assert res_models.status_code == 200
+        model_ids = [m["id"] for m in res_models.json()["data"]]
+        assert any("claude" in m for m in model_ids)
+        assert not any("gemini-2.5-flash" in m for m in model_ids)
+
+        # Disallow Gemini for planning key
+        res_fail = await client.post(
+            "/v1/chat/completions",
+            headers=plan_headers,
+            json={"model": "gemini-2.5-flash", "messages": [{"role": "user", "content": "Hi"}]},
+        )
+        assert res_fail.status_code == 403
+        assert "not permitted" in res_fail.json()["detail"]["error"]["message"]
+
+        # 2. Test Coding Key (Gemini only)
+        code_headers = {"Authorization": "Bearer agw-code-gemini-1-7b41"}
+        res_fail_claude = await client.post(
+            "/v1/chat/completions",
+            headers=code_headers,
+            json={"model": "claude-sonnet-4-6", "messages": [{"role": "user", "content": "Hi"}]},
+        )
+        assert res_fail_claude.status_code == 403
+
+        # 3. Test Hybrid Key (Gemini + GPT)
+        hybrid_headers = {"Authorization": "Bearer agw-code-hybrid-1-4a29"}
+        res_hybrid_models = await client.get("/v1/models", headers=hybrid_headers)
+        assert res_hybrid_models.status_code == 200
+        hybrid_ids = [m["id"] for m in res_hybrid_models.json()["data"]]
+        assert any("gemini" in m for m in hybrid_ids)
+        assert any("gpt" in m for m in hybrid_ids)
+        assert not any("claude" in m for m in hybrid_ids)
+
+        # 4. Test Debugging Key (All models)
+        debug_headers = {"Authorization": "Bearer agw-debug-all-9c37"}
+        res_debug_models = await client.get("/v1/models", headers=debug_headers)
+        assert res_debug_models.status_code == 200
+        debug_ids = [m["id"] for m in res_debug_models.json()["data"]]
+        assert any("claude" in m for m in debug_ids)
+        assert any("gemini" in m for m in debug_ids)
+        assert any("gpt" in m for m in debug_ids)
+
+        # 5. Test Invalid Key
+        bad_headers = {"Authorization": "Bearer invalid-key-xyz"}
+        res_bad = await client.get("/v1/models", headers=bad_headers)
+        assert res_bad.status_code == 401

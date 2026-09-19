@@ -11,6 +11,7 @@ from agw.constants import (
     RPC_FETCH_AVAILABLE_MODELS,
     RPC_GENERATE_CONTENT,
     RPC_LOAD_CODE_ASSIST,
+    RPC_ONBOARD_USER,
     RPC_STREAM_GENERATE_CONTENT,
 )
 
@@ -27,7 +28,28 @@ class CloudCodeClient:
         headers["Authorization"] = f"Bearer {access_token}"
         return headers
 
-    async def load_code_assist(self, access_token: str) -> Tuple[str, str]:
+    async def onboard_user(self, access_token: str) -> Optional[str]:
+        """Attempt to onboard user to Cloud Code Assist if not yet initialized."""
+        headers = self._build_headers(access_token)
+        body = {"metadata": CLIENT_METADATA}
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            for endpoint in reversed(self.endpoints):
+                url = f"{endpoint}/{RPC_ONBOARD_USER}"
+                try:
+                    resp = await client.post(url, headers=headers, json=body)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        if isinstance(data.get("cloudaicompanionProject"), str):
+                            return data["cloudaicompanionProject"]
+                        elif isinstance(data.get("cloudaicompanionProject"), dict):
+                            return data["cloudaicompanionProject"].get("id")
+                        elif isinstance(data.get("cloudaicompanion_project"), str):
+                            return data["cloudaicompanion_project"]
+                except Exception:
+                    pass
+        return None
+
+    async def load_code_assist(self, access_token: str, allow_onboard: bool = True) -> Tuple[str, str]:
         """
         Discover project ID and subscription tier via loadCodeAssist.
         Returns (project_id, tier).
@@ -70,10 +92,21 @@ class CloudCodeClient:
 
                         if project_id:
                             return project_id, tier
+
+                        # If response succeeded but project is empty, try onboarding
+                        if allow_onboard:
+                            onboard_proj = await self.onboard_user(access_token)
+                            if onboard_proj:
+                                return onboard_proj, tier
                     else:
                         last_err = f"HTTP {resp.status_code}: {resp.text[:200]}"
                 except Exception as e:
                     last_err = str(e)
+
+        if allow_onboard:
+            onboard_proj = await self.onboard_user(access_token)
+            if onboard_proj:
+                return onboard_proj, "unknown"
 
         raise RuntimeError(f"loadCodeAssist failed across all endpoints: {last_err}")
 

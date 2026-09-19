@@ -98,6 +98,7 @@ QUOTA_EXHAUSTED_BACKOFF_TIERS_SECONDS = [60, 300, 1800, 7200]
 # Supported model family identifiers
 FAMILY_GEMINI = "gemini"
 FAMILY_CLAUDE = "claude"
+FAMILY_GPT = "gpt"
 
 # Default Model Specifications
 DEFAULT_MODELS = {
@@ -149,5 +150,61 @@ DEFAULT_MODELS = {
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 16384,
         "description": "Anthropic Claude 4.6 Opus Thinking via Antigravity",
+    },
+    "gpt-4o": {
+        "upstream_id": "gemini-2.5-pro",
+        "family": FAMILY_GPT,
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 32768,
+        "description": "GPT-4o compatibility alias (served by Gemini 2.5 Pro)",
+    },
+    "gpt-oss-120b-medium": {
+        "upstream_id": "gpt-oss-120b-medium",
+        "family": FAMILY_GPT,
+        "capabilities": ["tools", "streaming"],
+        "max_output_tokens": 16384,
+        "description": "GPT OSS 120B Medium (Antigravity)",
+    },
+    "claude-opus-4-6-thinking": {
+        "upstream_id": "claude-opus-4-6-thinking",
+        "family": FAMILY_CLAUDE,
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 16384,
+        "description": "Anthropic Claude 4.6 Opus Thinking (Antigravity)",
+    },
+    "gemini-3.8-flash-tiered": {
+        "upstream_id": "gemini-3.8-flash-tiered",
+        "family": FAMILY_GEMINI,
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 65536,
+        "description": "Google Gemini 3.8 Flash Tiered (Antigravity)",
+    },
+    "gemini-3.6-flash-low": {
+        "upstream_id": "gemini-3.6-flash-low",
+        "family": FAMILY_GEMINI,
+        "capabilities": ["tools", "streaming", "vision"],
+        "max_output_tokens": 65536,
+        "description": "Google Gemini 3.6 Flash Low (Antigravity)",
+    },
+    "gemini-3.6-flash-medium": {
+        "upstream_id": "gemini-3.6-flash-medium",
+        "family": FAMILY_GEMINI,
+        "capabilities": ["tools", "streaming", "vision"],
+        "max_output_tokens": 65536,
+        "description": "Google Gemini 3.6 Flash Medium (Antigravity)",
+    },
+    "gemini-3.6-flash-high": {
+        "upstream_id": "gemini-3.6-flash-high",
+        "family": FAMILY_GEMINI,
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 65536,
+        "description": "Google Gemini 3.6 Flash High (Antigravity Agent Model)",
+    },
+    "gemini-pro-agent": {
+        "upstream_id": "gemini-pro-agent",
+        "family": FAMILY_GEMINI,
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 65536,
+        "description": "Google Gemini Pro Agent (Antigravity)",
     },
 }

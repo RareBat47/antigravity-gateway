@@ -68,8 +68,12 @@ async def oai_messages_to_gemini(
                     "response": response_obj,
                 }
             }
-            # Merge with previous user turn if already present
-            if contents and contents[-1].get("role") == "user":
+            # Only merge if previous turn is a user turn that ONLY contains functionResponse
+            if (
+                contents
+                and contents[-1].get("role") == "user"
+                and all("functionResponse" in p for p in contents[-1].get("parts", []))
+            ):
                 contents[-1]["parts"].append(part)
             else:
                 contents.append({"role": "user", "parts": [part]})
@@ -79,7 +83,30 @@ async def oai_messages_to_gemini(
         gemini_role = "user" if role == "user" else "model"
         parts: List[Dict[str, Any]] = []
 
-        # Handle tool calls made by assistant
+        # Include thought/reasoning content if present from assistant
+        if role == "assistant":
+            thought_text = msg.get("reasoning_content") or msg.get("thought")
+            if isinstance(thought_text, str) and thought_text:
+                parts.append({"thought": True, "text": thought_text})
+
+        # Process content (str or list of parts) - text goes BEFORE functionCall in Gemini
+        if isinstance(raw_content, str) and raw_content:
+            parts.append({"text": raw_content})
+        elif isinstance(raw_content, list):
+            for block in raw_content:
+                if not isinstance(block, dict):
+                    continue
+                b_type = block.get("type", "")
+                if b_type == "text" and block.get("text"):
+                    parts.append({"text": block["text"]})
+                elif b_type == "image_url":
+                    img_dict = block.get("image_url", {})
+                    url = img_dict.get("url") if isinstance(img_dict, dict) else img_dict
+                    img_part = await process_image_url(url)
+                    if img_part:
+                        parts.append(img_part)
+
+        # Handle tool calls made by assistant (must follow text parts)
         if role == "assistant" and msg.get("tool_calls"):
             for tc in msg["tool_calls"]:
                 fn = tc.get("function", {})
@@ -98,32 +125,24 @@ async def oai_messages_to_gemini(
                     }
                 })
 
-        # Process content (str or list of parts)
-        if isinstance(raw_content, str) and raw_content:
-            parts.append({"text": raw_content})
-        elif isinstance(raw_content, list):
-            for block in raw_content:
-                if not isinstance(block, dict):
-                    continue
-                b_type = block.get("type", "")
-                if b_type == "text" and block.get("text"):
-                    parts.append({"text": block["text"]})
-                elif b_type == "image_url":
-                    img_dict = block.get("image_url", {})
-                    url = img_dict.get("url") if isinstance(img_dict, dict) else img_dict
-                    img_part = await process_image_url(url)
-                    if img_part:
-                        parts.append(img_part)
-
         if parts:
-            # Enforce alternation: if consecutive turns have same role, combine them
-            if contents and contents[-1].get("role") == gemini_role:
+            # Enforce alternation: if consecutive turns have same role, combine them unless mixing functionResponse
+            can_merge = (
+                contents
+                and contents[-1].get("role") == gemini_role
+                and not any("functionResponse" in p for p in contents[-1].get("parts", []))
+            )
+            if can_merge:
                 contents[-1]["parts"].extend(parts)
             else:
                 contents.append({"role": gemini_role, "parts": parts})
 
     if system_parts:
         system_instruction = {"parts": system_parts}
+
+    # Ensure first turn is user
+    if contents and contents[0].get("role") != "user":
+        contents.insert(0, {"role": "user", "parts": [{"text": "Hello"}]})
 
     return contents, system_instruction
 
@@ -156,7 +175,8 @@ def gemini_response_to_openai(
     request_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Convert Cloud Code / Gemini response payload into OpenAI ChatCompletion."""
-    candidates = response_payload.get("candidates", [])
+    inner = response_payload.get("response") if isinstance(response_payload.get("response"), dict) else response_payload
+    candidates = inner.get("candidates", [])
     candidate = candidates[0] if candidates else {}
     content_obj = candidate.get("content", {})
     parts = content_obj.get("parts", [])
@@ -165,14 +185,22 @@ def gemini_response_to_openai(
     reasoning_pieces = []
 
     for p in parts:
-        if "text" in p and p["text"]:
-            text_pieces.append(p["text"])
-        if "thought" in p and p["thought"]:
-            reasoning_pieces.append(p["thought"])
+        is_thought = bool(p.get("thought"))
+        if is_thought:
+            t_val = p.get("thought")
+            thought_str = t_val if isinstance(t_val, str) else p.get("text", "")
+            if thought_str:
+                reasoning_pieces.append(str(thought_str))
+        else:
+            if "text" in p and p["text"]:
+                text_pieces.append(str(p["text"]))
 
-    content_str = "".join(text_pieces) if text_pieces else None
-    reasoning_str = "".join(reasoning_pieces) if reasoning_pieces else None
     tool_calls = extract_gemini_tool_calls(parts)
+    if text_pieces:
+        content_str = "".join(text_pieces)
+    else:
+        content_str = None if tool_calls else ""
+    reasoning_str = "".join(reasoning_pieces) if reasoning_pieces else None
 
     finish_reason = "stop"
     if tool_calls:
@@ -189,7 +217,7 @@ def gemini_response_to_openai(
     if reasoning_str:
         message["reasoning_content"] = reasoning_str
 
-    usage_meta = response_payload.get("usageMetadata", {})
+    usage_meta = inner.get("usageMetadata", {})
     prompt_tokens = usage_meta.get("promptTokenCount", 0)
     completion_tokens = usage_meta.get("candidatesTokenCount", 0)
 

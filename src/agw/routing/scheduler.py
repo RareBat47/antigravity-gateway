@@ -56,7 +56,10 @@ class AccountScheduler:
             # Check remaining fraction
             rem_frac = quota_snapshot.get("remaining_fraction")
             if rem_frac is not None:
-                quota_score = rem_frac * 100.0
+                if rem_frac < self.settings.global_quota_threshold:
+                    quota_score = (rem_frac * 100.0) - 100.0  # Heavy penalty while preserving relative quota order
+                else:
+                    quota_score = rem_frac * 100.0
 
         # 4. LRU Freshness
         last_used = self._last_used_timestamps.get(acc_id, 0.0)
@@ -89,6 +92,7 @@ class AccountScheduler:
         all_accounts = await self.repo.list_accounts()
         excluded = set(exclude_account_ids or [])
         candidates = []
+        exhausted_candidates = []
 
         for acc in all_accounts:
             acc_id = acc["id"]
@@ -112,19 +116,24 @@ class AccountScheduler:
             family_quotas = [q for q in quotas if q.get("model_family") == model_family]
             quota_record = family_quotas[0] if family_quotas else None
 
+            is_exhausted = False
             # Check if critically exhausted (< threshold)
             if quota_record and quota_record.get("remaining_fraction") is not None:
                 rem = quota_record["remaining_fraction"]
                 if rem < self.settings.global_quota_threshold:
-                    # Deprioritize or skip if others are available
-                    pass
+                    is_exhausted = True
 
             score = self._calculate_score(acc, model_family, quota_record)
-            candidates.append((acc, score))
+            if is_exhausted:
+                exhausted_candidates.append((acc, score))
+            else:
+                candidates.append((acc, score))
 
+        # If healthy candidates are available, prefer them and skip exhausted accounts
+        ranked = candidates if candidates else exhausted_candidates
         # Sort descending by score
-        candidates.sort(key=lambda x: x[1], reverse=True)
-        return candidates
+        ranked.sort(key=lambda x: x[1], reverse=True)
+        return ranked
 
     async def select_account(
         self,

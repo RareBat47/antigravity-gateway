@@ -14,6 +14,13 @@ from rich.table import Table
 from agw.auth.oauth import build_auth_url, generate_pkce
 from agw.config import load_config
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 console = Console()
 
 
@@ -373,7 +380,7 @@ def test_cmd(model: str):
             data = resp.json()
             content = data["choices"][0]["message"]["content"]
             account_used = resp.headers.get("x-agw-account", "unknown")
-            console.print(Panel(f"[green]Response:[/green] {content.strip()}\n[dim]Served by: {account_used}[/dim]", title="✓ Test Successful"))
+            console.print(Panel(f"[green]Response:[/green] {content.strip()}\n[dim]Served by: {account_used}[/dim]", title="[OK] Test Successful"))
         else:
             console.print(f"[red]Test failed ({resp.status_code}): {resp.text}[/red]")
             sys.exit(1)

@@ -47,7 +47,10 @@ logs/
 .idea/
 *.swp
 *.swo
+.kilo/
+scratch/
 
 # OS
 .DS_Store
 Thumbs.db
+

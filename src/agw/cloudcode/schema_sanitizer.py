@@ -25,6 +25,11 @@ DISALLOWED_KEYS = {
     "else",
     "not",
     "additionalProperties",
+    "default",
+    "title",
+    "$ref",
+    "examples",
+    "example",
 }
 
 
@@ -39,42 +44,55 @@ def clean_gemini_schema(schema: Any) -> Any:
 
     # Handle const -> enum
     if "const" in schema:
-        cleaned["enum"] = [schema["const"]]
-        if "type" not in schema:
-            val = schema["const"]
-            if isinstance(val, str):
-                cleaned["type"] = "string"
-            elif isinstance(val, bool):
-                cleaned["type"] = "boolean"
-            elif isinstance(val, int):
-                cleaned["type"] = "integer"
-            elif isinstance(val, float):
-                cleaned["type"] = "number"
+        val = schema["const"]
+        if val is None:
+            cleaned["nullable"] = True
+        else:
+            cleaned["enum"] = [val]
+            if "type" not in schema:
+                if isinstance(val, str):
+                    cleaned["type"] = "string"
+                elif isinstance(val, bool):
+                    cleaned["type"] = "boolean"
+                elif isinstance(val, int):
+                    cleaned["type"] = "integer"
+                elif isinstance(val, float):
+                    cleaned["type"] = "number"
 
     # Handle type lists e.g. ["string", "null"]
     if "type" in schema:
         t = schema["type"]
         if isinstance(t, list):
-            # Prefer non-null type and set nullable
             non_null = [x for x in t if x != "null"]
-            cleaned["type"] = non_null[0] if non_null else "string"
+            cleaned["type"] = non_null[0].lower() if non_null else "string"
             if "null" in t:
                 cleaned["nullable"] = True
-        else:
-            cleaned["type"] = t
+        elif isinstance(t, str):
+            if t.lower() == "null":
+                cleaned["nullable"] = True
+            else:
+                cleaned["type"] = t.lower()
 
     # Handle anyOf / oneOf / allOf
     for combinator in ["anyOf", "oneOf", "allOf"]:
         if combinator in schema and isinstance(schema[combinator], list):
             items = schema[combinator]
-            # Find first schema with concrete type
+            # Detect nullability across any combinator branch
             for sub in items:
-                if isinstance(sub, dict) and "type" in sub:
+                if isinstance(sub, dict):
+                    if sub.get("type") == "null" or ("type" in sub and "null" in sub["type"]):
+                        cleaned["nullable"] = True
+
+            # Find first non-null concrete schema
+            for sub in items:
+                if isinstance(sub, dict):
                     sub_cleaned = clean_gemini_schema(sub)
-                    for k, v in sub_cleaned.items():
-                        if k not in cleaned:
-                            cleaned[k] = v
-                    break
+                    sub_type = sub_cleaned.get("type")
+                    if sub_type and sub_type != "null":
+                        for k, v in sub_cleaned.items():
+                            if k not in cleaned:
+                                cleaned[k] = v
+                        break
 
     # Copy allowed fields
     for k, v in schema.items():
@@ -90,6 +108,10 @@ def clean_gemini_schema(schema: Any) -> Any:
     # Ensure object type has properties if declared
     if cleaned.get("type") == "object" and "properties" not in cleaned:
         cleaned["properties"] = {}
+
+    # Ensure array type has items schema
+    if cleaned.get("type") == "array" and "items" not in cleaned:
+        cleaned["items"] = {"type": "string"}
 
     return cleaned
 

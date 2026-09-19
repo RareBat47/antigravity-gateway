@@ -168,9 +168,8 @@ class AccountManager:
             tok_resp = await refresh_access_token(refresh_tok, cid, csec)
         except Exception as e:
             if "invalid_grant" in str(e).lower():
-                await self.repo.upsert_account(
+                await self.repo.update_account_status(
                     account_id=account_id,
-                    email_safe="revoked",
                     status="invalid_grant",
                     enabled=False,
                 )

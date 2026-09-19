@@ -136,11 +136,12 @@ class QuotaMonitor:
             gemini_str = f"{int(round(snapshot.gemini_average_fraction * 100))}%" if (snapshot and snapshot.gemini_average_fraction is not None) else "unknown"
             claude_str = f"{int(round(snapshot.claude_average_fraction * 100))}%" if (snapshot and snapshot.claude_average_fraction is not None) else "unknown"
 
-            # Check cooldown
-            active_cooldowns = await self.repo.get_active_cooldown(acc_id, "all") or await self.repo.get_active_cooldown(acc_id, "gemini")
+            # Check all active cooldowns (gemini, claude, all)
+            active_cds = await self.repo.get_account_cooldowns(acc_id)
             cooldown_str = "none"
-            if active_cooldowns:
-                cooldown_str = f"active ({active_cooldowns.get('reason', 'rate_limited')})"
+            if active_cds:
+                details = [f"{c['target_family']}: {c.get('reason', 'cooldown')}" for c in active_cds]
+                cooldown_str = f"active ({', '.join(details)})"
 
             # Health
             status_str = "healthy"
@@ -160,7 +161,10 @@ class QuotaMonitor:
 
         # Save JSON state
         save_quota_state_json(
-            {acc_id: s.dict() for acc_id, s in self._latest_snapshots.items()},
+            {
+                acc_id: (s.model_dump(mode="json") if hasattr(s, "model_dump") else s.dict())
+                for acc_id, s in self._latest_snapshots.items()
+            },
             self.quota_state_path,
         )
 

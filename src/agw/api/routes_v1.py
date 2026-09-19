@@ -46,19 +46,44 @@ def create_v1_router(
     router = APIRouter(prefix="/v1", tags=["OpenAI Compatible API"], dependencies=[Depends(verify_key)])
 
     @router.get("/models")
-    async def list_models():
-        """OpenAI-compatible /v1/models endpoint."""
+    async def list_models(request: Request):
+        """OpenAI-compatible /v1/models endpoint filtered by API key permissions."""
+        all_models = model_registry.list_models_openai()
+        key_info = getattr(request.state, "api_key_info", None)
+        if not key_info:
+            return {"object": "list", "data": all_models}
+
+        allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
+        allowed_models = key_info.get("allowed_models", [])
+        if "all" in allowed_fams:
+            return {"object": "list", "data": all_models}
+
+        filtered = []
+        for m in all_models:
+            mid = m["id"]
+            _, m_fam, _ = model_registry.resolve_upstream(mid)
+            if m_fam in allowed_fams or mid in allowed_models:
+                filtered.append(m)
         return {
             "object": "list",
-            "data": model_registry.list_models_openai(),
+            "data": filtered,
         }
 
     @router.get("/models/{model_id:path}")
-    async def get_model(model_id: str):
+    async def get_model(model_id: str, request: Request):
         """OpenAI-compatible /v1/models/{model_id} endpoint."""
         m = model_registry.get_model(model_id)
         if not m:
             raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
+
+        key_info = getattr(request.state, "api_key_info", None)
+        if key_info:
+            allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
+            allowed_models = key_info.get("allowed_models", [])
+            _, m_fam, _ = model_registry.resolve_upstream(model_id)
+            if "all" not in allowed_fams and m_fam not in allowed_fams and model_id not in allowed_models:
+                raise HTTPException(status_code=403, detail=f"Access to model '{model_id}' is restricted for this API key")
+
         return {
             "id": model_id,
             "object": "model",
@@ -96,6 +121,27 @@ def create_v1_router(
         is_streaming = bool(body.get("stream", False))
 
         upstream_id, family, max_tokens = model_registry.resolve_upstream(model_id)
+
+        # Enforce API Key permissions
+        key_info = getattr(request.state, "api_key_info", None)
+        if key_info:
+            allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
+            allowed_models = key_info.get("allowed_models", [])
+            if (
+                "all" not in allowed_fams
+                and family.lower() not in allowed_fams
+                and model_id not in allowed_models
+            ):
+                raise HTTPException(
+                    status_code=403,
+                    detail={
+                        "error": {
+                            "message": f"Model '{model_id}' (family '{family}') is not permitted for API key '{key_info.get('name')}'. Allowed families: {allowed_fams}",
+                            "type": "permission_denied",
+                        }
+                    },
+                )
+
         messages = body.get("messages", [])
         if not messages:
             raise HTTPException(status_code=400, detail="messages cannot be empty")
@@ -258,12 +304,31 @@ def create_v1_router(
             await repo.record_health_event(acc_id, err_category, raw_text[:200], latency_ms)
             last_error_detail = f"Upstream HTTP {status_code}: {raw_text[:150]}"
 
-        # If loop exhausts
+        # If loop exhausts, check if accounts exist but are in cooldown
+        if not attempted_accounts:
+            all_accounts = await repo.list_accounts()
+            active_cooldowns = await repo.list_all_active_cooldowns()
+            family_cds = [
+                c for c in active_cooldowns
+                if c.get("target_family") in (family, "all")
+            ]
+            if family_cds:
+                earliest_exp = min(c.get("cooldown_until", "") for c in family_cds)
+                last_error_detail = (
+                    f"All connected accounts for model family '{family}' are in cooldown "
+                    f"due to upstream rate limits (resets around {earliest_exp} UTC). "
+                    f"Tip: Add 1-2 additional Google accounts in /admin/dashboard for automatic failover."
+                )
+            elif not all_accounts:
+                last_error_detail = "No Google accounts are connected. Please click '+ Add Google Account' in /admin/dashboard."
+            else:
+                last_error_detail = f"Connected accounts are disabled or lack credentials for family '{family}'."
+
         raise HTTPException(
             status_code=503,
             detail={
                 "error": {
-                    "message": f"All available accounts exhausted or rate-limited. Last error: {last_error_detail}",
+                    "message": f"All available accounts exhausted or rate-limited. {last_error_detail}",
                     "type": "account_pool_exhausted",
                     "code": 503,
                 }

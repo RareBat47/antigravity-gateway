@@ -3,7 +3,7 @@
 import logging
 import re
 import time
-from typing import Callable
+from typing import Callable, Optional
 from fastapi import HTTPException, Request, Response, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -37,19 +37,48 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_api_key_auth(config: AppConfig) -> Callable:
-    """Dependency for client API key verification (/v1/*)."""
+    """Dependency for client API key verification (/v1/*) with role/model permissions."""
     async def verify_gateway_key(
-        auth: HTTPAuthorizationCredentials = Security(bearer_scheme),
+        request: Request,
+        auth: Optional[HTTPAuthorizationCredentials] = Security(bearer_scheme),
     ) -> str:
-        expected = config.security.gateway_api_key
-        if not expected:
-            return "anon"
-        if not auth or auth.credentials != expected:
+        provided = None
+        if auth and auth.credentials:
+            provided = auth.credentials
+        elif header_key := (request.headers.get("x-api-key") or request.headers.get("api-key")):
+            provided = header_key.strip()
+
+        if not provided:
             raise HTTPException(
                 status_code=401,
                 detail={"error": {"message": "Invalid or missing Gateway API key", "type": "auth_error"}},
             )
-        return auth.credentials
+
+        # 1. Check primary master gateway key
+        if config.security.gateway_api_key and provided == config.security.gateway_api_key:
+            request.state.api_key_info = {
+                "key": provided,
+                "name": "master-default",
+                "allowed_families": ["all"],
+                "allowed_models": [],
+            }
+            return provided
+
+        # 2. Check multi-key pool
+        for entry in config.security.api_keys:
+            if provided == entry.key:
+                request.state.api_key_info = {
+                    "key": entry.key,
+                    "name": entry.name,
+                    "allowed_families": [f.lower() for f in entry.allowed_families],
+                    "allowed_models": entry.allowed_models,
+                }
+                return provided
+
+        raise HTTPException(
+            status_code=401,
+            detail={"error": {"message": "Invalid Gateway API key", "type": "auth_error"}},
+        )
 
     return verify_gateway_key
 
@@ -57,17 +86,29 @@ def get_api_key_auth(config: AppConfig) -> Callable:
 def get_admin_key_auth(config: AppConfig) -> Callable:
     """Dependency for admin API key verification (/admin/*)."""
     async def verify_admin_key(
-        auth: HTTPAuthorizationCredentials = Security(bearer_scheme),
+        request: Request,
+        auth: Optional[HTTPAuthorizationCredentials] = Security(bearer_scheme),
     ) -> str:
         expected = config.security.admin_api_key
         if not expected:
             return "anon"
-        if not auth or auth.credentials != expected:
+
+        provided = None
+        if auth and auth.credentials:
+            provided = auth.credentials
+        elif header_key := (
+            request.headers.get("x-admin-key")
+            or request.headers.get("x-api-key")
+            or request.headers.get("api-key")
+        ):
+            provided = header_key.strip()
+
+        if not provided or provided != expected:
             raise HTTPException(
                 status_code=401,
                 detail={"error": {"message": "Invalid or missing Admin API key", "type": "admin_auth_error"}},
             )
-        return auth.credentials
+        return provided
 
     return verify_admin_key
 

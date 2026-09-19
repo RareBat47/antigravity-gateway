@@ -35,6 +35,8 @@ async def parse_and_transform_sse_stream(
 
     buffer = ""
     finish_reason_seen = None
+    has_tool_calls = False
+    last_usage: Optional[Dict[str, int]] = None
 
     async for status_code, line in upstream_stream:
         if status_code != 200:
@@ -69,7 +71,17 @@ async def parse_and_transform_sse_stream(
             except Exception:
                 continue
 
-            candidates = data.get("candidates", [])
+            inner = data.get("response") if isinstance(data.get("response"), dict) else data
+
+            if "usageMetadata" in inner:
+                meta = inner["usageMetadata"]
+                last_usage = {
+                    "prompt_tokens": meta.get("promptTokenCount", 0),
+                    "completion_tokens": meta.get("candidatesTokenCount", 0),
+                    "total_tokens": meta.get("totalTokenCount", 0),
+                }
+
+            candidates = inner.get("candidates", [])
             if not candidates:
                 continue
 
@@ -80,8 +92,28 @@ async def parse_and_transform_sse_stream(
 
             parts = cand.get("content", {}).get("parts", [])
             for p in parts:
-                # Text delta
-                if "text" in p and p["text"]:
+                is_thought = bool(p.get("thought"))
+                # Reasoning / Thought delta
+                if is_thought:
+                    t_val = p.get("thought")
+                    thought_str = t_val if isinstance(t_val, str) else p.get("text", "")
+                    if thought_str:
+                        chunk = {
+                            "id": req_id,
+                            "object": "chat.completion.chunk",
+                            "created": created,
+                            "model": model_id,
+                            "choices": [
+                                {
+                                    "index": 0,
+                                    "delta": {"reasoning_content": str(thought_str)},
+                                    "finish_reason": None,
+                                }
+                            ],
+                        }
+                        yield f"data: {json.dumps(chunk)}\n\n"
+                # Text delta (only if not a thought)
+                elif "text" in p and p["text"]:
                     chunk = {
                         "id": req_id,
                         "object": "chat.completion.chunk",
@@ -97,25 +129,9 @@ async def parse_and_transform_sse_stream(
                     }
                     yield f"data: {json.dumps(chunk)}\n\n"
 
-                # Reasoning / Thought delta
-                if "thought" in p and p["thought"]:
-                    chunk = {
-                        "id": req_id,
-                        "object": "chat.completion.chunk",
-                        "created": created,
-                        "model": model_id,
-                        "choices": [
-                            {
-                                "index": 0,
-                                "delta": {"reasoning_content": p["thought"]},
-                                "finish_reason": None,
-                            }
-                        ],
-                    }
-                    yield f"data: {json.dumps(chunk)}\n\n"
-
                 # Tool call delta
                 if "functionCall" in p:
+                    has_tool_calls = True
                     fn = p["functionCall"]
                     args = fn.get("args", {})
                     args_str = json.dumps(args) if isinstance(args, dict) else str(args)
@@ -140,15 +156,15 @@ async def parse_and_transform_sse_stream(
                                         }
                                     ]
                                 },
-                                "finish_reason": "tool_calls",
+                                "finish_reason": None,
                             }
                         ],
                     }
-                    finish_reason_seen = "tool_calls"
                     yield f"data: {json.dumps(chunk)}\n\n"
 
     # Final chunk with finish reason
-    final_chunk = {
+    effective_finish = "tool_calls" if has_tool_calls else (finish_reason_seen or "stop")
+    final_chunk: Dict[str, Any] = {
         "id": req_id,
         "object": "chat.completion.chunk",
         "created": created,
@@ -157,9 +173,12 @@ async def parse_and_transform_sse_stream(
             {
                 "index": 0,
                 "delta": {},
-                "finish_reason": finish_reason_seen or "stop",
+                "finish_reason": effective_finish,
             }
         ],
     }
+    if last_usage:
+        final_chunk["usage"] = last_usage
+
     yield f"data: {json.dumps(final_chunk)}\n\n"
     yield "data: [DONE]\n\n"
