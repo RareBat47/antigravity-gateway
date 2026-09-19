@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
+
+# Data & secrets
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+data/*.key
+data/*.enc
+data/quota-state.json
+.env
+
+# Testing & logs
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

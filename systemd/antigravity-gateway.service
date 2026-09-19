@@ -1,0 +1,32 @@
+[Unit]
+Description=Antigravity Multi-Account Gateway for Hermes Agent
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=antigravity
+Group=antigravity
+WorkingDirectory=/opt/antigravity-gateway
+EnvironmentFile=-/opt/antigravity-gateway/.env
+ExecStart=/opt/antigravity-gateway/.venv/bin/python -m uvicorn agw.main:app --host 0.0.0.0 --port 8999
+Restart=always
+RestartSec=5s
+
+# Security Hardening
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/antigravity-gateway/data /opt/antigravity-gateway/docs
+PrivateTmp=true
+NoNewPrivileges=true
+CapabilityBoundingSet=
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictNamespaces=true
+
+# Resource Limits
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

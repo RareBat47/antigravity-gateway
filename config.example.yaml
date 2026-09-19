@@ -1,0 +1,66 @@
+server:
+  host: "0.0.0.0"
+  port: 8999
+  debug: false
+  public_base_url: ""
+
+security:
+  gateway_api_key: "agw-hermes-secret-key-change-me"
+  admin_api_key: "agw-admin-super-secret-key-change-me"
+  encryption_key: ""
+  rate_limit_per_minute: 120
+  cors_origins: []
+
+storage:
+  database_path: "data/gateway.db"
+  vault_key_path: "data/vault.key"
+  quota_state_path: "data/quota-state.json"
+  status_report_path: "docs/account-status.md"
+
+scheduler:
+  strategy: "hybrid"
+  weights:
+    health: 2.0
+    tokens: 5.0
+    quota: 3.0
+    lru: 0.1
+  global_quota_threshold: 0.05
+  max_account_retries: 3
+  default_cooldown_seconds: 60
+  cooldown_tiers_seconds:
+    - 60
+    - 300
+    - 1800
+    - 7200
+
+quota_monitor:
+  enabled: true
+  interval_seconds: 300
+  stale_threshold_seconds: 600
+
+models:
+  gemini-3.5-flash:
+    upstream_id: "gemini-3.5-flash-low"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 65536
+  gemini-3.1-pro:
+    upstream_id: "gemini-3.1-pro-low"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 65536
+  gemini-3-flash:
+    upstream_id: "gemini-3-flash"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision"]
+    max_output_tokens: 32768
+  claude-sonnet-4-6:
+    upstream_id: "claude-sonnet-4-6"
+    family: "claude"
+    capabilities: ["tools", "streaming", "vision"]
+    max_output_tokens: 16384
+  claude-opus-4-6:
+    upstream_id: "claude-opus-4-6-thinking"
+    family: "claude"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 16384
