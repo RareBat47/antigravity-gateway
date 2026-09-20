@@ -43,6 +43,15 @@ Write-Host "[OK] Environment configured: " -NoNewline -ForegroundColor Green
 Write-Host "PYTHONPATH set to $srcPath" -ForegroundColor Gray
 Write-Host ""
 
+# Check if port 8999 is already in use by a previous instance and clean it up
+$portCheck = Get-NetTCPConnection -LocalPort 8999 -State Listen -ErrorAction SilentlyContinue
+if ($portCheck) {
+    $existingPid = $portCheck[0].OwningProcess
+    Write-Host "[INFO] Port 8999 occupied by PID $existingPid. Restarting process for fresh startup..." -ForegroundColor Yellow
+    Stop-Process -Id $existingPid -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 1
+}
+
 Write-Host "================================================================================" -ForegroundColor DarkCyan
 Write-Host "                             SERVICE ACCESS LINKS                               " -ForegroundColor White
 Write-Host "================================================================================" -ForegroundColor DarkCyan
