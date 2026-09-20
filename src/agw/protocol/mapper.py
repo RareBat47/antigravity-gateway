@@ -63,11 +63,15 @@ async def oai_messages_to_gemini(
 
             response_obj = content_val if isinstance(content_val, dict) else {"result": content_val}
 
+            fn_resp_dict: Dict[str, Any] = {
+                "name": fn_name,
+                "response": response_obj,
+            }
+            if tool_call_id:
+                fn_resp_dict["id"] = str(tool_call_id)
+
             part = {
-                "functionResponse": {
-                    "name": fn_name,
-                    "response": response_obj,
-                }
+                "functionResponse": fn_resp_dict
             }
             # Only merge if previous turn is a user turn that ONLY contains functionResponse
             if (
@@ -160,10 +164,13 @@ async def oai_messages_to_gemini(
                 if not sig:
                     sig = "skip_thought_signature_validator"
 
+                call_id = tc.get("id") or tc.get("call_id") or f"call_{fn.get('name')}"
                 fn_call_dict = {
                     "name": fn.get("name"),
                     "args": args,
                 }
+                if call_id:
+                    fn_call_dict["id"] = str(call_id)
                 parts.append({
                     "functionCall": fn_call_dict,
                     "thoughtSignature": sig,

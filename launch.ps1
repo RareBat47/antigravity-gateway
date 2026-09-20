@@ -1,3 +1,8 @@
+param (
+    [switch]$Hermes,
+    [switch]$NoBrowser
+)
+
 # Antigravity Gateway PowerShell Launcher
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $Host.UI.RawUI.WindowTitle = "Antigravity Gateway - Control Console"
@@ -71,11 +76,21 @@ Write-Host "[INFO] Starting Gateway Server... Live logs will stream below." -For
 Write-Host "[INFO] Press Ctrl+C at any time to stop the server." -ForegroundColor DarkGray
 Write-Host ""
 
-# Open browser dashboard in background after short delay
-Start-Job -ScriptBlock {
-    Start-Sleep -Seconds 2
-    Start-Process "http://127.0.0.1:8999/admin/dashboard"
-} | Out-Null
+# Open browser dashboard in background after short delay unless -NoBrowser
+if (-not $NoBrowser) {
+    Start-Job -ScriptBlock {
+        Start-Sleep -Seconds 2
+        Start-Process "http://127.0.0.1:8999/admin/dashboard"
+    } | Out-Null
+}
+
+# Launch Hermes session if -Hermes flag is provided
+if ($Hermes) {
+    Start-Job -ScriptBlock {
+        Start-Sleep -Seconds 3
+        Start-Process "powershell.exe" -ArgumentList "-NoExit", "-Command", "hermes"
+    } | Out-Null
+}
 
 # Run Server
 try {
