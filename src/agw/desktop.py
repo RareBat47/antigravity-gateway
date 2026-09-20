@@ -18,14 +18,23 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-# Ensure working directory is executable directory or current directory
+# Ensure working directory is correctly resolved to project/data root
 if getattr(sys, "frozen", False):
-    # Running as compiled PyInstaller executable
-    app_dir = Path(sys.executable).parent.resolve()
+    exe_dir = Path(sys.executable).parent.resolve()
+    cwd = Path.cwd().resolve()
+    if (cwd / "config.yaml").is_file() or (cwd / "data").is_dir():
+        app_dir = cwd
+    elif (exe_dir / "config.yaml").is_file() or (exe_dir / "data").is_dir():
+        app_dir = exe_dir
+    elif exe_dir.name.lower() == "dist" and ((exe_dir.parent / "config.yaml").is_file() or (exe_dir.parent / "data").is_dir()):
+        app_dir = exe_dir.parent
+    else:
+        app_dir = exe_dir
     os.chdir(app_dir)
 else:
     app_dir = Path(__file__).resolve().parent.parent.parent
     os.chdir(app_dir)
+
 
 # Ensure data directory exists
 (app_dir / "data").mkdir(parents=True, exist_ok=True)
