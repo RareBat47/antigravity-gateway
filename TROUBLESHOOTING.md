@@ -73,3 +73,23 @@ The Google account password was changed, or the OAuth grant was revoked by Googl
    ```bash
    agw accounts remove <account_id>
    ```
+
+---
+
+## 5. `loadCodeAssist failed across all endpoints: None`
+
+### Symptom
+Adding a new Google account fails during authorization callback:
+```
+loadCodeAssist failed across all endpoints: None
+```
+
+### Cause
+The Google account has never been used in the official Antigravity IDE (or Gemini Code Assist), so Google has not yet provisioned a Cloud AI Companion Project (`cloudaicompanionProject`) or accepted the Terms of Service for that account.
+
+### Remediation
+1. Open the **Antigravity IDE** (or VS Code with Google Gemini Code Assist).
+2. Sign into the IDE **once** with the new Google account and accept any Terms of Service prompt.
+3. Once logged into the IDE, return to Antigravity Gateway and link the account (`agw accounts login` or via dashboard).
+4. **Note:** You do not need to keep the IDE open or stay logged in after this one-time step.
+

@@ -27,6 +27,9 @@ Accounts are partitioned cleanly into two tiers:
 
 ## 2. Adding Accounts
 
+> **Important — Account Pre-activation**:
+> Each Google Account must be signed into the **Antigravity IDE** (or VS Code with Gemini Code Assist) at least **once** prior to linking with the Gateway. This allows Google to provision the backing Companion Project (`cloudaicompanionProject`) and accept the Gemini Terms of Service. You do not need to keep the IDE open or stay logged in afterwards.
+
 ### Method 1: Interactive Browser Login (Recommended)
 ```bash
 agw accounts login

@@ -225,6 +225,13 @@ Review `config.yaml` to ensure your admin and gateway keys are set.
 ### 3. Connect Your Google Account(s)
 You can link accounts using the CLI or the Web Dashboard:
 
+> [!IMPORTANT]
+> **Account Pre-activation Requirement**:
+> Each Google account must be signed into the **Antigravity IDE** (or VS Code with Gemini Code Assist) at least **once** before linking with the Gateway.
+> - This one-time login triggers Google to provision the account's backing Cloud AI Companion Project (`cloudaicompanionProject`) and accept the Gemini Terms of Service.
+> - If an uninitialized account is linked, you will receive `loadCodeAssist failed across all endpoints: None`.
+> - **You do NOT need to keep the IDE open or stay logged in afterwards.** Once initialized, the Gateway operates independently in the background.
+
 **Via CLI**:
 ```bash
 python -m agw.cli.main accounts login
@@ -482,6 +489,7 @@ curl http://127.0.0.1:8999/v1/chat/completions \
 |---|---|---|
 | **HTTP 403 Forbidden: "Model family not permitted"** | An API key attempted to request a model outside its `allowed_families`. | Check the key used against the [Provider Matrix](#hermes-agent-7-provider-matrix) or update `allowed_families` in `config.yaml`. |
 | **HTTP 503: "All available accounts exhausted"** | All accounts are currently in cooldown or rate-limited. | Link additional Google accounts or clear cooldowns via `agw accounts clear-cooldown <id>`. |
+| **`loadCodeAssist failed across all endpoints: None`** | Account has never been initialized in Antigravity IDE / Companion Project not provisioned. | Sign into Antigravity IDE once with that Google account, accept terms, then re-link via `agw accounts login`. |
 | **HTTP 400: "Model not supported"** | Direct use of unmapped model identifier. | Use `claude-opus-4-6-thinking` instead of raw `claude-opus-4-6`. The gateway normalizes known aliases automatically. |
 | **"Invalid grant" / 401 on token refresh** | Google OAuth refresh token has expired or was revoked. | Run `agw accounts reauth <account_id>` to re-authenticate the account. |
 | **Tool calling schema error (400)** | Schema contains forbidden keys or missing array types. | Handled automatically by `SchemaSanitizer`. If using custom tools, ensure arrays declare an `items` type. |
