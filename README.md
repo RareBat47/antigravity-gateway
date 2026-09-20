@@ -235,9 +235,18 @@ A browser window will open asking you to log into Google and grant Antigravity p
 Start the server and visit `http://127.0.0.1:8999/admin/dashboard`, then click **+ Add Google Account**.
 
 ### 4. Launch Gateway Server
+
+**Option A (Standalone Executable - Zero Python Needed)**:
+Double-click `dist/GeminiAPI.exe` or your Desktop shortcut.
+
+**Option B (One-Click Batch Script)**:
+Double-click `start.bat` or `run.bat`.
+
+**Option C (Command Line / Development)**:
 ```bash
 python -m uvicorn agw.main:app --host 127.0.0.1 --port 8999
 ```
+
 
 ---
 
