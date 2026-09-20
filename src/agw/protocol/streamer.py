@@ -4,6 +4,7 @@ import json
 import logging
 import time
 from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
+from agw.protocol.signature_cache import thought_signature_cache
 
 logger = logging.getLogger("agw.streamer")
 
@@ -157,9 +158,10 @@ async def parse_and_transform_sse_stream(
                             or fn.get("thoughtSignature")
                             or fn.get("thought_signature")
                         )
+                        call_id = f"call_{fn.get('name', 'fn')}_{tool_call_counter}"
                         tc_delta: Dict[str, Any] = {
                             "index": tool_call_counter,  # Bug #10: unique per tool call
-                            "id": f"call_{fn.get('name', 'fn')}_{tool_call_counter}",
+                            "id": call_id,
                             "type": "function",
                             "function": {
                                 "name": fn.get("name"),
@@ -169,6 +171,20 @@ async def parse_and_transform_sse_stream(
                         if sig:
                             tc_delta["thought_signature"] = sig
                             tc_delta["thoughtSignature"] = sig
+                            tc_delta["extra_content"] = {
+                                "thought_signature": sig,
+                                "thoughtSignature": sig,
+                                "google": {
+                                    "thought_signature": sig,
+                                    "thoughtSignature": sig,
+                                },
+                            }
+                            thought_signature_cache.store(
+                                call_id=call_id,
+                                signature=sig,
+                                fn_name=fn.get("name"),
+                                args=args,
+                            )
 
                         tool_call_counter += 1  # Bug #10: advance the counter
 

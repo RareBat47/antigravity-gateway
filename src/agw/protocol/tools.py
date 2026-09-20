@@ -3,6 +3,7 @@
 import json
 from typing import Any, Dict, List, Optional
 from agw.cloudcode.schema_sanitizer import normalize_tool_parameters
+from agw.protocol.signature_cache import thought_signature_cache
 
 
 def oai_tools_to_gemini(tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -87,6 +88,20 @@ def extract_gemini_tool_calls(parts: List[Dict[str, Any]]) -> List[Dict[str, Any
         if sig:
             tc_dict["thought_signature"] = sig
             tc_dict["thoughtSignature"] = sig
+            tc_dict["extra_content"] = {
+                "thought_signature": sig,
+                "thoughtSignature": sig,
+                "google": {
+                    "thought_signature": sig,
+                    "thoughtSignature": sig,
+                },
+            }
+            thought_signature_cache.store(
+                call_id=call_id,
+                signature=sig,
+                fn_name=fn_call.get("name"),
+                args=args,
+            )
 
         tool_calls.append(tc_dict)
     return tool_calls

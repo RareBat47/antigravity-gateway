@@ -8,6 +8,7 @@ from agw.protocol.tools import (
     oai_tool_choice_to_gemini,
     oai_tools_to_gemini,
 )
+from agw.protocol.signature_cache import thought_signature_cache
 from agw.protocol.vision import process_image_url
 
 
@@ -119,19 +120,52 @@ async def oai_messages_to_gemini(
                 except Exception:
                     args = {"raw": fn.get("arguments")}
 
-                sig = (
-                    tc.get("thought_signature")
-                    or tc.get("thoughtSignature")
-                    or msg.get("thought_signature")
-                    or msg.get("thoughtSignature")
-                    or "skip_thought_signature_validator"
-                )
+                # Resolve thought_signature with multi-layer recovery:
+                # 1. Directly from tc (flat)
+                sig = tc.get("thought_signature") or tc.get("thoughtSignature")
 
+                # 2. From extra_content on tc (Hermes native format)
+                if not sig and "extra_content" in tc:
+                    extra = tc["extra_content"]
+                    if isinstance(extra, dict):
+                        sig = extra.get("thought_signature") or extra.get("thoughtSignature")
+                        if not sig and isinstance(extra.get("google"), dict):
+                            sig = extra["google"].get("thought_signature") or extra["google"].get("thoughtSignature")
+
+                # 3. From tool_call id / call_id in signature cache
+                if not sig:
+                    call_id = tc.get("id") or tc.get("call_id")
+                    if call_id:
+                        sig = thought_signature_cache.get(call_id)
+
+                # 4. From function name + arguments in signature cache
+                if not sig:
+                    sig = thought_signature_cache.get_by_call(fn.get("name"), fn.get("arguments"))
+
+                # 5. From parent message
+                if not sig:
+                    sig = msg.get("thought_signature") or msg.get("thoughtSignature")
+                    if not sig and "extra_content" in msg:
+                        extra = msg["extra_content"]
+                        if isinstance(extra, dict):
+                            sig = extra.get("thought_signature") or extra.get("thoughtSignature")
+                            if not sig and isinstance(extra.get("google"), dict):
+                                sig = extra["google"].get("thought_signature") or extra["google"].get("thoughtSignature")
+
+                # 6. Fallback to most recent known signature from cache
+                if not sig:
+                    sig = thought_signature_cache.get_latest()
+
+                # 7. Ultimate fallback for mock tests / initial calls
+                if not sig:
+                    sig = "skip_thought_signature_validator"
+
+                fn_call_dict = {
+                    "name": fn.get("name"),
+                    "args": args,
+                }
                 parts.append({
-                    "functionCall": {
-                        "name": fn.get("name"),
-                        "args": args,
-                    },
+                    "functionCall": fn_call_dict,
                     "thoughtSignature": sig,
                     "thought_signature": sig,
                 })

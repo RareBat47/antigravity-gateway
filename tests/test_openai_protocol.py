@@ -129,4 +129,68 @@ def test_extract_gemini_tool_calls_preserves_signature():
     assert calls[0]["function"]["name"] == "calculate"
     assert calls[0]["thought_signature"] == "real_encrypted_signature_xyz"
     assert calls[0]["thoughtSignature"] == "real_encrypted_signature_xyz"
+    assert calls[0]["extra_content"]["thought_signature"] == "real_encrypted_signature_xyz"
+    assert calls[0]["extra_content"]["google"]["thought_signature"] == "real_encrypted_signature_xyz"
+
+
+@pytest.mark.asyncio
+async def test_oai_tool_call_recovers_sig_from_extra_content():
+    """Verify Hermes-style extra_content is unpacked into Gemini thoughtSignature."""
+    messages = [
+        {"role": "user", "content": "Run command"},
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": "call_terminal_1",
+                    "type": "function",
+                    "function": {"name": "terminal", "arguments": "{\"command\": \"ls\"}"},
+                    "extra_content": {
+                        "google": {
+                            "thought_signature": "hermes_crypto_sig_456",
+                        }
+                    },
+                }
+            ],
+        },
+        {"role": "tool", "tool_call_id": "call_terminal_1", "content": "file1.txt"},
+    ]
+    contents, _ = await oai_messages_to_gemini(messages)
+    part = contents[1]["parts"][0]
+    assert part["thoughtSignature"] == "hermes_crypto_sig_456"
+    assert part["functionCall"]["thoughtSignature"] == "hermes_crypto_sig_456"
+
+
+@pytest.mark.asyncio
+async def test_oai_tool_call_recovers_sig_from_cache():
+    """Verify tool call without extra_content or sig recovers it from cache by ID."""
+    from agw.protocol.signature_cache import thought_signature_cache
+    thought_signature_cache.store(
+        call_id="call_terminal_0",
+        signature="cached_sig_789",
+        fn_name="terminal",
+        args={"command": "dir"},
+    )
+
+    # Client stripped signature and stripped index from call_terminal_0 -> call_terminal
+    messages = [
+        {"role": "user", "content": "Run dir"},
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": "call_terminal",
+                    "type": "function",
+                    "function": {"name": "terminal", "arguments": "{\"command\": \"dir\"}"},
+                }
+            ],
+        },
+        {"role": "tool", "tool_call_id": "call_terminal", "content": "volume C:"},
+    ]
+    contents, _ = await oai_messages_to_gemini(messages)
+    part = contents[1]["parts"][0]
+    assert part["thoughtSignature"] == "cached_sig_789"
+    assert part["functionCall"]["thoughtSignature"] == "cached_sig_789"
 
