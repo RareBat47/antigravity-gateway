@@ -62,7 +62,7 @@ scheduler:
   global_quota_threshold: 0.05
   max_account_retries: 3
   default_cooldown_seconds: 60
-  upstream_timeout_seconds: 120
+  upstream_timeout_seconds: 300
   cooldown_tiers_seconds:
     - 60
     - 300

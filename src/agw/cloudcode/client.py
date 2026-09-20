@@ -23,9 +23,10 @@ logger = logging.getLogger("agw.client")
 class CloudCodeClient:
     """Handles communication with Cloud Code Assist API with endpoint fallbacks."""
 
-    def __init__(self, endpoints: Optional[List[str]] = None, timeout: float = 120.0):
+    def __init__(self, endpoints: Optional[List[str]] = None, timeout: float = 300.0):
         self.endpoints = endpoints or list(CLOUDCODE_ENDPOINTS)
         self.timeout = timeout
+        self.httpx_timeout = httpx.Timeout(connect=20.0, read=timeout, write=30.0, pool=20.0)
 
     def _build_headers(self, access_token: str) -> Dict[str, str]:
         headers = dict(ANTIGRAVITY_HEADERS)
@@ -36,7 +37,7 @@ class CloudCodeClient:
         """Attempt to onboard user to Cloud Code Assist if not yet initialized."""
         headers = self._build_headers(access_token)
         body = {"metadata": CLIENT_METADATA}
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
             for endpoint in self.endpoints:
                 url = f"{endpoint}/{RPC_ONBOARD_USER}"
                 try:
@@ -64,7 +65,7 @@ class CloudCodeClient:
         discovery_endpoints = list(self.endpoints)
         last_err = None
 
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
             for endpoint in discovery_endpoints:
                 url = f"{endpoint}/{RPC_LOAD_CODE_ASSIST}"
                 try:
@@ -121,7 +122,7 @@ class CloudCodeClient:
         body = {"project": project_id} if project_id else {}
         last_err = None
 
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
             for endpoint in self.endpoints:
                 url = f"{endpoint}/{RPC_FETCH_AVAILABLE_MODELS}"
                 try:
@@ -144,7 +145,7 @@ class CloudCodeClient:
         headers = self._build_headers(access_token)
         last_err_tuple = (500, {}, "Unknown upstream error")
 
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
             for endpoint in self.endpoints:
                 url = f"{endpoint}/{RPC_GENERATE_CONTENT}"
                 try:
@@ -249,7 +250,7 @@ class CloudCodeClient:
         for endpoint in self.endpoints:
             url = f"{endpoint}/{RPC_STREAM_GENERATE_CONTENT}?alt=sse"
             try:
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
                     async with client.stream("POST", url, headers=headers, json=envelope) as resp:
                         if resp.status_code != 200:
                             err_content = await resp.aread()

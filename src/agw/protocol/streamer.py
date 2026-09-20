@@ -1,5 +1,6 @@
 """SSE parser and streaming delta chunk transformer."""
 
+import asyncio
 import json
 import logging
 import time
@@ -55,7 +56,33 @@ async def parse_and_transform_sse_stream(
     tool_call_counter = 0
 
     try:
-        async for status_code, line in upstream_stream:
+        upstream_iter = aiter(upstream_stream)
+        while True:
+            try:
+                # 8-second keepalive interval prevents client watchdogs (e.g. Hermes GUI 60s idle alert)
+                # from disconnecting while Gemini is deeply reasoning or compiling multi-tool calls.
+                item = await asyncio.wait_for(anext(upstream_iter), timeout=8.0)
+            except TimeoutError:
+                # Emit standard OpenAI-compatible empty delta chunk to keep client stream alive
+                ping_chunk = {
+                    "id": req_id,
+                    "object": "chat.completion.chunk",
+                    "created": created,
+                    "model": model_id,
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {},
+                            "finish_reason": None,
+                        }
+                    ],
+                }
+                yield f"data: {json.dumps(ping_chunk)}\n\n"
+                continue
+            except StopAsyncIteration:
+                break
+
+            status_code, line = item
             if status_code != 200:
                 err_chunk = {
                     "id": req_id,
