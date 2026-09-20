@@ -303,15 +303,19 @@ async def main():
         p("\n  Running all 7 providers (streaming + non-streaming + tool call + ACL)...")
         p("  This may take 30-90s depending on model latency.\n")
 
-        # Run streaming tests for all 7 in parallel
-        stream_results = await asyncio.gather(
-            *[test_provider(client, prov, stream=True) for prov in PROVIDERS]
-        )
+        # Run streaming tests sequentially for stability
+        stream_results = []
+        for prov in PROVIDERS:
+            res = await test_provider(client, prov, stream=True)
+            stream_results.append(res)
+            await asyncio.sleep(0.5)
 
-        # Run non-streaming tests for all 7 in parallel
-        nstream_results = await asyncio.gather(
-            *[test_provider(client, prov, stream=False) for prov in PROVIDERS]
-        )
+        # Run non-streaming tests sequentially for stability
+        nstream_results = []
+        for prov in PROVIDERS:
+            res = await test_provider(client, prov, stream=False)
+            nstream_results.append(res)
+            await asyncio.sleep(0.5)
 
         # Tool call test
         tool_result = await test_tool_calling(client)

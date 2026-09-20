@@ -33,10 +33,10 @@ OAUTH_SCOPES = [
     "openid",
 ]
 
-# Cloud Code API Endpoints (Prod primary, Daily fallback)
-ENDPOINT_PROD = "https://cloudcode-pa.googleapis.com"
+# Cloud Code API Endpoints (Daily primary for preview accounts, Prod fallback)
 ENDPOINT_DAILY = "https://daily-cloudcode-pa.googleapis.com"
-CLOUDCODE_ENDPOINTS = [ENDPOINT_PROD, ENDPOINT_DAILY]
+ENDPOINT_PROD = "https://cloudcode-pa.googleapis.com"
+CLOUDCODE_ENDPOINTS = [ENDPOINT_DAILY, ENDPOINT_PROD]
 
 # Upstream RPC methods
 RPC_LOAD_CODE_ASSIST = "v1internal:loadCodeAssist"
@@ -127,7 +127,7 @@ DEFAULT_MODELS = {
         "upstream_id": "gemini-3.1-pro-low",
         "family": FAMILY_GEMINI,
         "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 65536,
+        "max_output_tokens": 8192,
         "description": "Gemini 3.1 Pro Low (Pro Reasoning)",
     },
     "claude-sonnet-4-6": {

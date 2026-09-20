@@ -205,6 +205,7 @@ def create_v1_router(
                 tool_config=tool_config,
                 generation_config=gen_config,
             )
+            logger.info(f"CloudCode envelope for {model_id}: {json.dumps(envelope)}")
 
             try:
                 access_tok = await account_mgr.get_access_token(acc_id)
