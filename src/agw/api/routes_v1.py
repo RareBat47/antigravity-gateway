@@ -26,7 +26,7 @@ from agw.protocol.streamer import parse_and_transform_sse_stream
 from agw.protocol.tools import oai_tool_choice_to_gemini, oai_tools_to_gemini
 from agw.routing.cooldown import CooldownManager
 from agw.routing.health import AccountHealthTracker
-from agw.routing.registry import ModelRegistry
+from agw.routing.registry import ModelRegistry, normalize_model_id
 from agw.routing.scheduler import AccountScheduler
 
 logger = logging.getLogger("agw.v1")
@@ -55,6 +55,14 @@ def create_v1_router(
 
         allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
         allowed_models = key_info.get("allowed_models", [])
+
+        if allowed_models:
+            filtered = [
+                m for m in all_models
+                if m["id"] in allowed_models or normalize_model_id(m["id"]) in allowed_models
+            ]
+            return {"object": "list", "data": filtered}
+
         if "all" in allowed_fams:
             return {"object": "list", "data": all_models}
 
@@ -62,7 +70,7 @@ def create_v1_router(
         for m in all_models:
             mid = m["id"]
             _, m_fam, _ = model_registry.resolve_upstream(mid)
-            if m_fam in allowed_fams or mid in allowed_models:
+            if m_fam in allowed_fams:
                 filtered.append(m)
         return {
             "object": "list",
@@ -74,15 +82,27 @@ def create_v1_router(
         """OpenAI-compatible /v1/models/{model_id} endpoint."""
         m = model_registry.get_model(model_id)
         if not m:
-            raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
+            raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found or disabled")
 
         key_info = getattr(request.state, "api_key_info", None)
         if key_info:
             allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
             allowed_models = key_info.get("allowed_models", [])
-            _, m_fam, _ = model_registry.resolve_upstream(model_id)
-            if "all" not in allowed_fams and m_fam not in allowed_fams and model_id not in allowed_models:
-                raise HTTPException(status_code=403, detail=f"Access to model '{model_id}' is restricted for this API key")
+            normalized_mid = normalize_model_id(model_id)
+
+            if allowed_models:
+                if model_id not in allowed_models and normalized_mid not in allowed_models:
+                    raise HTTPException(
+                        status_code=403,
+                        detail=f"Access to model '{model_id}' is restricted for this API key. Allowed models: {allowed_models}",
+                    )
+            elif "all" not in allowed_fams:
+                _, m_fam, _ = model_registry.resolve_upstream(model_id)
+                if m_fam not in allowed_fams:
+                    raise HTTPException(
+                        status_code=403,
+                        detail=f"Access to model '{model_id}' is restricted for this API key. Allowed families: {allowed_fams}",
+                    )
 
         return {
             "id": model_id,
@@ -125,20 +145,50 @@ def create_v1_router(
                 detail={"error": {"message": "Request body is not valid JSON", "type": "invalid_request_error"}},
             )
 
-        model_id = body.get("model", "gemini-3.5-flash")
+        model_id = body.get("model", "gemini-3.8-flash-high")
         is_streaming = bool(body.get("stream", False))
 
-        upstream_id, family, max_tokens = model_registry.resolve_upstream(model_id)
+        m_def = model_registry.get_model(model_id)
+        if not m_def:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "error": {
+                        "message": f"Model '{model_id}' does not exist or is disabled. Usable models: {model_registry.list_model_ids()}",
+                        "type": "invalid_request_error",
+                    }
+                },
+            )
+
+        try:
+            upstream_id, family, max_tokens = model_registry.resolve_upstream(model_id)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=404,
+                detail={"error": {"message": str(e), "type": "invalid_request_error"}},
+            )
 
         # Enforce API Key permissions
         key_info = getattr(request.state, "api_key_info", None)
         if key_info:
             allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
             allowed_models = key_info.get("allowed_models", [])
-            if (
+            normalized_mid = normalize_model_id(model_id)
+
+            if allowed_models:
+                if model_id not in allowed_models and normalized_mid not in allowed_models:
+                    raise HTTPException(
+                        status_code=403,
+                        detail={
+                            "error": {
+                                "message": f"Model '{model_id}' is not permitted for API key '{key_info.get('name')}'. Allowed models: {allowed_models}",
+                                "type": "permission_denied",
+                            }
+                        },
+                    )
+            elif (
                 "all" not in allowed_fams
                 and family.lower() not in allowed_fams
-                and model_id not in allowed_models
             ):
                 raise HTTPException(
                     status_code=403,

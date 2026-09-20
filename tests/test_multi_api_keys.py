@@ -30,8 +30,13 @@ async def test_multi_api_key_role_restrictions():
         assert res_fail.status_code == 403
         assert "not permitted" in res_fail.json()["detail"]["error"]["message"]
 
-        # 2. Test Coding Key (Gemini only)
-        code_headers = {"Authorization": "Bearer agw-code-gemini-1-7b41"}
+        # 2. Test Coding Key (Gemini 3.8 Flash High only)
+        code_headers = {"Authorization": "Bearer agw-code-gemini-3-8d52"}
+        res_code_models = await client.get("/v1/models", headers=code_headers)
+        assert res_code_models.status_code == 200
+        code_ids = [m["id"] for m in res_code_models.json()["data"]]
+        assert code_ids == ["gemini-3.8-flash-high"]
+
         res_fail_claude = await client.post(
             "/v1/chat/completions",
             headers=code_headers,
@@ -39,31 +44,26 @@ async def test_multi_api_key_role_restrictions():
         )
         assert res_fail_claude.status_code == 403
 
-        # 3. Test Hybrid-1 Key (Gemini only)
-        hybrid_headers = {"Authorization": "Bearer agw-code-hybrid-1-4a29"}
-        res_hybrid_models = await client.get("/v1/models", headers=hybrid_headers)
-        assert res_hybrid_models.status_code == 200
-        hybrid_ids = [m["id"] for m in res_hybrid_models.json()["data"]]
-        assert any("gemini" in m for m in hybrid_ids)
-        assert not any("claude" in m for m in hybrid_ids)
-        assert not any("gpt" in m for m in hybrid_ids)
+        # 3. Test Pro Key (Gemini 3.1 Pro Low only)
+        pro_headers = {"Authorization": "Bearer agw-code-hybrid-1-4a29"}
+        res_pro_models = await client.get("/v1/models", headers=pro_headers)
+        assert res_pro_models.status_code == 200
+        pro_ids = [m["id"] for m in res_pro_models.json()["data"]]
+        assert pro_ids == ["gemini-3.1-pro-low"]
 
-        # 4. Test Hybrid-2 Key (Claude only)
-        hybrid2_headers = {"Authorization": "Bearer agw-code-hybrid-2-6e83"}
-        res_hybrid2_models = await client.get("/v1/models", headers=hybrid2_headers)
-        assert res_hybrid2_models.status_code == 200
-        hybrid2_ids = [m["id"] for m in res_hybrid2_models.json()["data"]]
-        assert any("claude" in m for m in hybrid2_ids)
-        assert not any("gemini" in m for m in hybrid2_ids)
-
-        # 5. Test Debugging Key (All models)
-        debug_headers = {"Authorization": "Bearer agw-debug-all-9c37"}
+        # 4. Test Debugging Key (Claude Sonnet 4.6 only)
+        debug_headers = {"Authorization": "Bearer agw-code-hybrid-2-6e83"}
         res_debug_models = await client.get("/v1/models", headers=debug_headers)
         assert res_debug_models.status_code == 200
         debug_ids = [m["id"] for m in res_debug_models.json()["data"]]
-        assert any("claude" in m for m in debug_ids)
-        assert any("gemini" in m for m in debug_ids)
-        assert any("gpt" in m for m in debug_ids)
+        assert debug_ids == ["claude-sonnet-4-6"]
+
+        # 5. Test GPT Key (GPT-OSS 120B only)
+        gpt_headers = {"Authorization": "Bearer agw-debug-all-9c37"}
+        res_gpt_models = await client.get("/v1/models", headers=gpt_headers)
+        assert res_gpt_models.status_code == 200
+        gpt_ids = [m["id"] for m in res_gpt_models.json()["data"]]
+        assert gpt_ids == ["gpt-oss-120b-medium"]
 
         # 6. Test Invalid Key
         bad_headers = {"Authorization": "Bearer invalid-key-xyz"}

@@ -12,9 +12,13 @@ def test_model_alias_resolution():
     assert family == "gemini"
 
     # Gemini aliases
-    up_37, fam_37, _ = registry.resolve_upstream("gemini-3.7-flash")
-    assert up_37 == "gemini-3.7-flash-tiered"
-    assert fam_37 == "gemini"
+    up_38, fam_38, _ = registry.resolve_upstream("gemini-3.8-flash")
+    assert up_38 == "gemini-3.8-flash-tiered"
+    assert fam_38 == "gemini"
+
+    up_flash, fam_flash, _ = registry.resolve_upstream("gemini-flash")
+    assert up_flash == "gemini-3.8-flash-tiered"
+    assert fam_flash == "gemini"
 
     # Claude aliases
     up_c35, fam_c35, _ = registry.resolve_upstream("claude-3-5-sonnet")

@@ -1,11 +1,12 @@
 """
-AGW Dedicated Hermes Test & Debug Harness
-Tests all 7 models across:
-  - Single-turn chat
-  - Tool calling execution
-  - Multi-turn thought_signature persistence
-  - Streaming SSE output
-  - Live Hermes CLI with worker profiles
+AGW Dedicated Hermes Test & Verification Harness
+Tests the definitive 5 models across:
+  - Phase 1: Single-turn chat completions
+  - Phase 2: Tool calling execution & schema verification
+  - Phase 3: Multi-turn state & thought_signature persistence
+  - Phase 4: Streaming SSE output integrity
+  - Phase 5: Live Hermes CLI with worker profiles
+  - Phase 6: Strict Access Control Enforcement (ACL & Model blocking)
 """
 
 import asyncio
@@ -25,37 +26,25 @@ MODELS = [
         "family": "claude",
     },
     {
-        "role": "Coding-1",
-        "key": "agw-code-gemini-1-7b41",
-        "model": "gemini-3.6-flash-medium",
-        "family": "gemini",
-    },
-    {
-        "role": "Coding-2",
-        "key": "agw-code-gemini-2-3f19",
-        "model": "gemini-3.7-flash-medium",
-        "family": "gemini",
-    },
-    {
-        "role": "Coding-3",
+        "role": "Coding",
         "key": "agw-code-gemini-3-8d52",
         "model": "gemini-3.8-flash-high",
         "family": "gemini",
     },
     {
-        "role": "Hybrid-1",
+        "role": "Pro",
         "key": "agw-code-hybrid-1-4a29",
         "model": "gemini-3.1-pro-low",
         "family": "gemini",
     },
     {
-        "role": "Hybrid-2",
+        "role": "Debugging",
         "key": "agw-code-hybrid-2-6e83",
         "model": "claude-sonnet-4-6",
         "family": "claude",
     },
     {
-        "role": "Debugging",
+        "role": "GPT",
         "key": "agw-debug-all-9c37",
         "model": "gpt-oss-120b-medium",
         "family": "gpt",
@@ -81,7 +70,7 @@ def log(tag: str, msg: str):
     print(f"[{tag}] {msg}", flush=True)
 
 async def test_phase1_basic(client: httpx.AsyncClient) -> dict:
-    log("PHASE 1", "Testing basic chat completion across all 7 models...")
+    log("PHASE 1", "Testing basic chat completion across 5 definitive models...")
     results = {}
     for m in MODELS:
         headers = {"Authorization": f"Bearer {m['key']}", "Content-Type": "application/json"}
@@ -109,7 +98,7 @@ async def test_phase1_basic(client: httpx.AsyncClient) -> dict:
     return results
 
 async def test_phase2_tools(client: httpx.AsyncClient) -> dict:
-    log("PHASE 2", "Testing tool calling declaration across all 7 models...")
+    log("PHASE 2", "Testing tool calling declaration across 5 models...")
     results = {}
     for m in MODELS:
         headers = {"Authorization": f"Bearer {m['key']}", "Content-Type": "application/json"}
@@ -147,11 +136,10 @@ async def test_phase2_tools(client: httpx.AsyncClient) -> dict:
     return results
 
 async def test_phase3_multiturn(client: httpx.AsyncClient) -> dict:
-    log("PHASE 3", "Testing multi-turn state & thought_signature persistence across all 7 models...")
+    log("PHASE 3", "Testing multi-turn state & thought_signature persistence across 5 models...")
     results = {}
     for m in MODELS:
         headers = {"Authorization": f"Bearer {m['key']}", "Content-Type": "application/json"}
-        # Turn 1: Ask for tool call
         p1 = {
             "model": m["model"],
             "messages": [{"role": "user", "content": "Call the system_info tool with detail_level='summary' to inspect the machine."}],
@@ -179,7 +167,6 @@ async def test_phase3_multiturn(client: httpx.AsyncClient) -> dict:
             call_id = tc["id"]
             fn_name = tc["function"]["name"]
 
-            # Turn 2: Send tool result back (Hermes protocol)
             tool_msg = {
                 "role": "tool",
                 "tool_call_id": call_id,
@@ -215,7 +202,7 @@ async def test_phase3_multiturn(client: httpx.AsyncClient) -> dict:
     return results
 
 async def test_phase4_streaming(client: httpx.AsyncClient) -> dict:
-    log("PHASE 4", "Testing streaming SSE response integrity across all 7 models...")
+    log("PHASE 4", "Testing streaming SSE response integrity across 5 models...")
     results = {}
     for m in MODELS:
         headers = {"Authorization": f"Bearer {m['key']}", "Content-Type": "application/json"}
@@ -259,10 +246,11 @@ async def test_phase4_streaming(client: httpx.AsyncClient) -> dict:
 def test_phase5_hermes_cli() -> dict:
     log("PHASE 5", "Testing live Hermes CLI profile executions...")
     profiles_to_test = [
-        ("Default (Coding-1)", []),
+        ("Default (Coding)", []),
         ("architect-worker", ["--profile", "architect-worker"]),
         ("code-runner", ["--profile", "code-runner"]),
         ("dev-dedicated", ["--profile", "dev-dedicated"]),
+        ("ctrader-quant-developer", ["--profile", "ctrader-quant-developer"]),
     ]
     results = {}
     for label, args in profiles_to_test:
@@ -273,26 +261,73 @@ def test_phase5_hermes_cli() -> dict:
             lat = round((time.time() - t0) * 1000)
             out = res.stdout.strip().replace("\n", " ")
             if res.returncode == 0 and out:
-                log("PASS", f"{label:<25} {lat}ms -> {repr(out[:40])}")
+                log("PASS", f"{label:<26} {lat}ms -> {repr(out[:40])}")
                 results[label] = True
             else:
                 err = res.stderr.strip()[:100] or out[:100]
-                log("FAIL", f"{label:<25} code={res.returncode}: {err}")
+                log("FAIL", f"{label:<26} code={res.returncode}: {err}")
                 results[label] = False
         except Exception as e:
-            log("ERROR", f"{label:<25} Exception: {e}")
+            log("ERROR", f"{label:<26} Exception: {e}")
             results[label] = False
+    return results
+
+async def test_phase6_strict_acl(client: httpx.AsyncClient) -> dict:
+    log("PHASE 6", "Testing strict security access control & model blocking...")
+    results = {}
+
+    coding_headers = {"Authorization": "Bearer agw-code-gemini-3-8d52", "Content-Type": "application/json"}
+
+    # 1. Calling deprecated model should return 404
+    r_dep = await client.post(
+        f"{GATEWAY}/v1/chat/completions",
+        headers=coding_headers,
+        json={"model": "gemini-3.6-flash-medium", "messages": [{"role": "user", "content": "Hi"}]},
+    )
+    if r_dep.status_code == 404:
+        log("PASS", "Blocked deprecated model (gemini-3.6-flash-medium) -> HTTP 404")
+        results["deprecated_model_blocked"] = True
+    else:
+        log("FAIL", f"Deprecated model was not blocked: HTTP {r_dep.status_code}")
+        results["deprecated_model_blocked"] = False
+
+    # 2. Requesting unauthorized model under Coding key should return 403
+    r_unauth = await client.post(
+        f"{GATEWAY}/v1/chat/completions",
+        headers=coding_headers,
+        json={"model": "gemini-3.1-pro-low", "messages": [{"role": "user", "content": "Hi"}]},
+    )
+    if r_unauth.status_code == 403:
+        log("PASS", "Blocked unauthorized model (gemini-3.1-pro-low under Coding key) -> HTTP 403")
+        results["unauthorized_key_model_blocked"] = True
+    else:
+        log("FAIL", f"Coding key unauthorized model was not blocked: HTTP {r_unauth.status_code}")
+        results["unauthorized_key_model_blocked"] = False
+
+    # 3. Model list for Coding key should ONLY list gemini-3.8-flash-high
+    r_list = await client.get(f"{GATEWAY}/v1/models", headers=coding_headers)
+    if r_list.status_code == 200:
+        models_visible = [m["id"] for m in r_list.json()["data"]]
+        if models_visible == ["gemini-3.8-flash-high"]:
+            log("PASS", f"Coding key /v1/models strictly filtered -> {models_visible}")
+            results["model_list_strictly_filtered"] = True
+        else:
+            log("FAIL", f"Coding key /v1/models returned extra models: {models_visible}")
+            results["model_list_strictly_filtered"] = False
+    else:
+        log("FAIL", f"/v1/models returned HTTP {r_list.status_code}")
+        results["model_list_strictly_filtered"] = False
+
     return results
 
 async def main():
     print("=" * 75)
-    print("  ANTIGRAVITY GATEWAY -- DEDICATED HERMES AGENT VERIFICATION")
+    print("  ANTIGRAVITY GATEWAY -- RECONFIGURED DEDICATED HERMES VERIFICATION")
     print(f"  Time:    {time.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  Gateway: {GATEWAY}")
     print("=" * 75)
 
     async with httpx.AsyncClient() as client:
-        # Check health
         health = await client.get(f"{GATEWAY}/health", timeout=5)
         log("GATEWAY", f"Status {health.status_code}: {health.text}")
 
@@ -300,6 +335,7 @@ async def main():
         r2 = await test_phase2_tools(client)
         r3 = await test_phase3_multiturn(client)
         r4 = await test_phase4_streaming(client)
+        r6 = await test_phase6_strict_acl(client)
 
     r5 = test_phase5_hermes_cli()
 
@@ -312,6 +348,7 @@ async def main():
         ("Phase 3: Multi-turn / State", r3),
         ("Phase 4: Streaming SSE", r4),
         ("Phase 5: Hermes CLI Profiles", r5),
+        ("Phase 6: Strict ACL & Blocking", r6),
     ]
     total_passed = 0
     total_tests = 0

@@ -1,13 +1,13 @@
 # Antigravity Account Status
 
-Updated: 2026-09-20 07:56 UTC
+Updated: 2026-09-20 09:50 UTC
 
 | Account | Gemini | Claude | Status | Cooldown |
 | :--- | :---: | :---: | :--- | :--- |
-| Arifin Nabid | 45% | 0% | healthy | none |
+| Arifin Nabid | 92% | 0% | healthy | none |
 | arifin nabid | 100% | 97% | healthy | none |
-| Atro Staz | 96% | 94% | healthy | none |
-| Ari Fin | 97% | 95% | healthy | none |
+| Atro Staz | 94% | 88% | healthy | none |
+| Ari Fin | 95% | 89% | healthy | none |
 | atro staz | 100% | 100% | degraded | none |
 | atro staz | 99% | 100% | degraded | none |
 

@@ -100,7 +100,7 @@ FAMILY_GEMINI = "gemini"
 FAMILY_CLAUDE = "claude"
 FAMILY_GPT = "gpt"
 
-# Default Model Specifications — Exclusively the 7 models
+# Default Model Specifications — Exclusively the 5 Selected Models
 DEFAULT_MODELS = {
     "gemini-3.8-flash-high": {
         "upstream_id": "gemini-3.8-flash-tiered",
@@ -108,20 +108,6 @@ DEFAULT_MODELS = {
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 65536,
         "description": "Gemini 3.8 Flash High (Fast Thinking)",
-    },
-    "gemini-3.7-flash-medium": {
-        "upstream_id": "gemini-3.7-flash-tiered",
-        "family": FAMILY_GEMINI,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 65536,
-        "description": "Gemini 3.7 Flash Medium (Fast Thinking)",
-    },
-    "gemini-3.6-flash-medium": {
-        "upstream_id": "gemini-3.6-flash-medium",
-        "family": FAMILY_GEMINI,
-        "capabilities": ["tools", "streaming", "vision"],
-        "max_output_tokens": 65536,
-        "description": "Gemini 3.6 Flash Medium (Fast)",
     },
     "gemini-3.1-pro-low": {
         "upstream_id": "gemini-3.1-pro-low",

@@ -7,29 +7,15 @@ Tuple_Upstream = Tuple[str, str, int]
 
 
 MODEL_ALIASES: Dict[str, str] = {
-    # Gemini 3.8 Flash High
+    # Gemini 3.8 Flash High (Sole Flash model)
+    "gemini-flash": "gemini-3.8-flash-high",
     "gemini-3.8-flash": "gemini-3.8-flash-high",
     "gemini-3.8-flash-tiered": "gemini-3.8-flash-high",
-    "gemini-3.6-flash-high": "gemini-3.8-flash-high",
     "gemini-3.8-flash-tiered-high": "gemini-3.8-flash-high",
-    # Gemini 3.7 Flash Medium
-    "gemini-3.7-flash": "gemini-3.7-flash-medium",
-    "gemini-3.7-flash-tiered": "gemini-3.7-flash-medium",
-    # Gemini 3.6 Flash Medium
-    "gemini-3.6-flash": "gemini-3.6-flash-medium",
-    "gemini-3.6-flash-low": "gemini-3.6-flash-medium",
-    "gemini-3.8-flash-low": "gemini-3.6-flash-medium",
-    "gemini-3.8-flash-tiered-low": "gemini-3.6-flash-medium",
-    "gemini-3.8-flash-medium": "gemini-3.6-flash-medium",
-    "gemini-3.8-flash-tiered-medium": "gemini-3.6-flash-medium",
-    "gemini-3.5-flash": "gemini-3.6-flash-medium",
-    "gemini-3.5-flash-low": "gemini-3.6-flash-medium",
-    "gemini-flash": "gemini-3.6-flash-medium",
-    "gemini-2.0-flash": "gemini-3.6-flash-medium",
-    "gemini-2.0-flash-exp": "gemini-3.6-flash-medium",
-    "gemini-1.5-flash": "gemini-3.6-flash-medium",
-    "gemini-2.5-flash": "gemini-3.6-flash-medium",
-    "gemini-3-flash": "gemini-3.6-flash-medium",
+    "gemini-3.5-flash": "gemini-3.8-flash-high",
+    "gemini-2.5-flash": "gemini-3.8-flash-high",
+    "gemini-2.0-flash": "gemini-3.8-flash-high",
+    "gemini-1.5-flash": "gemini-3.8-flash-high",
     # Gemini 3.1 Pro Low
     "gemini-3.1-pro": "gemini-3.1-pro-low",
     "gemini-3.1-pro-high": "gemini-3.1-pro-low",
@@ -68,27 +54,26 @@ class ModelRegistry:
     """Manages models supported by the gateway."""
 
     def __init__(self, custom_models: Optional[Dict[str, Any]] = None):
-        self._models = dict(DEFAULT_MODELS)
-        if custom_models:
-            self._models.update(custom_models)
+        if custom_models is not None:
+            self._models = dict(custom_models)
+        else:
+            self._models = dict(DEFAULT_MODELS)
 
     def get_model(self, model_id: str) -> Optional[Dict[str, Any]]:
         """Get model definition by ID or alias."""
         normalized = normalize_model_id(model_id)
         return self._models.get(normalized) or self._models.get(model_id)
 
+    def list_model_ids(self) -> List[str]:
+        """Return list of supported model IDs."""
+        return list(self._models.keys())
+
     def resolve_upstream(self, model_id: str) -> Tuple_Upstream:
         """Resolve requested model to (upstream_id, family, max_output_tokens)."""
         normalized = normalize_model_id(model_id)
-        model = self.get_model(normalized)
+        model = self.get_model(normalized) or self.get_model(model_id)
         if not model:
-            # Fallback heuristic
-            is_claude = "claude" in normalized.lower()
-            return (
-                normalized,
-                FAMILY_CLAUDE if is_claude else FAMILY_GEMINI,
-                16384 if is_claude else 32768,
-            )
+            raise ValueError(f"Model '{model_id}' is not supported or not enabled on this gateway.")
         return (
             model.get("upstream_id", normalized),
             model.get("family", FAMILY_GEMINI),
@@ -113,4 +98,5 @@ class ModelRegistry:
 
     def is_valid_model(self, model_id: str) -> bool:
         """Check if model exists in registry."""
-        return model_id in self._models
+        normalized = normalize_model_id(model_id)
+        return normalized in self._models or model_id in self._models
