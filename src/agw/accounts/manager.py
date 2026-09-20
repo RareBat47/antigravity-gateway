@@ -60,7 +60,7 @@ class AccountManager:
         # Get user info
         uinfo = await fetch_userinfo(access_tok)
         email = uinfo.get("email", "unknown@google.com")
-        safe_email = email[:3] + "***" + email[email.find("@"):] if "@" in email else email
+        safe_email = email
         account_id = f"acc-{hashlib.sha256(email.encode()).hexdigest()[:8]}"
         name = display_name or uinfo.get("name") or email.split("@")[0]
 
@@ -113,7 +113,7 @@ class AccountManager:
 
         uinfo = await fetch_userinfo(access_tok)
         email = uinfo.get("email", f"{label}@google.com")
-        safe_email = email[:3] + "***" + email[email.find("@"):] if "@" in email else email
+        safe_email = email
         account_id = f"acc-{hashlib.sha256(label.encode()).hexdigest()[:8]}"
         name = display_name or label
 
@@ -186,6 +186,19 @@ class AccountManager:
         self._token_expirations[account_id] = expires_at
 
         await self.repo.update_token_metadata(account_id, int(expires_at))
+
+        # Attempt to retrieve live userinfo and update profile with unmasked full email
+        try:
+            uinfo = await fetch_userinfo(new_access)
+            if uinfo.get("email"):
+                await self.repo.update_account_profile(
+                    account_id=account_id,
+                    email_safe=uinfo["email"],
+                    display_name=uinfo.get("name"),
+                )
+        except Exception:
+            pass
+
         return new_access
 
     async def remove_account(self, account_id: str) -> None:

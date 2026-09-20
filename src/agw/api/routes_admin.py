@@ -52,13 +52,67 @@ def create_admin_router(
 
     @router.get("/accounts", dependencies=[Depends(verify_admin)])
     async def list_accounts():
-        """List all accounts with status and statistics."""
+        """List all accounts with status, live quota, and window usage statistics."""
         summaries = await account_mgr.list_accounts_summary()
         for s in summaries:
             aid = s["id"]
             s["health_score"] = round(health_tracker.get_health_score(aid), 1)
             s["active_cooldowns"] = await repo.get_account_cooldowns(aid)
-            s["quotas"] = await repo.get_latest_quota(aid)
+            quotas = await repo.get_latest_quota(aid)
+            s["quotas"] = quotas
+
+            # Enrich from quota_monitor in-memory snapshot if present, else from DB
+            snap = getattr(quota_monitor, "_latest_snapshots", {}).get(aid)
+            if snap:
+                s["gemini_fraction"] = snap.gemini_average_fraction
+                s["claude_fraction"] = snap.claude_average_fraction
+                s["gemini_pct"] = int(round(snap.gemini_average_fraction * 100)) if snap.gemini_average_fraction is not None else None
+                s["claude_pct"] = int(round(snap.claude_average_fraction * 100)) if snap.claude_average_fraction is not None else None
+
+                g_resets = [m.reset_time for m in snap.models.values() if m.model_family == "gemini" and m.reset_time]
+                c_resets = [m.reset_time for m in snap.models.values() if m.model_family == "claude" and m.reset_time]
+                s["gemini_reset_time"] = sorted(g_resets)[0] if g_resets else None
+                s["claude_reset_time"] = sorted(c_resets)[0] if c_resets else None
+
+                s["model_quotas"] = {
+                    mid: {
+                        "model_id": m.model_id,
+                        "model_family": m.model_family,
+                        "remaining_fraction": m.remaining_fraction,
+                        "percentage": m.percentage,
+                        "reset_time": m.reset_time,
+                    }
+                    for mid, m in snap.models.items()
+                }
+            else:
+                gemini_q = [q for q in quotas if q.get("model_family") == "gemini" and q.get("remaining_fraction") is not None]
+                claude_q = [q for q in quotas if q.get("model_family") == "claude" and q.get("remaining_fraction") is not None]
+
+                g_avg = sum(q["remaining_fraction"] for q in gemini_q) / len(gemini_q) if gemini_q else None
+                c_avg = sum(q["remaining_fraction"] for q in claude_q) / len(claude_q) if claude_q else None
+                s["gemini_fraction"] = g_avg
+                s["claude_fraction"] = c_avg
+                s["gemini_pct"] = int(round(g_avg * 100)) if g_avg is not None else None
+                s["claude_pct"] = int(round(c_avg * 100)) if c_avg is not None else None
+
+                g_resets = [q["reset_time"] for q in gemini_q if q.get("reset_time")]
+                c_resets = [q["reset_time"] for q in claude_q if q.get("reset_time")]
+                s["gemini_reset_time"] = sorted(g_resets)[0] if g_resets else None
+                s["claude_reset_time"] = sorted(c_resets)[0] if c_resets else None
+
+                s["model_quotas"] = {
+                    q["model_id"]: {
+                        "model_id": q["model_id"],
+                        "model_family": q.get("model_family"),
+                        "remaining_fraction": q.get("remaining_fraction"),
+                        "percentage": int(round(q["remaining_fraction"] * 100)) if q.get("remaining_fraction") is not None else None,
+                        "reset_time": q.get("reset_time"),
+                    }
+                    for q in quotas
+                }
+
+            s["window_5h"] = await repo.get_account_window_usage(aid, hours=5)
+            s["window_7d"] = await repo.get_account_window_usage(aid, days=7)
         return summaries
 
     @router.get("/accounts/{account_id}", dependencies=[Depends(verify_admin)])
@@ -70,6 +124,8 @@ def create_admin_router(
         quotas = await repo.get_latest_quota(account_id)
         active_cooldowns = await repo.get_account_cooldowns(account_id)
         cooldown = active_cooldowns[0] if active_cooldowns else None
+        window_5h = await repo.get_account_window_usage(account_id, hours=5)
+        window_7d = await repo.get_account_window_usage(account_id, days=7)
         return {
             "account": acc,
             "quotas": quotas,
@@ -77,6 +133,8 @@ def create_admin_router(
             "active_cooldowns": active_cooldowns,
             "health_score": health_tracker.get_health_score(account_id),
             "avg_latency_ms": health_tracker.get_avg_latency(account_id),
+            "window_5h": window_5h,
+            "window_7d": window_7d,
         }
 
     @router.post("/accounts", dependencies=[Depends(verify_admin)])
@@ -114,9 +172,10 @@ def create_admin_router(
 
     @router.post("/accounts/{account_id}/refresh", dependencies=[Depends(verify_admin)])
     async def refresh_account_token(account_id: str):
-        """Force immediate OAuth access token refresh."""
+        """Force immediate OAuth access token and quota refresh."""
         try:
             await account_mgr.refresh_account_token(account_id)
+            await quota_monitor.refresh_account(account_id)
             return {"status": "success", "refreshed": account_id}
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))

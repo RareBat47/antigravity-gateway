@@ -59,3 +59,40 @@ async def test_cooldown_storage(test_repo):
     await test_repo.clear_cooldown(acc_id, "claude")
     cd_cleared = await test_repo.get_active_cooldown(acc_id, "claude")
     assert cd_cleared is None
+
+
+@pytest.mark.asyncio
+async def test_account_window_usage(test_repo):
+    acc_id = "acc-usage-window-test"
+    await test_repo.upsert_account(acc_id, "safe@email.com")
+
+    # Record usage events
+    await test_repo.record_usage_event(
+        request_id="req-1",
+        account_id=acc_id,
+        model_id="gemini-3.7-flash-medium",
+        prompt_tokens=100,
+        completion_tokens=50,
+        latency_ms=250.0,
+    )
+    await test_repo.record_usage_event(
+        request_id="req-2",
+        account_id=acc_id,
+        model_id="claude-sonnet-4-6",
+        prompt_tokens=200,
+        completion_tokens=100,
+        latency_ms=450.0,
+    )
+
+    # 5-hour window usage
+    w5 = await test_repo.get_account_window_usage(acc_id, hours=5)
+    assert w5["requests"] == 2
+    assert w5["prompt_tokens"] == 300
+    assert w5["completion_tokens"] == 150
+    assert w5["total_tokens"] == 450
+
+    # 7-day window usage
+    w7 = await test_repo.get_account_window_usage(acc_id, days=7)
+    assert w7["requests"] == 2
+    assert w7["total_tokens"] == 450
+

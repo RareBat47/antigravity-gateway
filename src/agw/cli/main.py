@@ -64,8 +64,7 @@ def list_accounts_cmd():
         data = resp.json()
         table = Table(title="Connected Antigravity Accounts", header_style="bold cyan")
         table.add_column("Account ID", style="dim")
-        table.add_column("Display Name")
-        table.add_column("Safe Email")
+        table.add_column("Email Address", style="bold")
         table.add_column("Tier", style="green")
         table.add_column("Status")
         table.add_column("Enabled")
@@ -77,8 +76,7 @@ def list_accounts_cmd():
             enabled_str = "[green]Yes[/green]" if acc["enabled"] else "[red]No[/red]"
             table.add_row(
                 acc["id"],
-                acc.get("display_name") or "-",
-                acc["email_safe"],
+                acc.get("email_safe") or acc.get("display_name") or "-",
                 acc.get("tier", "unknown"),
                 f"[{status_style}]{acc['status']}[/{status_style}]",
                 enabled_str,
@@ -270,18 +268,30 @@ def quota_cmd(account_id: Optional[str]):
             accs_resp = httpx.get(f"{base}/admin/accounts", headers=get_headers())
             if accs_resp.status_code == 200:
                 accs = accs_resp.json()
-                table = Table(title="Account Quotas Overview", header_style="bold magenta")
-                table.add_column("Account")
-                table.add_column("Display Name")
-                table.add_column("Tier")
+                table = Table(title="Account Quotas & Live Meters", header_style="bold magenta")
+                table.add_column("Account", style="dim")
+                table.add_column("Email Address", style="bold")
+                table.add_column("Tier", style="green")
+                table.add_column("Gemini 5h", justify="right")
+                table.add_column("Claude 5h", justify="right")
+                table.add_column("5h Usage", justify="right")
                 table.add_column("Status")
 
                 for a in accs:
+                    g_pct = f"{a['gemini_pct']}%" if a.get("gemini_pct") is not None else "100%"
+                    c_pct = f"{a['claude_pct']}%" if a.get("claude_pct") is not None else ("N/A" if (a.get("tier") or "").lower() == "free" else "100%")
+                    w5 = a.get("window_5h") or {}
+                    w5_str = f"{w5.get('requests', 0)}r / {w5.get('total_tokens', 0):,}t"
+                    
+                    status_style = "green" if a.get("status") == "active" else "red"
                     table.add_row(
                         a["id"],
-                        a.get("display_name") or "-",
+                        a.get("email_safe") or a.get("display_name") or "-",
                         a.get("tier", "unknown"),
-                        a.get("status", "active"),
+                        g_pct,
+                        c_pct,
+                        w5_str,
+                        f"[{status_style}]{a.get('status', 'active')}[/{status_style}]",
                     )
                 console.print(table)
                 console.print("[dim]Tip: Use 'agw quota --account <id>' for per-model breakdown.[/dim]")

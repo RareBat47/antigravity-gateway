@@ -7,7 +7,7 @@ Set-Location -Path $PSScriptRoot
 Clear-Host
 
 Write-Host "================================================================================" -ForegroundColor Cyan
-Write-Host "                  ANTIGRAVITY MULTI-ACCOUNT GATEWAY                             " -ForegroundColor Cyan
+Write-Host "         ANTIGRAVITY MULTI-ACCOUNT GATEWAY & LIVE QUOTA CONTROLLER              " -ForegroundColor Cyan
 Write-Host "================================================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -48,6 +48,8 @@ Write-Host "                             SERVICE ACCESS LINKS                   
 Write-Host "================================================================================" -ForegroundColor DarkCyan
 Write-Host "  Admin Dashboard : " -NoNewline -ForegroundColor Yellow
 Write-Host "http://127.0.0.1:8999/admin/dashboard" -ForegroundColor Green
+Write-Host "  Live Quota UI   : " -NoNewline -ForegroundColor Yellow
+Write-Host "http://127.0.0.1:8999/admin/dashboard (Gemini & Claude 5h Meters)" -ForegroundColor Cyan
 Write-Host "  Swagger API Docs: " -NoNewline -ForegroundColor Yellow
 Write-Host "http://127.0.0.1:8999/docs" -ForegroundColor Green
 Write-Host "  Health Check    : " -NoNewline -ForegroundColor Yellow

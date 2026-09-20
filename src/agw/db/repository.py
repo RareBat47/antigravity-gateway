@@ -72,6 +72,20 @@ class DatabaseRepository:
                 )
             await db.commit()
 
+    async def update_account_profile(
+        self,
+        account_id: str,
+        email_safe: str,
+        display_name: Optional[str] = None,
+    ) -> None:
+        """Update account email and display name."""
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                "UPDATE accounts SET email_safe = ?, display_name = coalesce(?, display_name), updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (email_safe, display_name, account_id),
+            )
+            await db.commit()
+
     async def get_account(self, account_id: str) -> Optional[Dict[str, Any]]:
         """Fetch single account by ID."""
         async with aiosqlite.connect(self.db_path) as db:
@@ -351,3 +365,35 @@ class DatabaseRepository:
             row = await cursor.fetchone()
             res = dict(row) if row else {}
             return {k: (v if v is not None else 0) for k, v in res.items()}
+
+    async def get_account_window_usage(
+        self,
+        account_id: str,
+        hours: Optional[int] = None,
+        days: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Aggregate usage metrics for a specific account over a rolling window."""
+        modifier = f"-{hours} hours" if hours is not None else (f"-{days} days" if days is not None else "-5 hours")
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                """
+                SELECT
+                    COUNT(*) as requests,
+                    SUM(prompt_tokens) as prompt_tokens,
+                    SUM(completion_tokens) as completion_tokens,
+                    SUM(total_tokens) as total_tokens
+                FROM usage_events
+                WHERE account_id = ? AND created_at >= datetime('now', ?)
+                """,
+                (account_id, modifier),
+            )
+            row = await cursor.fetchone()
+            res = dict(row) if row else {}
+            return {
+                "requests": res.get("requests") or 0,
+                "prompt_tokens": res.get("prompt_tokens") or 0,
+                "completion_tokens": res.get("completion_tokens") or 0,
+                "total_tokens": res.get("total_tokens") or 0,
+            }
+

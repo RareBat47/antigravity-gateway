@@ -43,9 +43,29 @@ async def test_api_auth_and_health(test_config):
 
         # Create test account and test reauth endpoint
         await repo.upsert_account("acc-reauth-test", "reauth@test.com")
+        await repo.record_quota_snapshot(
+            account_id="acc-reauth-test",
+            model_id="gemini-3.7-flash-medium",
+            model_family="gemini",
+            remaining_fraction=0.85,
+            reset_time="2026-09-20T16:00:00Z",
+        )
+        
+        # Test accounts list enrichment
+        admin_accounts = await client.get("/admin/accounts", headers=headers)
+        assert admin_accounts.status_code == 200
+        accs_data = admin_accounts.json()
+        target_acc = [a for a in accs_data if a["id"] == "acc-reauth-test"][0]
+        assert target_acc["gemini_pct"] == 85
+        assert target_acc["gemini_reset_time"] == "2026-09-20T16:00:00Z"
+        assert "window_5h" in target_acc
+        assert "window_7d" in target_acc
+        assert "model_quotas" in target_acc
+
         reauth_resp = await client.post("/admin/accounts/acc-reauth-test/reauth", headers=headers)
         assert reauth_resp.status_code == 200
         reauth_data = reauth_resp.json()
         assert reauth_data["status"] == "pending_reauth"
         assert "auth_url" in reauth_data
         assert "code_verifier" in reauth_data
+

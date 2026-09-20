@@ -249,6 +249,132 @@
             transition: width 0.4s ease;
         }
 
+        /* Live Quota Meters */
+        .quota-cell {
+            min-width: 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .meter-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .meter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+        }
+
+        .meter-label {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .meter-countdown {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: normal;
+        }
+
+        .meter-pct {
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .meter-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.4s ease;
+        }
+
+        .meter-fill-gemini {
+            background: linear-gradient(90deg, #38bdf8 0%, #10b981 100%);
+        }
+
+        .meter-fill-claude {
+            background: linear-gradient(90deg, #a855f7 0%, #ec4899 100%);
+        }
+
+        .meter-fill-warning {
+            background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+        }
+
+        .meter-fill-danger {
+            background: linear-gradient(90deg, #ef4444 0%, #f87171 100%);
+        }
+
+        .meter-fill-empty {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Usage Window Chips */
+        .usage-cell {
+            min-width: 160px;
+            font-size: 0.85rem;
+        }
+
+        .usage-tag {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--surface-border);
+            border-radius: 4px;
+            padding: 0.12rem 0.4rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .usage-tag strong {
+            color: var(--text-main);
+        }
+
+        /* Modal Inspector */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+
+        .modal-content {
+            background: #111827;
+            border: 1px solid var(--surface-border);
+            border-radius: 14px;
+            padding: 1.75rem;
+            max-width: 620px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+
         .actions-cell {
             display: flex;
             gap: 0.5rem;
@@ -415,7 +541,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Account</th>
+                        <th>Account Email</th>
                         <th>Tier</th>
                         <th>Status</th>
                         <th>Health Score</th>
@@ -669,7 +795,36 @@
             `;
         }
 
+        let currentAccounts = [];
+
+        function formatRelativeReset(isoString) {
+            if (!isoString) return '';
+            try {
+                const resetDate = new Date(isoString);
+                const now = new Date();
+                const diffMs = resetDate.getTime() - now.getTime();
+                if (diffMs <= 0) return '↻ reset';
+                const diffMins = Math.round(diffMs / 60000);
+                const hrs = Math.floor(diffMins / 60);
+                const mins = diffMins % 60;
+                if (hrs > 0) {
+                    return `⏳ in ${hrs}h ${mins}m`;
+                }
+                return `⏳ in ${mins}m`;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function getMeterColorClass(pct, family) {
+            if (pct === null || pct === undefined) return 'meter-fill-empty';
+            if (pct <= 20) return 'meter-fill-danger';
+            if (pct <= 50) return 'meter-fill-warning';
+            return family === 'claude' ? 'meter-fill-claude' : 'meter-fill-gemini';
+        }
+
         function renderAccounts(accounts) {
+            currentAccounts = accounts || [];
             const tbody = document.getElementById('accountsTableBody');
             if (!accounts || accounts.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 2rem;">No accounts connected yet. Click "+ Add Google Account" above.</td></tr>';
@@ -683,28 +838,81 @@
                     : (hasCooldown ? '<span class="badge badge-cooldown">Cooldown</span>' : '<span class="badge badge-active">Active</span>');
                 
                 const healthScore = acc.health_score != null ? `${acc.health_score}%` : '100%';
+                const isFreeTier = (acc.tier || '').toLowerCase() === 'free';
+
+                // Gemini 5h Quota
+                const gPct = acc.gemini_pct != null ? acc.gemini_pct : 100;
+                const gReset = formatRelativeReset(acc.gemini_reset_time);
+                const gColorClass = getMeterColorClass(acc.gemini_pct, 'gemini');
+
+                // Claude 5h Quota
+                const cPct = acc.claude_pct != null ? acc.claude_pct : (isFreeTier ? 0 : 100);
+                const cReset = formatRelativeReset(acc.claude_reset_time);
+                const cColorClass = isFreeTier && acc.claude_pct == null ? 'meter-fill-empty' : getMeterColorClass(acc.claude_pct, 'claude');
                 
                 return `
                     <tr>
                         <td>
-                            <strong>${acc.display_name || acc.id}</strong><br>
-                            <small style="color: var(--text-muted);">${acc.email_safe || 'No email'}</small>
+                            <strong style="color: var(--text-main); font-size: 0.93rem;">${acc.email_safe || acc.id}</strong>
                         </td>
                         <td><span class="badge badge-active">${acc.tier || 'pro'}</span></td>
                         <td>${statusBadge}</td>
                         <td><strong style="color: var(--success);">${healthScore}</strong></td>
                         <td>
-                            <div style="font-size: 0.8rem; display: flex; justify-content: space-between;">
-                                <span>Gemini / Claude</span>
-                                <span>${hasCooldown ? 'Throttled' : 'Available'}</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${hasCooldown ? '25%' : '100%'}; ${hasCooldown ? 'background: var(--warning);' : ''}"></div>
+                            <div class="quota-cell">
+                                <!-- Gemini 5h Window -->
+                                <div class="meter-row">
+                                    <div class="meter-header">
+                                        <span class="meter-label">
+                                            <span class="badge badge-blue" style="padding: 1px 5px; font-size: 0.65rem;">Gemini</span>
+                                            <span>5h Window</span>
+                                            ${gReset ? `<span class="meter-countdown">${gReset}</span>` : ''}
+                                        </span>
+                                        <span class="meter-pct" style="color: ${gPct <= 20 ? 'var(--danger)' : (gPct <= 50 ? 'var(--warning)' : '#38bdf8')};">
+                                            ${acc.gemini_pct != null ? acc.gemini_pct + '%' : '100%'}
+                                        </span>
+                                    </div>
+                                    <div class="meter-bar">
+                                        <div class="meter-fill ${gColorClass}" style="width: ${gPct}%;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Claude 5h Window -->
+                                <div class="meter-row">
+                                    <div class="meter-header">
+                                        <span class="meter-label">
+                                            <span class="badge badge-purple" style="padding: 1px 5px; font-size: 0.65rem;">Claude</span>
+                                            <span>5h Window</span>
+                                            ${cReset ? `<span class="meter-countdown">${cReset}</span>` : ''}
+                                        </span>
+                                        <span class="meter-pct" style="color: ${isFreeTier && acc.claude_pct == null ? 'var(--text-muted)' : (cPct <= 20 ? 'var(--danger)' : (cPct <= 50 ? 'var(--warning)' : '#c084fc'))};">
+                                            ${isFreeTier && acc.claude_pct == null ? 'N/A (Free)' : (acc.claude_pct != null ? acc.claude_pct + '%' : '100%')}
+                                        </span>
+                                    </div>
+                                    <div class="meter-bar">
+                                        <div class="meter-fill ${cColorClass}" style="width: ${isFreeTier && acc.claude_pct == null ? '0' : cPct}%;"></div>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                                    <span style="font-size: 0.72rem; color: ${hasCooldown ? 'var(--warning)' : 'var(--text-muted)'};">
+                                        ${hasCooldown ? '⚠️ Cooldown active' : '✓ Capacity OK'}
+                                    </span>
+                                    <a href="javascript:void(0)" onclick="openQuotaModal('${acc.id}')" style="font-size: 0.73rem; color: var(--primary); text-decoration: none; font-weight: 500;">🔍 Models Quota</a>
+                                </div>
                             </div>
                         </td>
                         <td>
-                            <strong>${acc.total_requests || 0}</strong> reqs<br>
-                            <small style="color: var(--text-muted);">${(acc.total_tokens || 0).toLocaleString()} toks</small>
+                            <div class="usage-cell">
+                                <strong>${(acc.total_requests || 0).toLocaleString()}</strong> reqs<br>
+                                <small style="color: var(--text-muted);">${(acc.total_tokens || 0).toLocaleString()} toks total</small>
+                                <div>
+                                    <span class="usage-tag">5h: <strong>${(acc.window_5h?.requests || 0)}</strong>r / ${(acc.window_5h?.total_tokens || 0).toLocaleString()}t</span>
+                                </div>
+                                <div>
+                                    <span class="usage-tag">7d: <strong>${(acc.window_7d?.requests || 0)}</strong>r / ${(acc.window_7d?.total_tokens || 0).toLocaleString()}t</span>
+                                </div>
+                            </div>
                         </td>
                         <td>
                             <div class="actions-cell">
@@ -718,6 +926,7 @@
                 `;
             }).join('');
         }
+
 
         function renderApiKeys(keys) {
             const tbody = document.getElementById('apiKeysTableBody');
@@ -1297,11 +1506,139 @@ curl ${baseUrl}/chat/completions \\
             URL.revokeObjectURL(url);
         }
 
+        async function openQuotaModal(accId) {
+            const modal = document.getElementById('quotaModal');
+            const title = document.getElementById('quotaModalTitle');
+            const body = document.getElementById('quotaModalBody');
+            
+            modal.style.display = 'flex';
+            const acc = currentAccounts.find(a => a.id === accId) || { id: accId };
+            title.innerText = `Live Quota Inspector — ${acc.email_safe || acc.id}`;
+            
+            body.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">⚡ Fetching Live Upstream Quota...</div>
+                    <small>Connecting to Google Cloud Code companion project...</small>
+                </div>
+            `;
+
+            try {
+                const res = await apiFetch(`/admin/accounts/${accId}/quota`);
+                const data = res.ok ? await res.json() : null;
+                const models = data?.models || acc.model_quotas || {};
+                const modelKeys = Object.keys(models);
+
+                if (modelKeys.length === 0) {
+                    body.innerHTML = `
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); border-radius: 8px; padding: 1.25rem;">
+                            <p style="color: var(--text-muted); margin-bottom: 0.75rem;">No quota records received yet from upstream for this account. Click refresh below to poll Google Cloud Code.</p>
+                            <button class="btn-primary" onclick="refreshAccountQuotaInModal('${accId}')">↻ Sync Fresh Quota Now</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let rowsHtml = '';
+                for (const mk of modelKeys) {
+                    const m = models[mk];
+                    const frac = m.remaining_fraction != null ? m.remaining_fraction : (m.remainingFraction != null ? m.remainingFraction : null);
+                    const pct = frac != null ? Math.round(frac * 100) : (m.percentage != null ? m.percentage : 100);
+                    const fam = m.model_family || (mk.toLowerCase().includes('claude') ? 'claude' : 'gemini');
+                    const resetTime = m.reset_time || m.resetTime;
+                    const countdown = formatRelativeReset(resetTime);
+                    const colorClass = getMeterColorClass(pct, fam);
+
+                    rowsHtml += `
+                        <tr>
+                            <td>
+                                <strong>${mk}</strong><br>
+                                <span class="badge ${fam === 'claude' ? 'badge-purple' : 'badge-blue'}" style="font-size: 0.65rem; padding: 1px 5px;">${fam}</span>
+                            </td>
+                            <td>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 3px;">
+                                    <span style="font-weight: 600; color: ${pct <= 20 ? 'var(--danger)' : (pct <= 50 ? 'var(--warning)' : 'var(--text-main)')};">${pct}%</span>
+                                    <span style="color: var(--text-muted); font-size: 0.72rem;">${countdown || 'Full limit'}</span>
+                                </div>
+                                <div class="meter-bar" style="height: 5px;">
+                                    <div class="meter-fill ${colorClass}" style="width: ${pct}%;"></div>
+                                </div>
+                            </td>
+                            <td style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">
+                                ${resetTime ? new Date(resetTime).toLocaleTimeString() : 'Rolling'}
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                body.innerHTML = `
+                    <div style="display: flex; gap: 1rem; justify-content: space-between; background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); border-radius: 8px; padding: 0.85rem 1rem; flex-wrap: wrap;">
+                        <div>
+                            <small style="color: var(--text-muted); display: block; text-transform: uppercase; font-size: 0.7rem;">Account / Email</small>
+                            <span style="font-weight: 600;">${acc.email_safe || acc.id}</span>
+                        </div>
+                        <div>
+                            <small style="color: var(--text-muted); display: block; text-transform: uppercase; font-size: 0.7rem;">Tier / Health</small>
+                            <span class="badge badge-active">${acc.tier || 'pro'}</span>
+                            <span style="color: var(--success); font-weight: 600; margin-left: 0.25rem;">${acc.health_score || 100}%</span>
+                        </div>
+                        <div>
+                            <small style="color: var(--text-muted); display: block; text-transform: uppercase; font-size: 0.7rem;">Rolling 5h Activity</small>
+                            <span>${acc.window_5h?.requests || 0} reqs / ${(acc.window_5h?.total_tokens || 0).toLocaleString()} toks</span>
+                        </div>
+                    </div>
+
+                    <table style="margin-top: 0.5rem; font-size: 0.85rem;">
+                        <thead>
+                            <tr>
+                                <th>Target Model</th>
+                                <th style="width: 45%;">Remaining Quota (5h Window)</th>
+                                <th>Reset Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Quota automatically updates from Google Cloud Code upstream.</span>
+                        <button class="btn-secondary btn-icon" onclick="refreshAccountQuotaInModal('${accId}')">↻ Sync Fresh Quota</button>
+                    </div>
+                `;
+
+            } catch (err) {
+                body.innerHTML = `<div style="color: var(--danger); padding: 1rem;">Error loading quota details: ${err.message}</div>`;
+            }
+        }
+
+        async function refreshAccountQuotaInModal(accId) {
+            await refreshToken(accId);
+            openQuotaModal(accId);
+        }
+
+        function closeQuotaModal() {
+            document.getElementById('quotaModal').style.display = 'none';
+        }
+
         // Initialize Hermes Guide to the complete One-Pager
         selectHermesTab('onepager');
 
         // Auto-run loadData on initial page load
         loadData();
     </script>
+
+    <!-- Quota Inspector Modal -->
+    <div id="quotaModal" class="modal-overlay" style="display: none;" onclick="if(event.target === this) closeQuotaModal();">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--surface-border); padding-bottom: 0.85rem;">
+                <h3 id="quotaModalTitle" style="font-size: 1.15rem; color: var(--text-main);">Live Quota Inspector</h3>
+                <button class="btn-secondary btn-icon" onclick="closeQuotaModal()" style="font-size: 1rem; padding: 0.2rem 0.6rem;">✕</button>
+            </div>
+            <div id="quotaModalBody">
+                <!-- Injected via openQuotaModal -->
+            </div>
+        </div>
+    </div>
 </body>
 </html>
+

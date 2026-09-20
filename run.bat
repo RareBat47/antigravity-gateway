@@ -1,6 +1,12 @@
 @echo off
 title Antigravity Gateway Launcher
-cd /d "%~dp0"
 
-:: Launch dedicated PowerShell control console
-start "Antigravity Gateway Console" powershell.exe -NoExit -ExecutionPolicy Bypass -File "%~dp0launch.ps1"
+:: Detect repository directory
+if exist "%~dp0launch.ps1" (
+    cd /d "%~dp0"
+    start "Antigravity Gateway Console" powershell.exe -NoExit -ExecutionPolicy Bypass -File "%~dp0launch.ps1"
+) else (
+    cd /d "D:\Unlimited\AGY"
+    start "Antigravity Gateway Console" powershell.exe -NoExit -ExecutionPolicy Bypass -File "D:\Unlimited\AGY\launch.ps1"
+)
+
