@@ -33,10 +33,10 @@ OAUTH_SCOPES = [
     "openid",
 ]
 
-# Cloud Code API Endpoints (Daily -> Prod fallback)
-ENDPOINT_DAILY = "https://daily-cloudcode-pa.googleapis.com"
+# Cloud Code API Endpoints (Prod primary, Daily fallback)
 ENDPOINT_PROD = "https://cloudcode-pa.googleapis.com"
-CLOUDCODE_ENDPOINTS = [ENDPOINT_DAILY, ENDPOINT_PROD]
+ENDPOINT_DAILY = "https://daily-cloudcode-pa.googleapis.com"
+CLOUDCODE_ENDPOINTS = [ENDPOINT_PROD, ENDPOINT_DAILY]
 
 # Upstream RPC methods
 RPC_LOAD_CODE_ASSIST = "v1internal:loadCodeAssist"

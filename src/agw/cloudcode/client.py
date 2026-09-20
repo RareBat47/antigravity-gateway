@@ -37,7 +37,7 @@ class CloudCodeClient:
         headers = self._build_headers(access_token)
         body = {"metadata": CLIENT_METADATA}
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            for endpoint in reversed(self.endpoints):
+            for endpoint in self.endpoints:
                 url = f"{endpoint}/{RPC_ONBOARD_USER}"
                 try:
                     resp = await client.post(url, headers=headers, json=body)
@@ -61,8 +61,7 @@ class CloudCodeClient:
         headers = self._build_headers(access_token)
         body = {"metadata": CLIENT_METADATA, "mode": 1}
 
-        # Try endpoints prod first for project discovery
-        discovery_endpoints = list(reversed(self.endpoints))
+        discovery_endpoints = list(self.endpoints)
         last_err = None
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:

@@ -159,7 +159,7 @@ async def test_oai_tool_call_recovers_sig_from_extra_content():
     contents, _ = await oai_messages_to_gemini(messages)
     part = contents[1]["parts"][0]
     assert part["thoughtSignature"] == "hermes_crypto_sig_456"
-    assert part["functionCall"]["thoughtSignature"] == "hermes_crypto_sig_456"
+    assert part["thought_signature"] == "hermes_crypto_sig_456"
 
 
 @pytest.mark.asyncio
@@ -192,5 +192,5 @@ async def test_oai_tool_call_recovers_sig_from_cache():
     contents, _ = await oai_messages_to_gemini(messages)
     part = contents[1]["parts"][0]
     assert part["thoughtSignature"] == "cached_sig_789"
-    assert part["functionCall"]["thoughtSignature"] == "cached_sig_789"
+    assert part["thought_signature"] == "cached_sig_789"
 
