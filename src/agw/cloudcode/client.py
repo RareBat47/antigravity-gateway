@@ -1,5 +1,7 @@
 """Async HTTP client for Google Cloud Code Assist upstream APIs."""
 
+import logging
+
 import json
 from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
 import httpx
@@ -15,11 +17,13 @@ from agw.constants import (
     RPC_STREAM_GENERATE_CONTENT,
 )
 
+logger = logging.getLogger("agw.client")
+
 
 class CloudCodeClient:
     """Handles communication with Cloud Code Assist API with endpoint fallbacks."""
 
-    def __init__(self, endpoints: Optional[List[str]] = None, timeout: float = 60.0):
+    def __init__(self, endpoints: Optional[List[str]] = None, timeout: float = 120.0):
         self.endpoints = endpoints or list(CLOUDCODE_ENDPOINTS)
         self.timeout = timeout
 
@@ -257,7 +261,10 @@ class CloudCodeClient:
                             yield 200, line
                         return
             except Exception as e:
-                # If network fail, try next endpoint
-                pass
+                # Bug #14: Log the network failure and continue to next endpoint.
+                # Previously this was a bare `pass`, meaning the caller could not
+                # tell if ALL endpoints failed due to network errors.
+                logger.warning(f"Network error streaming from {endpoint}: {type(e).__name__}: {e}")
+                continue
 
         yield 503, json.dumps({"error": "Failed to establish stream with upstream"})

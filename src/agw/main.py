@@ -51,7 +51,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     crypto = TokenEncryption(key=cfg.security.encryption_key, key_file_path=cfg.storage.vault_key_path)
     vault = CredentialVault(crypto=crypto)
     repo = DatabaseRepository(db_path=cfg.storage.database_path)
-    client = CloudCodeClient()
+    client = CloudCodeClient(timeout=float(cfg.scheduler.upstream_timeout_seconds))
     account_mgr = AccountManager(cfg, repo, vault, client)
 
     cooldown_mgr = CooldownManager(

@@ -56,12 +56,9 @@ class CooldownManager:
         return duration
 
     async def record_success(self, account_id: str, family: str) -> None:
-        """Reset consecutive rate limit counter on success."""
+        """Reset consecutive rate limit counter to 0 on success (full reset, not decrement)."""
         key = self._make_key(account_id, family)
-        if key in self._consecutive_rate_limits:
-            self._consecutive_rate_limits[key] = max(0, self._consecutive_rate_limits[key] - 1)
-        else:
-            self._consecutive_rate_limits[key] = 0
+        self._consecutive_rate_limits[key] = 0
 
     async def is_cooling_down(self, account_id: str, family: str) -> bool:
         """Check if account is cooling down for specific family or globally."""

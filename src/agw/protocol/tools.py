@@ -70,12 +70,23 @@ def extract_gemini_tool_calls(parts: List[Dict[str, Any]]) -> List[Dict[str, Any
         args = fn_call.get("args", {})
         args_str = json.dumps(args) if isinstance(args, dict) else str(args)
 
-        tool_calls.append({
+        tc_dict: Dict[str, Any] = {
             "id": call_id,
             "type": "function",
             "function": {
                 "name": fn_call.get("name"),
                 "arguments": args_str,
             },
-        })
+        }
+        sig = (
+            part.get("thoughtSignature")
+            or part.get("thought_signature")
+            or fn_call.get("thoughtSignature")
+            or fn_call.get("thought_signature")
+        )
+        if sig:
+            tc_dict["thought_signature"] = sig
+            tc_dict["thoughtSignature"] = sig
+
+        tool_calls.append(tc_dict)
     return tool_calls

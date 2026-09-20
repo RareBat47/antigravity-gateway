@@ -16,8 +16,14 @@ class DatabaseRepository:
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
 
     async def init_db(self) -> None:
-        """Execute schema DDL."""
+        """Execute schema DDL and configure SQLite for concurrent access."""
         async with aiosqlite.connect(self.db_path) as db:
+            # Bug #22: WAL mode allows concurrent reads alongside a writer,
+            # eliminating "database is locked" errors under parallel requests.
+            # busy_timeout gives write operations a 5s grace window before failing.
+            await db.execute("PRAGMA journal_mode=WAL")
+            await db.execute("PRAGMA busy_timeout=5000")
+            await db.execute("PRAGMA synchronous=NORMAL")  # Safe with WAL
             await db.executescript(INIT_SCHEMA_SQL)
             await db.commit()
 

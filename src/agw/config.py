@@ -62,6 +62,8 @@ class SchedulerSettings(BaseModel):
     cooldown_tiers_seconds: List[int] = Field(
         default_factory=lambda: list(QUOTA_EXHAUSTED_BACKOFF_TIERS_SECONDS)
     )
+    # Bug #13: Timeout for upstream requests — reasoning models need > 60s
+    upstream_timeout_seconds: int = 120
 
 
 class QuotaMonitorSettings(BaseModel):

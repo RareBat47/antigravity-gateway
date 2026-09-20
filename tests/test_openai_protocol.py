@@ -73,3 +73,60 @@ def test_gemini_response_to_openai():
     assert oai_resp["choices"][0]["message"]["content"] == "Testing output message."
     assert oai_resp["choices"][0]["finish_reason"] == "stop"
     assert oai_resp["usage"]["total_tokens"] == 25
+
+
+@pytest.mark.asyncio
+async def test_oai_tool_call_thought_signature():
+    """Verify functionCall parts get thought_signature and thoughtSignature."""
+    messages = [
+        {"role": "user", "content": "What is the weather?"},
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": "call_weather_1",
+                    "type": "function",
+                    "function": {"name": "get_weather", "arguments": "{\"location\": \"Berlin\"}"},
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "call_weather_1",
+            "content": "{\"temp\": 20}",
+        },
+    ]
+
+    contents, _ = await oai_messages_to_gemini(messages)
+    assert len(contents) == 3
+    # Model turn with functionCall
+    model_turn = contents[1]
+    assert model_turn["role"] == "model"
+    part = model_turn["parts"][0]
+    assert "functionCall" in part
+    assert part["functionCall"]["name"] == "get_weather"
+    assert part["thoughtSignature"] == "skip_thought_signature_validator"
+    assert part["thought_signature"] == "skip_thought_signature_validator"
+
+
+def test_extract_gemini_tool_calls_preserves_signature():
+    """Verify extract_gemini_tool_calls captures thought_signature from Gemini parts."""
+    from agw.protocol.tools import extract_gemini_tool_calls
+
+    parts = [
+        {
+            "functionCall": {
+                "name": "calculate",
+                "args": {"expr": "2+2"},
+            },
+            "thoughtSignature": "real_encrypted_signature_xyz",
+        }
+    ]
+
+    calls = extract_gemini_tool_calls(parts)
+    assert len(calls) == 1
+    assert calls[0]["function"]["name"] == "calculate"
+    assert calls[0]["thought_signature"] == "real_encrypted_signature_xyz"
+    assert calls[0]["thoughtSignature"] == "real_encrypted_signature_xyz"
+

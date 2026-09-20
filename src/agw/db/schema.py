@@ -91,4 +91,7 @@ CREATE TABLE IF NOT EXISTS health_events (
 CREATE INDEX IF NOT EXISTS idx_quota_account ON quota_snapshots(account_id, recorded_at);
 CREATE INDEX IF NOT EXISTS idx_usage_account ON usage_events(account_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_health_account ON health_events(account_id, created_at);
+-- Bug #21: Missing indexes on cooldowns – was doing full table scans on every request
+CREATE INDEX IF NOT EXISTS idx_cooldown_account_family ON cooldowns(account_id, target_family);
+CREATE INDEX IF NOT EXISTS idx_cooldown_until ON cooldowns(cooldown_until);
 """

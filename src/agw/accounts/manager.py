@@ -1,5 +1,6 @@
 """Account manager orchestrating credentials, persistence, and token lifecycle."""
 
+import asyncio
 import hashlib
 import logging
 import time
@@ -30,6 +31,8 @@ class AccountManager:
         self.client = cloudcode_client
         self._access_tokens: Dict[str, str] = {}  # account_id -> access_token
         self._token_expirations: Dict[str, float] = {}  # account_id -> epoch timestamp
+        # Bug #15: per-account locks to prevent concurrent double-refresh races
+        self._refresh_locks: Dict[str, asyncio.Lock] = {}
 
     async def add_account_from_code(
         self,
@@ -152,8 +155,17 @@ class AccountManager:
         if cached_tok and now < (expiry - 300):
             return cached_tok
 
-        # Refresh token
-        return await self.refresh_account_token(account_id)
+        # Bug #15: Use a per-account lock so concurrent requests don't all trigger
+        # a refresh simultaneously, wasting refresh tokens and causing races.
+        if account_id not in self._refresh_locks:
+            self._refresh_locks[account_id] = asyncio.Lock()
+        async with self._refresh_locks[account_id]:
+            # Re-check after acquiring lock in case another coroutine already refreshed
+            cached_tok = self._access_tokens.get(account_id)
+            expiry = self._token_expirations.get(account_id, 0.0)
+            if cached_tok and time.time() < (expiry - 300):
+                return cached_tok
+            return await self.refresh_account_token(account_id)
 
     async def refresh_account_token(self, account_id: str) -> str:
         """Force refresh of OAuth access token."""
@@ -167,7 +179,16 @@ class AccountManager:
         try:
             tok_resp = await refresh_access_token(refresh_tok, cid, csec)
         except Exception as e:
-            if "invalid_grant" in str(e).lower():
+            # Bug #16: httpx wraps the response body inside e.response.text, not
+            # str(e). Check both to reliably detect invalid_grant revocations.
+            err_text = str(e).lower()
+            try:
+                import httpx
+                if isinstance(e, httpx.HTTPStatusError) and e.response is not None:
+                    err_text = (e.response.text or "").lower()
+            except Exception:
+                pass
+            if "invalid_grant" in err_text:
                 await self.repo.update_account_status(
                     account_id=account_id,
                     status="invalid_grant",

@@ -62,6 +62,11 @@ class QuotaMonitor:
         if not acc:
             return None
 
+        # Bug #19: Skip disabled accounts — calling get_access_token on them
+        # triggers a refresh attempt, which may fail noisily and is pointless.
+        if not acc.get("enabled", 1):
+            return self._latest_snapshots.get(account_id)
+
         try:
             token = await self.account_manager.get_access_token(account_id)
             project_id = acc.get("project_id")
@@ -160,16 +165,23 @@ class QuotaMonitor:
             })
 
         # Save JSON state
-        save_quota_state_json(
-            {
-                acc_id: (s.model_dump(mode="json") if hasattr(s, "model_dump") else s.dict())
-                for acc_id, s in self._latest_snapshots.items()
-            },
-            self.quota_state_path,
-        )
+        try:
+            save_quota_state_json(
+                {
+                    acc_id: (s.model_dump(mode="json") if hasattr(s, "model_dump") else s.dict())
+                    for acc_id, s in self._latest_snapshots.items()
+                },
+                self.quota_state_path,
+            )
+        except Exception as e:
+            # Bug #20: Don't crash the monitor loop on file write errors
+            logger.warning(f"Failed to save quota state JSON: {e}")
 
         # Save Markdown report
-        generate_markdown_report(statuses, self.status_report_path)
+        try:
+            generate_markdown_report(statuses, self.status_report_path)
+        except Exception as e:
+            logger.warning(f"Failed to generate markdown report: {e}")
 
     async def _run_loop(self) -> None:
         """Background loop."""

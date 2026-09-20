@@ -116,7 +116,15 @@ def create_v1_router(
     @router.post("/chat/completions")
     async def chat_completions(request: Request):
         """OpenAI-compatible /v1/chat/completions with multi-account routing and failover."""
-        body = await request.json()
+        # Guard against malformed JSON body
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": {"message": "Request body is not valid JSON", "type": "invalid_request_error"}},
+            )
+
         model_id = body.get("model", "gemini-3.5-flash")
         is_streaming = bool(body.get("stream", False))
 
@@ -159,6 +167,20 @@ def create_v1_router(
 
         req_id = f"chatcmpl-{int(time.time()*1000)}"
 
+        # Bug #2: Quick-fail if there are zero accounts at all, avoiding n×DB scans
+        all_accounts_check = await repo.list_accounts()
+        if not all_accounts_check:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "error": {
+                        "message": "No Google accounts are connected. Please click '+ Add Google Account' in /admin/dashboard.",
+                        "type": "account_pool_exhausted",
+                        "code": 503,
+                    }
+                },
+            )
+
         for attempt in range(max_attempts):
             # Select best account considering health, quota, cooldowns
             selected_account = await scheduler.select_account(
@@ -196,26 +218,19 @@ def create_v1_router(
             # Handle Streaming Request
             if is_streaming:
                 stream_iter = cloudcode_client.stream_generate_content(access_tok, envelope)
-                
+
                 # Check first item from stream to verify status
                 first_status, first_line = await anext(stream_iter, (500, "Empty stream"))
-                
+
                 if first_status == 200:
-                    # Account succeeded
+                    # Account succeeded — record initial usage (tokens updated after stream)
                     latency_ms = (time.time() - start_t) * 1000.0
                     health_tracker.record(acc_id, True, latency_ms)
                     await cooldown_mgr.record_success(acc_id, family)
                     await repo.record_account_usage(acc_id, 0, True)
-                    await repo.record_usage_event(
-                        request_id=req_id,
-                        account_id=acc_id,
-                        model_id=model_id,
-                        prompt_tokens=0,
-                        completion_tokens=0,
-                        latency_ms=latency_ms,
-                        status_code=200,
-                        is_streaming=True,
-                    )
+
+                    # Bug #1: shared container so stream_wrapper can read final token counts
+                    usage_out: List[Dict[str, Any]] = []
 
                     async def stream_wrapper():
                         # Yield first item then rest
@@ -224,8 +239,49 @@ def create_v1_router(
                             async for item in stream_iter:
                                 yield item
 
-                        async for chunk in parse_and_transform_sse_stream(combined_gen(), model_id, req_id):
+                        async for chunk in parse_and_transform_sse_stream(
+                            combined_gen(), model_id, req_id, usage_out=usage_out
+                        ):
                             yield chunk
+
+                        # Bug #1: After streaming completes, update usage_events with
+                        # actual token counts from the final SSE usage chunk.
+                        if usage_out:
+                            final_usage = usage_out[-1]
+                            try:
+                                await repo.record_usage_event(
+                                    request_id=req_id,
+                                    account_id=acc_id,
+                                    model_id=model_id,
+                                    prompt_tokens=final_usage.get("prompt_tokens", 0),
+                                    completion_tokens=final_usage.get("completion_tokens", 0),
+                                    latency_ms=latency_ms,
+                                    status_code=200,
+                                    is_streaming=True,
+                                )
+                                # Also update the aggregate token counter for this account
+                                await repo.record_account_usage(
+                                    acc_id,
+                                    final_usage.get("total_tokens", 0),
+                                    True,
+                                )
+                            except Exception as e:
+                                logger.warning(f"Failed to record streaming usage for {req_id}: {e}")
+                        else:
+                            # No usage data from stream — record with zero tokens
+                            try:
+                                await repo.record_usage_event(
+                                    request_id=req_id,
+                                    account_id=acc_id,
+                                    model_id=model_id,
+                                    prompt_tokens=0,
+                                    completion_tokens=0,
+                                    latency_ms=latency_ms,
+                                    status_code=200,
+                                    is_streaming=True,
+                                )
+                            except Exception:
+                                pass
 
                     return StreamingResponse(
                         stream_wrapper(),
@@ -248,6 +304,24 @@ def create_v1_router(
                 if action == UpstreamErrorClassification.ACTION_COOLDOWN_AND_FAILOVER:
                     dur = await cooldown_mgr.record_rate_limit(acc_id, family, cooldown_sec)
                     logger.info(f"Cooling down account {acc_id} for family '{family}' for {dur}s")
+                elif action == UpstreamErrorClassification.ACTION_DISABLE_ACCOUNT:
+                    # Bug #8: Actually disable the account when the classifier says to
+                    logger.warning(f"Disabling account {acc_id} due to: {err_category}")
+                    await account_mgr.enable_account(acc_id, False)
+                    await repo.update_account_status(acc_id, err_category.lower(), enabled=False)
+                elif action == UpstreamErrorClassification.ACTION_RETURN_ERROR:
+                    await repo.record_account_usage(acc_id, 0, False)
+                    await repo.record_health_event(acc_id, err_category, first_line)
+                    raise HTTPException(
+                        status_code=400,
+                        detail={
+                            "error": {
+                                "message": f"Upstream HTTP 400: {first_line}",
+                                "type": "invalid_request_error",
+                                "code": 400,
+                            }
+                        },
+                    )
 
                 await repo.record_account_usage(acc_id, 0, False)
                 await repo.record_health_event(acc_id, err_category, first_line)
@@ -261,10 +335,10 @@ def create_v1_router(
             if status_code == 200:
                 health_tracker.record(acc_id, True, latency_ms)
                 await cooldown_mgr.record_success(acc_id, family)
-                
+
                 resp_oai = gemini_response_to_openai(payload, model_id, req_id)
                 usage = resp_oai.get("usage", {})
-                
+
                 await repo.record_account_usage(acc_id, usage.get("total_tokens", 0), True)
                 await repo.record_usage_event(
                     request_id=req_id,
@@ -299,6 +373,24 @@ def create_v1_router(
                     await account_mgr.refresh_account_token(acc_id)
                 except Exception:
                     pass
+            elif action == UpstreamErrorClassification.ACTION_DISABLE_ACCOUNT:
+                # Bug #8: Actually disable the account when the classifier says to
+                logger.warning(f"Disabling account {acc_id} due to: {err_category}")
+                await account_mgr.enable_account(acc_id, False)
+                await repo.update_account_status(acc_id, err_category.lower(), enabled=False)
+            elif action == UpstreamErrorClassification.ACTION_RETURN_ERROR:
+                await repo.record_account_usage(acc_id, 0, False)
+                await repo.record_health_event(acc_id, err_category, raw_text[:200], latency_ms)
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": {
+                            "message": f"Upstream HTTP 400: {raw_text}",
+                            "type": "invalid_request_error",
+                            "code": 400,
+                        }
+                    },
+                )
 
             await repo.record_account_usage(acc_id, 0, False)
             await repo.record_health_event(acc_id, err_category, raw_text[:200], latency_ms)
@@ -306,7 +398,6 @@ def create_v1_router(
 
         # If loop exhausts, check if accounts exist but are in cooldown
         if not attempted_accounts:
-            all_accounts = await repo.list_accounts()
             active_cooldowns = await repo.list_all_active_cooldowns()
             family_cds = [
                 c for c in active_cooldowns
@@ -319,8 +410,6 @@ def create_v1_router(
                     f"due to upstream rate limits (resets around {earliest_exp} UTC). "
                     f"Tip: Add 1-2 additional Google accounts in /admin/dashboard for automatic failover."
                 )
-            elif not all_accounts:
-                last_error_detail = "No Google accounts are connected. Please click '+ Add Google Account' in /admin/dashboard."
             else:
                 last_error_detail = f"Connected accounts are disabled or lack credentials for family '{family}'."
 

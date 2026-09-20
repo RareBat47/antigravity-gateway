@@ -118,11 +118,22 @@ async def oai_messages_to_gemini(
                         args = fn["arguments"]
                 except Exception:
                     args = {"raw": fn.get("arguments")}
+
+                sig = (
+                    tc.get("thought_signature")
+                    or tc.get("thoughtSignature")
+                    or msg.get("thought_signature")
+                    or msg.get("thoughtSignature")
+                    or "skip_thought_signature_validator"
+                )
+
                 parts.append({
                     "functionCall": {
                         "name": fn.get("name"),
                         "args": args,
-                    }
+                    },
+                    "thoughtSignature": sig,
+                    "thought_signature": sig,
                 })
 
         if parts:
