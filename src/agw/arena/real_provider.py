@@ -3,6 +3,7 @@ import json
 import logging
 import re
 import uuid
+from pathlib import Path
 from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
 
 from curl_cffi.requests import AsyncSession
@@ -206,10 +207,28 @@ class RealArenaProvider(ArenaProvider):
         raw_model = envelope.get("model", "gpt-4o")
         clean_model = raw_model.replace("arena/", "").strip()
 
+        # Resolve public model name to Arena internal UUID (adapted from g4f / OmniRoute)
+        target_model_id = clean_model
+        try:
+            map_path = Path("arena_model_map.json")
+            if map_path.exists():
+                with open(map_path, "r", encoding="utf-8") as f:
+                    model_map = json.load(f)
+                    if clean_model in model_map:
+                        target_model_id = model_map[clean_model]
+                    else:
+                        # Case-insensitive search or partial match
+                        for k, v in model_map.items():
+                            if k.lower() == clean_model.lower():
+                                target_model_id = v
+                                break
+        except Exception:
+            pass
+
         return {
             "id": str(uuid.uuid4()),
             "mode": "direct-battle",
-            "modelAId": clean_model,
+            "modelAId": target_model_id,
             "userMessageId": str(uuid.uuid4()),
             "modelAMessageId": str(uuid.uuid4()),
             "userMessage": {
