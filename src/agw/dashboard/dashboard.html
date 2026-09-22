@@ -1968,10 +1968,10 @@ curl ${baseUrl}/chat/completions \\
                     <input type="text" id="newAccountName" placeholder="e.g. Arena-Main or LMSYS-01" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--surface-border); background: var(--bg-dark); color: var(--text-main); box-sizing: border-box;" />
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Arena Session Cookies or JSON Credentials</label>
-                    <textarea id="newAccountCreds" rows="6" placeholder="arena-auth-prod-v1=eyJ...; cf_clearance=..." style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--surface-border); background: var(--bg-dark); color: var(--text-main); font-family: monospace; font-size: 0.8rem; box-sizing: border-box;"></textarea>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Arena Session Cookies (Copy from Chrome Network Tab)</label>
+                    <textarea id="newAccountCreds" rows="6" placeholder="Paste full Cookie header or arena-auth-prod-v1.0=...; arena-auth-prod-v1.1=... here" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--surface-border); background: var(--bg-dark); color: var(--text-main); font-family: monospace; font-size: 0.8rem; box-sizing: border-box;"></textarea>
                     <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem; line-height: 1.4;">
-                        💡 <strong>How to extract:</strong> Log in at <a href="https://chat.lmsys.org" target="_blank" style="color: var(--primary);">chat.lmsys.org</a>. Press <code>F12</code> &rarr; <strong>Application</strong> &rarr; <strong>Cookies</strong> &rarr; copy <code>arena-auth-prod-v1</code> and <code>cf_clearance</code>. All credentials are encrypted locally with AES-256 before disk storage.
+                        💡 <strong>How to get your session:</strong> Log in at <a href="https://arena.ai" target="_blank" style="color: var(--primary);">arena.ai</a>. Press <code>F12</code> &rarr; <strong>Network</strong> tab &rarr; click any request to <code>arena.ai</code> &rarr; in <strong>Request Headers</strong> find <code>Cookie:</code> &rarr; right-click and choose <strong>Copy value</strong>, then paste it here. (Because Supabase splits cookies across <code>.0</code> and <code>.1</code> chunks, copying the full header ensures the complete token is captured).
                     </p>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">

@@ -72,6 +72,15 @@ class QuotaMonitor:
             project_id = acc.get("project_id")
             data = await self.client.fetch_available_models(token, project_id)
             models_data = data.get("models", {})
+            if isinstance(models_data, list):
+                # If list of dicts with 'id', convert to dict
+                models_dict = {}
+                for m in models_data:
+                    if isinstance(m, dict) and "id" in m:
+                        models_dict[m["id"]] = m
+                models_data = models_dict
+            elif not isinstance(models_data, dict):
+                models_data = {}
 
             model_quotas: Dict[str, ModelQuotaInfo] = {}
             gemini_fractions = []
