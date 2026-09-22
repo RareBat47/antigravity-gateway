@@ -107,9 +107,10 @@ class ThoughtSignatureCache:
         cid = str(call_id).strip()
 
         # Try exact id
+        cid_stripped = re.sub(r'_\d+$', '', cid)
         for key in [
             f"id_{cid}",
-            f"id_{re.sub(r'_\d+$', '', cid)}",
+            f"id_{cid_stripped}",
             f"id_{cid[5:]}" if cid.startswith("call_") else None,
             f"id_{cid[3:]}" if cid.startswith("fc_") else None,
         ]:

@@ -15,14 +15,16 @@ from agw.db.repository import DatabaseRepository
 from agw.quota.monitor import QuotaMonitor
 from agw.routing.cooldown import CooldownManager
 from agw.routing.health import AccountHealthTracker
+from agw.routing.registry import ModelRegistry
+from agw.constants import DEFAULT_MODELS
 
 logger = logging.getLogger("agw.admin")
 
 
 class AddAccountRequest(BaseModel):
-    refresh_token: str
-    label: str
-    display_name: Optional[str] = None
+    display_name: str
+    credentials: str
+    label: Optional[str] = None
 
 
 def create_admin_router(
@@ -33,6 +35,7 @@ def create_admin_router(
     cooldown_mgr: CooldownManager,
     health_tracker: AccountHealthTracker,
     dashboard_html_content: str,
+    model_registry: Optional[ModelRegistry] = None,
 ) -> APIRouter:
     verify_admin = get_admin_key_auth(config)
     router = APIRouter(prefix="/admin", tags=["Admin API"])
@@ -139,18 +142,28 @@ def create_admin_router(
 
     @router.post("/accounts", dependencies=[Depends(verify_admin)])
     async def add_account(req: AddAccountRequest):
-        """Add account manually using an OAuth refresh token."""
+        """Add Arena account manually using session credentials / cookies."""
         try:
-            info = await account_mgr.add_account_from_refresh_token(
-                refresh_token=req.refresh_token,
-                label=req.label,
-                display_name=req.display_name,
+            info = await account_mgr.add_account_from_credentials(
+                display_name=req.display_name or req.label or "Arena Account",
+                credentials_json=req.credentials,
             )
-            # Trigger immediate quota refresh
-            await quota_monitor.refresh_account(info["account_id"])
             return {"status": "success", "account": info}
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
+
+    @router.post("/accounts/{account_id}/test", dependencies=[Depends(verify_admin)])
+    async def test_account(account_id: str):
+        """Test account connectivity and model availability."""
+        acc = await repo.get_account(account_id)
+        if not acc:
+            raise HTTPException(status_code=404, detail="Account not found")
+        try:
+            token = await account_mgr.get_access_token(account_id)
+            models = await account_mgr.cloudcode_client.fetch_available_models(token)
+            return {"status": "success", "account_id": account_id, "models": models}
+        except Exception as e:
+            return {"status": "error", "account_id": account_id, "error": str(e)}
 
     @router.delete("/accounts/{account_id}", dependencies=[Depends(verify_admin)])
     async def delete_account(account_id: str):
@@ -260,6 +273,60 @@ def create_admin_router(
     async def admin_usage():
         """Aggregate usage analytics."""
         return await repo.get_usage_summary()
+
+    @router.get("/model-quotas", dependencies=[Depends(verify_admin)])
+    async def get_model_quotas():
+        """Get model-wise live quota and account pool availability, sorted by intelligence descending."""
+        accounts = await repo.list_accounts()
+        enabled_accounts = [a for a in accounts if a.get("enabled", 1)]
+        total_enabled = len(enabled_accounts)
+
+        # Build list of active cooldowns by account and target_family
+        active_cooldowns = await repo.list_all_active_cooldowns()
+        cooling_down_map: Dict[str, set] = {}
+        for cd in active_cooldowns:
+            aid = cd["account_id"]
+            tf = cd["target_family"].lower()
+            cooling_down_map.setdefault(aid, set()).add(tf)
+
+        results = []
+        models_dict = getattr(model_registry, "_models", DEFAULT_MODELS)
+        for model_id, mspec in models_dict.items():
+            family = mspec.get("family", "all").lower()
+            intelligence = mspec.get("intelligence_level", 80)
+            desc = mspec.get("description", model_id)
+            display_name = mspec.get("displayName") or desc
+
+            category = mspec.get("category", "Specialized Labs")
+            subcategory = mspec.get("subcategory", "General")
+
+            consumed_count = 0
+            for acc in enabled_accounts:
+                aid = acc["id"]
+                fam_cooldowns = cooling_down_map.get(aid, set())
+                if "all" in fam_cooldowns or family in fam_cooldowns or model_id.lower() in fam_cooldowns:
+                    consumed_count += 1
+
+            available_count = max(0, total_enabled - consumed_count)
+            remaining_pct = round((available_count / total_enabled * 100), 1) if total_enabled > 0 else 0.0
+
+            results.append({
+                "model_id": model_id,
+                "display_name": display_name,
+                "family": family,
+                "category": category,
+                "subcategory": subcategory,
+                "intelligence_level": intelligence,
+                "total_accounts": total_enabled,
+                "available_accounts": available_count,
+                "consumed_accounts": consumed_count,
+                "remaining_pct": remaining_pct,
+                "status": "active" if remaining_pct > 0 else ("exhausted" if total_enabled > 0 else "no_accounts"),
+            })
+
+        # Sort descending by intelligence level
+        results.sort(key=lambda x: x["intelligence_level"], reverse=True)
+        return results
 
     @router.get("/api-keys", dependencies=[Depends(verify_admin)])
     async def list_api_keys():

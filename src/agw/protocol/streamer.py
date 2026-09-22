@@ -22,7 +22,7 @@ async def parse_and_transform_sse_stream(
     Format: 'data: {...}\\n\\n'
 
     Args:
-        upstream_stream: AsyncIterator of (status_code, line) tuples from CloudCodeClient.
+        upstream_stream: AsyncIterator of (status_code, line) tuples from ArenaProvider.
         model_id:        Model ID to embed in every chunk.
         request_id:      Optional request ID; generated if not provided.
         usage_out:       Optional single-element list; if provided, the final

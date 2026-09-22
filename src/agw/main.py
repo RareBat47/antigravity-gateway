@@ -14,7 +14,7 @@ from agw.api.routes_auth import create_auth_router
 from agw.api.routes_v1 import create_v1_router
 from agw.auth.crypto import TokenEncryption
 from agw.auth.vault import CredentialVault
-from agw.cloudcode.client import CloudCodeClient
+from agw.arena.provider import ArenaProvider
 from agw.config import AppConfig, load_config
 from agw.dashboard import get_dashboard_html
 from agw.db.repository import DatabaseRepository
@@ -51,7 +51,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     crypto = TokenEncryption(key=cfg.security.encryption_key, key_file_path=cfg.storage.vault_key_path)
     vault = CredentialVault(crypto=crypto)
     repo = DatabaseRepository(db_path=cfg.storage.database_path)
-    client = CloudCodeClient(timeout=float(cfg.scheduler.upstream_timeout_seconds))
+    from agw.arena.factory import get_arena_provider
+    client = get_arena_provider(timeout=float(cfg.scheduler.upstream_timeout_seconds), use_mock=cfg.server.debug)
     account_mgr = AccountManager(cfg, repo, vault, client)
 
     cooldown_mgr = CooldownManager(
@@ -145,6 +146,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             cooldown_mgr=cooldown_mgr,
             health_tracker=health_tracker,
             dashboard_html_content=get_dashboard_html(),
+            model_registry=model_registry,
         )
     )
 

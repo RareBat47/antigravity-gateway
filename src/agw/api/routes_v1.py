@@ -1,5 +1,6 @@
 """OpenAI-compatible v1 endpoints for Hermes and LLM clients."""
 
+import asyncio
 import json
 import logging
 import time
@@ -9,21 +10,13 @@ from fastapi.responses import StreamingResponse
 
 from agw.accounts.manager import AccountManager
 from agw.api.middleware import get_api_key_auth
-from agw.cloudcode.client import CloudCodeClient
-from agw.cloudcode.envelope import build_rpc_envelope
+from agw.arena.provider import ArenaProvider
 from agw.cloudcode.error_classifier import (
     UpstreamErrorClassification,
     classify_upstream_error,
 )
 from agw.config import AppConfig
 from agw.db.repository import DatabaseRepository
-from agw.protocol.mapper import (
-    build_generation_config,
-    gemini_response_to_openai,
-    oai_messages_to_gemini,
-)
-from agw.protocol.streamer import parse_and_transform_sse_stream
-from agw.protocol.tools import oai_tool_choice_to_gemini, oai_tools_to_gemini
 from agw.routing.cooldown import CooldownManager
 from agw.routing.health import AccountHealthTracker
 from agw.routing.registry import ModelRegistry, normalize_model_id
@@ -31,231 +24,89 @@ from agw.routing.scheduler import AccountScheduler
 
 logger = logging.getLogger("agw.v1")
 
-
 def create_v1_router(
     config: AppConfig,
     repo: DatabaseRepository,
     account_mgr: AccountManager,
-    cloudcode_client: CloudCodeClient,
+    cloudcode_client: ArenaProvider,
     model_registry: ModelRegistry,
     scheduler: AccountScheduler,
     cooldown_mgr: CooldownManager,
     health_tracker: AccountHealthTracker,
 ) -> APIRouter:
-    verify_key = get_api_key_auth(config)
-    router = APIRouter(prefix="/v1", tags=["OpenAI Compatible API"], dependencies=[Depends(verify_key)])
+    router = APIRouter(prefix="/v1", tags=["OpenAI v1"])
+    require_auth = Depends(get_api_key_auth(config))
 
-    @router.get("/models")
-    async def list_models(request: Request):
-        """OpenAI-compatible /v1/models endpoint filtered by API key permissions."""
-        all_models = model_registry.list_models_openai()
-        key_info = getattr(request.state, "api_key_info", None)
-        if not key_info:
-            return {"object": "list", "data": all_models}
+    @router.get("/models", dependencies=[require_auth])
+    async def list_models(request: Request) -> Dict[str, Any]:
+        """List available models."""
+        models = model_registry.list_models_openai()
+        
+        if hasattr(request.state, "api_key_info"):
+            allowed_fams = request.state.api_key_info.get("allowed_families", ["all"])
+            allowed_mods = request.state.api_key_info.get("allowed_models", [])
+            if "all" not in allowed_fams:
+                filtered_models = []
+                for m in models:
+                    try:
+                        _, fam, _ = model_registry.resolve_upstream(m["id"])
+                        if fam in allowed_fams or m["id"] in allowed_mods:
+                            filtered_models.append(m)
+                    except ValueError:
+                        pass
+                models = filtered_models
 
-        allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
-        allowed_models = key_info.get("allowed_models", [])
-
-        if allowed_models:
-            filtered = [
-                m for m in all_models
-                if m["id"] in allowed_models or normalize_model_id(m["id"]) in allowed_models
-            ]
-            return {"object": "list", "data": filtered}
-
-        if "all" in allowed_fams:
-            return {"object": "list", "data": all_models}
-
-        filtered = []
-        for m in all_models:
-            mid = m["id"]
-            _, m_fam, _ = model_registry.resolve_upstream(mid)
-            if m_fam in allowed_fams:
-                filtered.append(m)
         return {
             "object": "list",
-            "data": filtered,
+            "data": models,
         }
 
-    @router.get("/models/{model_id:path}")
-    async def get_model(model_id: str, request: Request):
-        """OpenAI-compatible /v1/models/{model_id} endpoint."""
-        m = model_registry.get_model(model_id)
-        if not m:
-            raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found or disabled")
-
-        key_info = getattr(request.state, "api_key_info", None)
-        if key_info:
-            allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
-            allowed_models = key_info.get("allowed_models", [])
-            normalized_mid = normalize_model_id(model_id)
-
-            if allowed_models:
-                if model_id not in allowed_models and normalized_mid not in allowed_models:
-                    raise HTTPException(
-                        status_code=403,
-                        detail=f"Access to model '{model_id}' is restricted for this API key. Allowed models: {allowed_models}",
-                    )
-            elif "all" not in allowed_fams:
-                _, m_fam, _ = model_registry.resolve_upstream(model_id)
-                if m_fam not in allowed_fams:
-                    raise HTTPException(
-                        status_code=403,
-                        detail=f"Access to model '{model_id}' is restricted for this API key. Allowed families: {allowed_fams}",
-                    )
-
-        return {
-            "id": model_id,
-            "object": "model",
-            "created": 1710000000,
-            "owned_by": "antigravity-gateway",
-        }
-
-    @router.get("/usage")
-    async def get_usage():
-        """OpenAI-compatible usage endpoint."""
-        summary = await repo.get_usage_summary()
-        return {
-            "object": "usage",
-            "total_usage": summary.get("total_tokens", 0),
-            "total_requests": summary.get("total_requests", 0),
-        }
-
-    @router.get("/billing/subscription")
-    async def get_subscription():
-        """OpenAI-compatible subscription stub for clients checking billing."""
-        return {
-            "object": "billing_subscription",
-            "has_payment_method": True,
-            "canceled": False,
-            "access_until": 2000000000,
-            "hard_limit_usd": 999999.0,
-            "plan": {"title": "Antigravity Multi-Account Gateway", "id": "unlimited"},
-        }
-
-    @router.post("/chat/completions")
-    async def chat_completions(request: Request):
-        """OpenAI-compatible /v1/chat/completions with multi-account routing and failover."""
-        # Guard against malformed JSON body
+    @router.post("/chat/completions", dependencies=[require_auth])
+    async def chat_completions(request: Request) -> Response:
         try:
-            body = await request.json()
+            req_data = await request.json()
         except Exception:
-            raise HTTPException(
-                status_code=400,
-                detail={"error": {"message": "Request body is not valid JSON", "type": "invalid_request_error"}},
-            )
+            raise HTTPException(status_code=400, detail="Invalid JSON")
 
-        model_id = body.get("model", "gemini-3.8-flash-high")
-        is_streaming = bool(body.get("stream", False))
-
-        m_def = model_registry.get_model(model_id)
-        if not m_def:
-            raise HTTPException(
-                status_code=404,
-                detail={
-                    "error": {
-                        "message": f"Model '{model_id}' does not exist or is disabled. Usable models: {model_registry.list_model_ids()}",
-                        "type": "invalid_request_error",
-                    }
-                },
-            )
+        model_id = normalize_model_id(req_data.get("model", ""))
+        if not model_id:
+            raise HTTPException(status_code=400, detail="Model must be specified")
 
         try:
             upstream_id, family, max_tokens = model_registry.resolve_upstream(model_id)
         except ValueError as e:
-            raise HTTPException(
-                status_code=404,
-                detail={"error": {"message": str(e), "type": "invalid_request_error"}},
-            )
-
-        # Enforce API Key permissions
-        key_info = getattr(request.state, "api_key_info", None)
-        if key_info:
-            allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
-            allowed_models = key_info.get("allowed_models", [])
-            normalized_mid = normalize_model_id(model_id)
-
-            if allowed_models:
-                if model_id not in allowed_models and normalized_mid not in allowed_models:
+            raise HTTPException(status_code=400, detail=str(e))
+            
+        if hasattr(request.state, "api_key_info"):
+            allowed_fams = request.state.api_key_info.get("allowed_families", ["all"])
+            allowed_mods = request.state.api_key_info.get("allowed_models", [])
+            if "all" not in allowed_fams:
+                if family not in allowed_fams and model_id not in allowed_mods:
                     raise HTTPException(
                         status_code=403,
-                        detail={
-                            "error": {
-                                "message": f"Model '{model_id}' is not permitted for API key '{key_info.get('name')}'. Allowed models: {allowed_models}",
-                                "type": "permission_denied",
-                            }
-                        },
+                        detail={"error": {"message": f"Model {model_id} not permitted", "type": "auth_error"}},
                     )
-            elif (
-                "all" not in allowed_fams
-                and family.lower() not in allowed_fams
-            ):
-                raise HTTPException(
-                    status_code=403,
-                    detail={
-                        "error": {
-                            "message": f"Model '{model_id}' (family '{family}') is not permitted for API key '{key_info.get('name')}'. Allowed families: {allowed_fams}",
-                            "type": "permission_denied",
-                        }
-                    },
-                )
 
-        messages = body.get("messages", [])
-        if not messages:
-            raise HTTPException(status_code=400, detail="messages cannot be empty")
+        # Override the request model with upstream ID
+        req_data["model"] = upstream_id
 
-        # 1. Transform protocol messages
-        contents, system_inst = await oai_messages_to_gemini(messages, model_id)
-        tools = oai_tools_to_gemini(body.get("tools", []))
-        tool_config = oai_tool_choice_to_gemini(body.get("tool_choice"))
-        gen_config = build_generation_config(body, max_tokens)
+        # Normalize completion token parameters for upstream compatibility
+        if "max_completion_tokens" in req_data and "max_tokens" not in req_data:
+            req_data["max_tokens"] = req_data.pop("max_completion_tokens")
 
-        # 2. Multi-Account Execution with Automatic Failover
-        attempted_accounts: List[str] = []
-        max_attempts = config.scheduler.max_account_retries
-        last_error_detail = "No eligible Antigravity accounts available"
+        is_stream = req_data.get("stream", False)
+        attempted_accounts = []
+        max_retries = config.scheduler.max_account_retries
+        last_err_detail = "All candidate accounts failed."
 
-        req_id = f"chatcmpl-{int(time.time()*1000)}"
-
-        # Bug #2: Quick-fail if there are zero accounts at all, avoiding n×DB scans
-        all_accounts_check = await repo.list_accounts()
-        if not all_accounts_check:
-            raise HTTPException(
-                status_code=503,
-                detail={
-                    "error": {
-                        "message": "No Google accounts are connected. Please click '+ Add Google Account' in /admin/dashboard.",
-                        "type": "account_pool_exhausted",
-                        "code": 503,
-                    }
-                },
-            )
-
-        for attempt in range(max_attempts):
-            # Select best account considering health, quota, cooldowns
-            selected_account = await scheduler.select_account(
-                model_family=family,
-                exclude_account_ids=attempted_accounts,
-            )
-
+        for attempt in range(max_retries + 1):
+            selected_account = await scheduler.select_account(upstream_id, attempted_accounts)
             if not selected_account:
+                last_err_detail = f"No available accounts for model {model_id} after {attempt} attempts."
                 break
 
             acc_id = selected_account["id"]
             attempted_accounts.append(acc_id)
-            project_id = selected_account.get("project_id", "")
-
-            # Build Cloud Code Assist request envelope
-            envelope = build_rpc_envelope(
-                project_id=project_id,
-                upstream_model_id=upstream_id,
-                contents=contents,
-                system_instruction=system_inst,
-                tools=tools,
-                tool_config=tool_config,
-                generation_config=gen_config,
-            )
-            logger.info(f"CloudCode envelope for {model_id}: {json.dumps(envelope)}")
 
             try:
                 access_tok = await account_mgr.get_access_token(acc_id)
@@ -266,213 +117,86 @@ def create_v1_router(
 
             start_t = time.time()
 
-            # Handle Streaming Request
-            if is_streaming:
-                stream_iter = cloudcode_client.stream_generate_content(access_tok, envelope)
-
-                # Check first item from stream to verify status
-                first_status, first_line = await anext(stream_iter, (500, "Empty stream"))
-
-                if first_status == 200:
-                    # Account succeeded — record initial usage (tokens updated after stream)
-                    latency_ms = (time.time() - start_t) * 1000.0
-                    health_tracker.record(acc_id, True, latency_ms)
-                    await cooldown_mgr.record_success(acc_id, family)
-                    await repo.record_account_usage(acc_id, 0, True)
-
-                    # Bug #1: shared container so stream_wrapper can read final token counts
-                    usage_out: List[Dict[str, Any]] = []
-
-                    async def stream_wrapper():
-                        # Yield first item then rest
-                        async def combined_gen():
-                            yield first_status, first_line
-                            async for item in stream_iter:
-                                yield item
-
-                        async for chunk in parse_and_transform_sse_stream(
-                            combined_gen(), model_id, req_id, usage_out=usage_out
-                        ):
-                            yield chunk
-
-                        # Bug #1: After streaming completes, update usage_events with
-                        # actual token counts from the final SSE usage chunk.
-                        if usage_out:
-                            final_usage = usage_out[-1]
+            if is_stream:
+                try:
+                    stream_iter = cloudcode_client.stream_generate_content(access_tok, req_data)
+                    # 10s timeout on first token to prevent OpenCode from stalling on unresponsive accounts
+                    status_code, first_line = await asyncio.wait_for(stream_iter.__anext__(), timeout=10.0)
+                    
+                    if status_code == 200:
+                        async def stream_generator():
+                            yield first_line
                             try:
-                                await repo.record_usage_event(
-                                    request_id=req_id,
-                                    account_id=acc_id,
-                                    model_id=model_id,
-                                    prompt_tokens=final_usage.get("prompt_tokens", 0),
-                                    completion_tokens=final_usage.get("completion_tokens", 0),
-                                    latency_ms=latency_ms,
-                                    status_code=200,
-                                    is_streaming=True,
-                                )
-                                # Also update the aggregate token counter for this account
-                                await repo.record_account_usage(
-                                    acc_id,
-                                    final_usage.get("total_tokens", 0),
-                                    True,
-                                )
+                                async for _, line in stream_iter:
+                                    yield line
                             except Exception as e:
-                                logger.warning(f"Failed to record streaming usage for {req_id}: {e}")
-                        else:
-                            # No usage data from stream — record with zero tokens
-                            try:
-                                await repo.record_usage_event(
-                                    request_id=req_id,
-                                    account_id=acc_id,
-                                    model_id=model_id,
-                                    prompt_tokens=0,
-                                    completion_tokens=0,
-                                    latency_ms=latency_ms,
-                                    status_code=200,
-                                    is_streaming=True,
-                                )
-                            except Exception:
-                                pass
+                                logger.error(f"Stream interrupted: {e}")
+                            finally:
+                                health_tracker.record(acc_id, True, (time.time() - start_t) * 1000)
 
-                    return StreamingResponse(
-                        stream_wrapper(),
-                        media_type="text/event-stream",
-                        headers={
-                            "Cache-Control": "no-cache",
-                            "Connection": "keep-alive",
-                            "X-Accel-Buffering": "no",
-                            "x-agw-account": acc_id,
-                        },
+                        return StreamingResponse(
+                            stream_generator(),
+                            media_type="text/event-stream",
+                            headers={"Cache-Control": "no-cache", "Connection": "keep-alive"}
+                        )
+                    
+                    payload = {"error": first_line}
+                    raw_text = first_line
+                except StopAsyncIteration:
+                    status_code, payload, raw_text = 500, {"error": "Empty stream"}, ""
+                except Exception as e:
+                    status_code, payload, raw_text = 503, {}, str(e)
+            else:
+                status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, req_data)
+                if status_code == 200:
+                    health_tracker.record(acc_id, True, (time.time() - start_t) * 1000)
+                    return Response(
+                        content=raw_text,
+                        status_code=200,
+                        media_type="application/json",
+                        headers={"x-agw-account": acc_id}
                     )
 
-                # Streaming failed at onset
-                err_category, action, cooldown_sec = classify_upstream_error(first_status, first_line)
-                logger.warning(
-                    f"Streaming error on account {acc_id} ({first_status}): {err_category}, action={action}"
-                )
-                health_tracker.record(acc_id, False)
+            # Failure path for this account
+            err_cat, err_action, cd_secs = classify_upstream_error(status_code, raw_text)
+            logger.warning(
+                f"[{acc_id}] Upstream error {status_code}: category={err_cat}, action={err_action} ({raw_text[:100]})"
+            )
 
-                if action == UpstreamErrorClassification.ACTION_COOLDOWN_AND_FAILOVER:
-                    dur = await cooldown_mgr.record_rate_limit(acc_id, family, cooldown_sec)
-                    logger.info(f"Cooling down account {acc_id} for family '{family}' for {dur}s")
-                elif action == UpstreamErrorClassification.ACTION_DISABLE_ACCOUNT:
-                    # Bug #8: Actually disable the account when the classifier says to
-                    logger.warning(f"Disabling account {acc_id} due to: {err_category}")
-                    await account_mgr.enable_account(acc_id, False)
-                    await repo.update_account_status(acc_id, err_category.lower(), enabled=False)
-                elif action == UpstreamErrorClassification.ACTION_RETURN_ERROR:
-                    await repo.record_account_usage(acc_id, 0, False)
-                    await repo.record_health_event(acc_id, err_category, first_line)
-                    raise HTTPException(
-                        status_code=400,
-                        detail={
-                            "error": {
-                                "message": f"Upstream HTTP 400: {first_line}",
-                                "type": "invalid_request_error",
-                                "code": 400,
-                            }
-                        },
-                    )
+            health_tracker.record(acc_id, False, 0.0)
 
-                await repo.record_account_usage(acc_id, 0, False)
-                await repo.record_health_event(acc_id, err_category, first_line)
-                last_error_detail = f"Upstream HTTP {first_status}: {first_line[:150]}"
-                continue
-
-            # Handle Non-Streaming Request
-            status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
-            latency_ms = (time.time() - start_t) * 1000.0
-
-            if status_code == 200:
-                health_tracker.record(acc_id, True, latency_ms)
-                await cooldown_mgr.record_success(acc_id, family)
-
-                resp_oai = gemini_response_to_openai(payload, model_id, req_id)
-                usage = resp_oai.get("usage", {})
-
-                await repo.record_account_usage(acc_id, usage.get("total_tokens", 0), True)
-                await repo.record_usage_event(
-                    request_id=req_id,
-                    account_id=acc_id,
-                    model_id=model_id,
-                    prompt_tokens=usage.get("prompt_tokens", 0),
-                    completion_tokens=usage.get("completion_tokens", 0),
-                    latency_ms=latency_ms,
-                    status_code=200,
-                    is_streaming=False,
-                )
-
-                response = Response(
-                    content=json.dumps(resp_oai),
+            if err_action == UpstreamErrorClassification.ACTION_RETURN_ERROR:
+                return Response(
+                    content=json.dumps({"error": {"message": raw_text, "type": "upstream_error", "code": status_code}}),
+                    status_code=status_code,
                     media_type="application/json",
                 )
-                response.headers["x-agw-account"] = acc_id
-                return response
 
-            # Failure Handling
-            err_category, action, cooldown_sec = classify_upstream_error(status_code, raw_text)
-            logger.warning(
-                f"Request failed on account {acc_id} (HTTP {status_code}): {err_category}, action={action}"
-            )
-            health_tracker.record(acc_id, False, latency_ms)
+            if err_action == UpstreamErrorClassification.ACTION_DISABLE_ACCOUNT:
+                await account_mgr.enable_account(acc_id, False)
+                await repo.record_health_event(acc_id, "disabled_by_system", raw_text[:200])
 
-            if action == UpstreamErrorClassification.ACTION_COOLDOWN_AND_FAILOVER:
-                dur = await cooldown_mgr.record_rate_limit(acc_id, family, cooldown_sec)
-                logger.info(f"Account {acc_id} cooled down for '{family}' for {dur}s")
-            elif action == UpstreamErrorClassification.ACTION_REFRESH_TOKEN:
+            if err_action == UpstreamErrorClassification.ACTION_COOLDOWN_AND_FAILOVER:
+                await cooldown_mgr.record_rate_limit(acc_id, family, cd_secs)
+
+            if err_action == UpstreamErrorClassification.ACTION_REFRESH_TOKEN:
                 try:
                     await account_mgr.refresh_account_token(acc_id)
-                except Exception:
-                    pass
-            elif action == UpstreamErrorClassification.ACTION_DISABLE_ACCOUNT:
-                # Bug #8: Actually disable the account when the classifier says to
-                logger.warning(f"Disabling account {acc_id} due to: {err_category}")
-                await account_mgr.enable_account(acc_id, False)
-                await repo.update_account_status(acc_id, err_category.lower(), enabled=False)
-            elif action == UpstreamErrorClassification.ACTION_RETURN_ERROR:
-                await repo.record_account_usage(acc_id, 0, False)
-                await repo.record_health_event(acc_id, err_category, raw_text[:200], latency_ms)
-                raise HTTPException(
-                    status_code=400,
-                    detail={
-                        "error": {
-                            "message": f"Upstream HTTP 400: {raw_text}",
-                            "type": "invalid_request_error",
-                            "code": 400,
-                        }
-                    },
-                )
+                except Exception as e:
+                    logger.warning(f"[{acc_id}] Token refresh failed: {e}")
+                    await cooldown_mgr.record_rate_limit(acc_id, family, cd_secs or 60)
 
-            await repo.record_account_usage(acc_id, 0, False)
-            await repo.record_health_event(acc_id, err_category, raw_text[:200], latency_ms)
-            last_error_detail = f"Upstream HTTP {status_code}: {raw_text[:150]}"
+            if attempt < max_retries:
+                logger.info(f"Retrying request with a different account. Attempt {attempt + 1}/{max_retries}")
+                continue
 
-        # If loop exhausts, check if accounts exist but are in cooldown
-        if not attempted_accounts:
-            active_cooldowns = await repo.list_all_active_cooldowns()
-            family_cds = [
-                c for c in active_cooldowns
-                if c.get("target_family") in (family, "all")
-            ]
-            if family_cds:
-                earliest_exp = min(c.get("cooldown_until", "") for c in family_cds)
-                last_error_detail = (
-                    f"All connected accounts for model family '{family}' are in cooldown "
-                    f"due to upstream rate limits (resets around {earliest_exp} UTC). "
-                    f"Tip: Add 1-2 additional Google accounts in /admin/dashboard for automatic failover."
-                )
-            else:
-                last_error_detail = f"Connected accounts are disabled or lack credentials for family '{family}'."
+            last_err_detail = f"Failed after {max_retries + 1} attempts. Last error: {raw_text}"
+            break
 
-        raise HTTPException(
+        return Response(
+            content=json.dumps({"error": {"message": last_err_detail, "type": "gateway_exhaustion"}}),
             status_code=503,
-            detail={
-                "error": {
-                    "message": f"All available accounts exhausted or rate-limited. {last_error_detail}",
-                    "type": "account_pool_exhausted",
-                    "code": 503,
-                }
-            },
+            media_type="application/json",
         )
 
     return router

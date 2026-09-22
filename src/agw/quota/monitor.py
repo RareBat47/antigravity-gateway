@@ -5,7 +5,7 @@ import datetime
 import logging
 from typing import Any, Dict, List, Optional
 
-from agw.cloudcode.client import CloudCodeClient
+from agw.arena.provider import ArenaProvider
 from agw.constants import FAMILY_CLAUDE, FAMILY_GEMINI
 from agw.db.repository import DatabaseRepository
 from agw.quota.models import AccountQuotaSnapshot, ModelQuotaInfo
@@ -20,7 +20,7 @@ class QuotaMonitor:
     def __init__(
         self,
         repo: DatabaseRepository,
-        cloudcode_client: CloudCodeClient,
+        cloudcode_client: ArenaProvider,
         account_manager: Any,
         interval_seconds: int = 300,
         quota_state_path: str = "data/quota-state.json",

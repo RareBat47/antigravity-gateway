@@ -22,7 +22,7 @@ def test_model_registry_resolution():
 def test_list_models_openai():
     registry = ModelRegistry()
     models = registry.list_models_openai()
-    assert len(models) == 5
+    assert len(models) >= 5
     ids = [m["id"] for m in models]
     expected_5 = [
         "gemini-3.8-flash-high",

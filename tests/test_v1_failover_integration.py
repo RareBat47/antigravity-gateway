@@ -8,8 +8,7 @@ from agw.routing.cooldown import CooldownManager
 from agw.routing.health import AccountHealthTracker
 from agw.routing.registry import ModelRegistry
 from agw.routing.scheduler import AccountScheduler
-from tests.mock_upstream import MockCloudCodeClient
-
+from agw.arena.mock_provider import MockArenaProvider
 
 @pytest.mark.asyncio
 async def test_v1_chat_completions_failover(test_repo, test_vault, test_config):
@@ -30,14 +29,16 @@ async def test_v1_chat_completions_failover(test_repo, test_vault, test_config):
         vault=test_vault,
     )
 
-    class FlakyCloudCodeClient(MockCloudCodeClient):
+    class FlakyArenaProvider(MockArenaProvider):
         async def generate_content(self, access_token, envelope):
             # If project is p1, fail with 429
-            if envelope.get("project") == "p1":
-                return 429, {}, "RESOURCE_EXHAUSTED: quotaResetDelay: 60s"
+            # Note: with new architecture, envelope/project logic might be different,
+            # but let's assume we can trigger 429 based on access_token
+            if access_token == "access_acc-f1":
+                return 429, {"error": "RESOURCE_EXHAUSTED"}, "RESOURCE_EXHAUSTED"
             return await super().generate_content(access_token, envelope)
 
-    flaky_client = FlakyCloudCodeClient()
+    flaky_client = FlakyArenaProvider()
 
     class FakeAccountMgr:
         async def get_access_token(self, aid):
@@ -72,7 +73,7 @@ async def test_v1_chat_completions_failover(test_repo, test_vault, test_config):
         )
         assert resp.status_code == 200
         data = resp.json()
-        assert data["choices"][0]["message"]["content"] == "Hello from mock Antigravity upstream!"
+        assert data["choices"][0]["message"]["content"] == "Mock reply to: Test failover"
         # Verify account used was acc-f2 (since acc-f1 returned 429 and failed over!)
         assert resp.headers.get("x-agw-account") == "acc-f2"
         # Verify acc-f1 is now on cooldown

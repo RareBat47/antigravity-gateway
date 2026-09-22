@@ -20,7 +20,7 @@ from agw.constants import (
 logger = logging.getLogger("agw.client")
 
 
-class CloudCodeClient:
+class ArenaProvider:
     """Handles communication with Cloud Code Assist API with endpoint fallbacks."""
 
     def __init__(self, endpoints: Optional[List[str]] = None, timeout: float = 300.0):

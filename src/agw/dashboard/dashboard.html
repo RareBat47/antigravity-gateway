@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antigravity Multi-Account Gateway — Admin Dashboard</title>
+    <title>Arena Gateway — Admin Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -490,13 +490,143 @@
             font-size: 0.82rem;
             color: var(--primary);
         }
+
+        .model-quota-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .model-quota-card {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .model-quota-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.4);
+        }
+
+        .model-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .model-card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .intel-badge {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25));
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .quota-summary-line {
+            background: rgba(2, 6, 23, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 0.7rem 0.9rem;
+            font-family: monospace;
+            font-size: 0.88rem;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quota-meter-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .quota-meter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .cat-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--surface-border);
+            color: var(--text-muted);
+            padding: 0.35rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cat-pill:hover, .cat-pill.active {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .cat-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .cat-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .cat-badge-count {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 2px 9px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .subcat-tag {
+            background: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-top: 4px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="title-group">
-            <h1>Antigravity Gateway</h1>
-            <p>Production Multi-Account Gateway for Hermes Agent</p>
+            <h1>Arena Gateway</h1>
+            <p>Multi-Account OpenAI-Compatible Controller for Arena.ai</p>
         </div>
         <div class="auth-bar">
             <div class="input-group">
@@ -504,7 +634,7 @@
                 <button type="button" class="toggle-btn" onclick="toggleKeyVisibility()" title="Show/Hide Key">👁️</button>
             </div>
             <button class="btn-primary" id="unlockBtn" onclick="loadData()">Unlock Dashboard</button>
-            <button class="btn-secondary" onclick="startOAuthLogin()">+ Add Google Account</button>
+            <button class="btn-secondary" onclick="openAddAccountModal()">+ Add Arena Account</button>
         </div>
     </header>
 
@@ -528,31 +658,34 @@
         </div>
     </div>
 
-    <!-- Connected Accounts & Quotas -->
-    <div class="card">
+    <!-- Connected Arena Accounts -->
+    <div class="card" id="accountsCard">
         <div class="card-header">
-            <h2>Connected Accounts &amp; Live Quota</h2>
+            <div>
+                <h2>Connected Arena Accounts</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">
+                    Active session pool providing upstream capacity. Add multiple accounts to multiply your quota and avoid rate limits.
+                </p>
+            </div>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <span id="lastUpdated" style="font-size: 0.75rem; color: var(--text-muted);"></span>
-                <button class="btn-secondary" onclick="loadData()">↻ Refresh</button>
+                <button class="btn-primary" onclick="openAddAccountModal()">+ Add Arena Account</button>
             </div>
         </div>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
-                        <th>Account Email</th>
+                        <th>Account Name / Email</th>
                         <th>Tier</th>
                         <th>Status</th>
                         <th>Health Score</th>
-                        <th>Gemini / Claude Quota</th>
                         <th>Usage</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="accountsTableBody">
                     <tr>
-                        <td colspan="7">
+                        <td colspan="6">
                             <div class="notice-box">
                                 <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Connecting...</h3>
                                 <p style="color: var(--text-muted);">Authenticating with gateway...</p>
@@ -561,6 +694,34 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Model-Wise Live Quota (Categorized & Descending by Intelligence) -->
+    <div class="card" id="modelQuotaCard">
+        <div class="card-header">
+            <div>
+                <h2>Model-Wise Live Quota &amp; Fleet Availability</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">
+                    Categorized by Frontier Lab &amp; Specialty, ranked descending by intelligence level.
+                </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span id="lastUpdated" style="font-size: 0.75rem; color: var(--text-muted);"></span>
+                <button class="btn-secondary" onclick="loadData()">↻ Refresh</button>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div style="display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; margin-top: 1rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+            <div id="categoryTabs" style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                <!-- Populated dynamically -->
+            </div>
+            <input type="text" id="modelSearchInput" placeholder="🔍 Search models (e.g. codex, r1, sonnet)..." oninput="filterModelQuotas()" style="padding: 0.45rem 1rem; font-size: 0.82rem; min-width: 260px; background: rgba(15, 23, 42, 0.75); border: 1px solid var(--surface-border); border-radius: 20px; color: var(--text-main);" />
+        </div>
+
+        <div id="modelQuotaContainer" style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
+            <div style="color: var(--text-muted); text-align: center; padding: 2rem;">Loading model quotas...</div>
         </div>
     </div>
 
@@ -757,6 +918,12 @@
                     renderAccounts(accounts);
                 }
 
+                const quotaRes = await apiFetch('/admin/model-quotas');
+                if (quotaRes.ok) {
+                    const modelQuotas = await quotaRes.json();
+                    renderModelQuotas(modelQuotas);
+                }
+
                 const keysRes = await apiFetch('/admin/api-keys');
                 if (keysRes.ok) {
                     const keysData = await keysRes.json();
@@ -827,7 +994,7 @@
             currentAccounts = accounts || [];
             const tbody = document.getElementById('accountsTableBody');
             if (!accounts || accounts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 2rem;">No accounts connected yet. Click "+ Add Google Account" above.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: var(--text-muted); padding: 2rem;">No accounts connected yet. Click "+ Add Arena Account" above to connect your first account.</td></tr>';
                 return;
             }
 
@@ -838,86 +1005,37 @@
                     : (hasCooldown ? '<span class="badge badge-cooldown">Cooldown</span>' : '<span class="badge badge-active">Active</span>');
                 
                 const healthScore = acc.health_score != null ? `${acc.health_score}%` : '100%';
-                const isFreeTier = (acc.tier || '').toLowerCase() === 'free';
+                const displayName = acc.display_name || acc.email_safe || acc.id;
 
-                // Gemini 5h Quota
-                const gPct = acc.gemini_pct != null ? acc.gemini_pct : 100;
-                const gReset = formatRelativeReset(acc.gemini_reset_time);
-                const gColorClass = getMeterColorClass(acc.gemini_pct, 'gemini');
+                let cooldownTags = '';
+                if (hasCooldown) {
+                    cooldownTags = acc.active_cooldowns.map(c => 
+                        `<span class="badge badge-cooldown" style="font-size: 0.65rem; margin-right: 3px;">${c.target_family}</span>`
+                    ).join('');
+                }
 
-                // Claude 5h Quota
-                const cPct = acc.claude_pct != null ? acc.claude_pct : (isFreeTier ? 0 : 100);
-                const cReset = formatRelativeReset(acc.claude_reset_time);
-                const cColorClass = isFreeTier && acc.claude_pct == null ? 'meter-fill-empty' : getMeterColorClass(acc.claude_pct, 'claude');
-                
                 return `
                     <tr>
                         <td>
-                            <strong style="color: var(--text-main); font-size: 0.93rem;">${acc.email_safe || acc.id}</strong>
+                            <strong style="color: var(--text-main); font-size: 0.93rem;">${displayName}</strong><br>
+                            <small style="color: var(--text-muted); font-family: monospace;">${acc.id}</small>
                         </td>
-                        <td><span class="badge badge-active">${acc.tier || 'pro'}</span></td>
-                        <td>${statusBadge}</td>
-                        <td><strong style="color: var(--success);">${healthScore}</strong></td>
+                        <td><span class="badge badge-active">${acc.tier || 'arena'}</span></td>
                         <td>
-                            <div class="quota-cell">
-                                <!-- Gemini 5h Window -->
-                                <div class="meter-row">
-                                    <div class="meter-header">
-                                        <span class="meter-label">
-                                            <span class="badge badge-blue" style="padding: 1px 5px; font-size: 0.65rem;">Gemini</span>
-                                            <span>5h Window</span>
-                                            ${gReset ? `<span class="meter-countdown">${gReset}</span>` : ''}
-                                        </span>
-                                        <span class="meter-pct" style="color: ${gPct <= 20 ? 'var(--danger)' : (gPct <= 50 ? 'var(--warning)' : '#38bdf8')};">
-                                            ${acc.gemini_pct != null ? acc.gemini_pct + '%' : '100%'}
-                                        </span>
-                                    </div>
-                                    <div class="meter-bar">
-                                        <div class="meter-fill ${gColorClass}" style="width: ${gPct}%;"></div>
-                                    </div>
-                                </div>
-
-                                <!-- Claude 5h Window -->
-                                <div class="meter-row">
-                                    <div class="meter-header">
-                                        <span class="meter-label">
-                                            <span class="badge badge-purple" style="padding: 1px 5px; font-size: 0.65rem;">Claude</span>
-                                            <span>5h Window</span>
-                                            ${cReset ? `<span class="meter-countdown">${cReset}</span>` : ''}
-                                        </span>
-                                        <span class="meter-pct" style="color: ${isFreeTier && acc.claude_pct == null ? 'var(--text-muted)' : (cPct <= 20 ? 'var(--danger)' : (cPct <= 50 ? 'var(--warning)' : '#c084fc'))};">
-                                            ${isFreeTier && acc.claude_pct == null ? 'N/A (Free)' : (acc.claude_pct != null ? acc.claude_pct + '%' : '100%')}
-                                        </span>
-                                    </div>
-                                    <div class="meter-bar">
-                                        <div class="meter-fill ${cColorClass}" style="width: ${isFreeTier && acc.claude_pct == null ? '0' : cPct}%;"></div>
-                                    </div>
-                                </div>
-
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
-                                    <span style="font-size: 0.72rem; color: ${hasCooldown ? 'var(--warning)' : 'var(--text-muted)'};">
-                                        ${hasCooldown ? '⚠️ Cooldown active' : '✓ Capacity OK'}
-                                    </span>
-                                    <a href="javascript:void(0)" onclick="openQuotaModal('${acc.id}')" style="font-size: 0.73rem; color: var(--primary); text-decoration: none; font-weight: 500;">🔍 Models Quota</a>
-                                </div>
-                            </div>
+                            ${statusBadge}
+                            ${cooldownTags ? `<div style="margin-top: 4px;">${cooldownTags}</div>` : ''}
                         </td>
+                        <td><strong style="color: var(--success);">${healthScore}</strong></td>
                         <td>
                             <div class="usage-cell">
                                 <strong>${(acc.total_requests || 0).toLocaleString()}</strong> reqs<br>
-                                <small style="color: var(--text-muted);">${(acc.total_tokens || 0).toLocaleString()} toks total</small>
-                                <div>
-                                    <span class="usage-tag">5h: <strong>${(acc.window_5h?.requests || 0)}</strong>r / ${(acc.window_5h?.total_tokens || 0).toLocaleString()}t</span>
-                                </div>
-                                <div>
-                                    <span class="usage-tag">7d: <strong>${(acc.window_7d?.requests || 0)}</strong>r / ${(acc.window_7d?.total_tokens || 0).toLocaleString()}t</span>
-                                </div>
+                                <small style="color: var(--text-muted);">${(acc.total_tokens || 0).toLocaleString()} toks</small>
                             </div>
                         </td>
                         <td>
                             <div class="actions-cell">
+                                <button class="btn-secondary btn-icon" onclick="testAccount('${acc.id}')">Test</button>
                                 <button class="btn-secondary btn-icon" onclick="toggleAccount('${acc.id}', ${!acc.enabled})">${acc.enabled ? 'Disable' : 'Enable'}</button>
-                                <button class="btn-secondary btn-icon" onclick="refreshToken('${acc.id}')">Refresh</button>
                                 ${hasCooldown ? `<button class="btn-secondary btn-icon" style="color: var(--warning); border-color: var(--warning);" onclick="clearCooldown('${acc.id}')">Reset Cooldown</button>` : ''}
                                 <button class="btn-danger btn-icon" onclick="deleteAccount('${acc.id}')">Delete</button>
                             </div>
@@ -925,6 +1043,165 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        let cachedModelQuotas = [];
+        let activeCategoryFilter = 'all';
+
+        function renderModelQuotas(quotas) {
+            cachedModelQuotas = quotas || [];
+            buildCategoryTabs();
+            filterModelQuotas();
+        }
+
+        function buildCategoryTabs() {
+            const tabsEl = document.getElementById('categoryTabs');
+            if (!tabsEl) return;
+
+            // Compute category counts
+            const counts = { 'all': cachedModelQuotas.length };
+            cachedModelQuotas.forEach(q => {
+                const cat = q.category || 'Other';
+                counts[cat] = (counts[cat] || 0) + 1;
+            });
+
+            const categoryList = [
+                { id: 'all', label: 'All Models' },
+                { id: 'OpenAI', label: 'OpenAI (GPT-5 & Codex)' },
+                { id: 'Anthropic / Claude', label: 'Anthropic / Claude' },
+                { id: 'Google / Gemini', label: 'Google / Gemini' },
+                { id: 'xAI / Grok', label: 'xAI / Grok' },
+                { id: 'Alibaba / Qwen', label: 'Alibaba / Qwen' },
+                { id: 'Moonshot / Kimi', label: 'Moonshot / Kimi' },
+                { id: 'Mistral', label: 'Mistral' },
+                { id: 'DeepSeek & Zhipu', label: 'DeepSeek & Zhipu' },
+                { id: 'NVIDIA & Labs', label: 'NVIDIA & Labs' },
+            ];
+
+            tabsEl.innerHTML = categoryList.map(c => {
+                const count = counts[c.id] || 0;
+                if (count === 0 && c.id !== 'all') return '';
+                const isActive = activeCategoryFilter === c.id ? 'active' : '';
+                return `<button type="button" class="cat-pill ${isActive}" onclick="setCategoryFilter('${c.id}')">${c.label} (${count})</button>`;
+            }).join('');
+        }
+
+        function setCategoryFilter(catId) {
+            activeCategoryFilter = catId;
+            buildCategoryTabs();
+            filterModelQuotas();
+        }
+
+        function filterModelQuotas() {
+            const container = document.getElementById('modelQuotaContainer');
+            if (!container) return;
+
+            const searchTxt = (document.getElementById('modelSearchInput')?.value || '').toLowerCase().trim();
+
+            let filtered = cachedModelQuotas.filter(q => {
+                const matchesCat = activeCategoryFilter === 'all' || q.category === activeCategoryFilter;
+                const matchesSearch = !searchTxt || 
+                    q.model_id.toLowerCase().includes(searchTxt) || 
+                    (q.display_name && q.display_name.toLowerCase().includes(searchTxt)) ||
+                    (q.subcategory && q.subcategory.toLowerCase().includes(searchTxt));
+                return matchesCat && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 2.5rem;">No models found matching the filter criteria.</div>';
+                return;
+            }
+
+            // Group by Category
+            const grouped = {};
+            filtered.forEach(q => {
+                const cat = q.category || 'Specialized Labs';
+                grouped[cat] = grouped[cat] || [];
+                grouped[cat].push(q);
+            });
+
+            const categoryOrder = [
+                'OpenAI',
+                'Anthropic / Claude',
+                'Google / Gemini',
+                'xAI / Grok',
+                'Alibaba / Qwen',
+                'Moonshot / Kimi',
+                'Mistral',
+                'DeepSeek & Zhipu',
+                'NVIDIA & Labs'
+            ];
+
+            let html = '';
+            for (const cat of categoryOrder) {
+                const items = grouped[cat];
+                if (!items || items.length === 0) continue;
+
+                // Sort descending by intelligence level inside each category
+                items.sort((a, b) => (b.intelligence_level || 80) - (a.intelligence_level || 80));
+
+                const cardsHtml = items.map(q => {
+                    const pct = q.remaining_pct != null ? q.remaining_pct : 0;
+                    let colorClass = 'meter-fill-good';
+                    let statusBadge = '<span class="badge badge-active">Available</span>';
+                    if (pct <= 0) {
+                        colorClass = 'meter-fill-empty';
+                        statusBadge = '<span class="badge badge-disabled">Exhausted</span>';
+                    } else if (pct <= 30) {
+                        colorClass = 'meter-fill-danger';
+                        statusBadge = '<span class="badge badge-cooldown">Low Capacity</span>';
+                    } else if (pct <= 60) {
+                        colorClass = 'meter-fill-warning';
+                        statusBadge = '<span class="badge badge-cooldown">Degraded</span>';
+                    }
+
+                    const intelRank = q.intelligence_level || 80;
+                    const subcat = q.subcategory ? `<span class="subcat-tag">${q.subcategory}</span>` : '';
+
+                    return `
+                        <div class="model-quota-card">
+                            <div class="model-card-header">
+                                <div>
+                                    <div class="model-card-title">${q.display_name || q.model_id}</div>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">${q.model_id}</span>
+                                    ${subcat}
+                                </div>
+                                <span class="intel-badge">🧠 Intel Level ${intelRank}</span>
+                            </div>
+
+                            <!-- Exact User Requested Format: <model>: remaining X% | consumed accounts: Y -->
+                            <div class="quota-summary-line">
+                                <span><strong>${q.model_id}</strong>: remaining <span style="color: ${pct > 50 ? 'var(--success)' : (pct > 0 ? 'var(--warning)' : 'var(--danger)')}; font-weight: 700;">${pct}%</span></span>
+                                <span style="color: var(--text-muted);">consumed accounts: <strong style="color: var(--text-main);">${q.consumed_accounts}</strong></span>
+                            </div>
+
+                            <div class="quota-meter-container">
+                                <div class="quota-meter-header">
+                                    <span>Fleet Capacity: <strong>${q.available_accounts} / ${q.total_accounts}</strong> accounts ready</span>
+                                    ${statusBadge}
+                                </div>
+                                <div class="meter-bar" style="height: 10px; border-radius: 5px;">
+                                    <div class="meter-fill ${colorClass}" style="width: ${pct}%; border-radius: 5px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                html += `
+                    <div class="cat-section">
+                        <div class="cat-title">
+                            <span>${cat}</span>
+                            <span class="cat-badge-count">${items.length} models</span>
+                        </div>
+                        <div class="model-quota-grid">
+                            ${cardsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
         }
 
 
@@ -974,14 +1251,65 @@
             loadData();
         }
 
-        async function refreshToken(id) {
-            const res = await apiFetch(`/admin/accounts/${id}/refresh`, { method: 'POST' });
-            if (res.ok) {
-                showAlert(`Token refreshed for account ${id}`);
-            } else {
-                showAlert(`Failed to refresh token: ${res.statusText}`, true);
+        function openAddAccountModal() {
+            document.getElementById('newAccountName').value = '';
+            document.getElementById('newAccountCreds').value = '';
+            document.getElementById('addAccountModal').style.display = 'flex';
+        }
+
+        function closeAddAccountModal() {
+            document.getElementById('addAccountModal').style.display = 'none';
+        }
+
+        async function submitAddAccount() {
+            const name = document.getElementById('newAccountName').value.trim();
+            const creds = document.getElementById('newAccountCreds').value.trim();
+            if (!name || !creds) {
+                alert('Please enter an account name and the Arena session cookies/credentials.');
+                return;
             }
-            loadData();
+            const btn = document.getElementById('saveAccountBtn');
+            btn.disabled = true;
+            btn.innerText = 'Connecting...';
+            try {
+                const res = await apiFetch('/admin/accounts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ display_name: name, credentials: creds })
+                });
+                if (res.ok) {
+                    showAlert(`Account "${name}" connected and saved securely.`);
+                    closeAddAccountModal();
+                    loadData();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    showAlert(`Failed to add account: ${err.detail || res.statusText}`, true);
+                }
+            } catch (e) {
+                showAlert(`Error: ${e.message}`, true);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Save & Connect Account';
+            }
+        }
+
+        async function testAccount(id) {
+            showAlert(`Testing connectivity for ${id}...`);
+            try {
+                const res = await apiFetch(`/admin/accounts/${id}/test`, { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        showAlert(`✓ Account ${id} connected successfully! Available models verified.`);
+                    } else {
+                        showAlert(`⚠️ Test failed for ${id}: ${data.error}`, true);
+                    }
+                } else {
+                    showAlert(`Failed to test account: ${res.statusText}`, true);
+                }
+            } catch (e) {
+                showAlert(`Error testing account: ${e.message}`, true);
+            }
         }
 
         async function clearCooldown(id) {
@@ -1626,6 +1954,33 @@ curl ${baseUrl}/chat/completions \\
         // Auto-run loadData on initial page load
         loadData();
     </script>
+
+    <!-- Add Arena Account Modal -->
+    <div id="addAccountModal" class="modal-overlay" style="display: none;" onclick="if(event.target === this) closeAddAccountModal();">
+        <div class="modal-content" style="max-width: 580px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--surface-border); padding-bottom: 0.85rem; margin-bottom: 1.2rem;">
+                <h3 style="font-size: 1.15rem; color: var(--text-main);">+ Add Arena.ai Account</h3>
+                <button class="btn-secondary btn-icon" onclick="closeAddAccountModal()" style="font-size: 1rem; padding: 0.2rem 0.6rem;">✕</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Account Label / Name</label>
+                    <input type="text" id="newAccountName" placeholder="e.g. Arena-Main or LMSYS-01" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--surface-border); background: var(--bg-dark); color: var(--text-main); box-sizing: border-box;" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Arena Session Cookies or JSON Credentials</label>
+                    <textarea id="newAccountCreds" rows="6" placeholder="arena-auth-prod-v1=eyJ...; cf_clearance=..." style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--surface-border); background: var(--bg-dark); color: var(--text-main); font-family: monospace; font-size: 0.8rem; box-sizing: border-box;"></textarea>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem; line-height: 1.4;">
+                        💡 <strong>How to extract:</strong> Log in at <a href="https://chat.lmsys.org" target="_blank" style="color: var(--primary);">chat.lmsys.org</a>. Press <code>F12</code> &rarr; <strong>Application</strong> &rarr; <strong>Cookies</strong> &rarr; copy <code>arena-auth-prod-v1</code> and <code>cf_clearance</code>. All credentials are encrypted locally with AES-256 before disk storage.
+                    </p>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
+                    <button class="btn-secondary" onclick="closeAddAccountModal()">Cancel</button>
+                    <button class="btn-primary" id="saveAccountBtn" onclick="submitAddAccount()">Save &amp; Activate Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Quota Inspector Modal -->
     <div id="quotaModal" class="modal-overlay" style="display: none;" onclick="if(event.target === this) closeQuotaModal();">

@@ -1,0 +1,1074 @@
+[
+  {
+    "model": "Max",
+    "organization": "boss-bandit"
+  },
+  {
+    "model": "amazon.nova-pro-v1:0",
+    "organization": "amazon"
+  },
+  {
+    "model": "august26-chatbot1",
+    "organization": "nvidia"
+  },
+  {
+    "model": "auto-bear-v2",
+    "organization": "alibaba"
+  },
+  {
+    "model": "claude-haiku-4-5-20251001",
+    "organization": "anthropic"
+  },
+  {
+    "model": "claude-sonnet-4-20250514",
+    "organization": "anthropic"
+  },
+  {
+    "model": "claude-sonnet-4-20250514-thinking-32k",
+    "organization": "anthropic"
+  },
+  {
+    "model": "claude-sonnet-4-5-20250929",
+    "organization": "anthropic"
+  },
+  {
+    "model": "claude-sonnet-4-5-20250929-thinking-32k",
+    "organization": "anthropic"
+  },
+  {
+    "model": "claude-sonnet-4-5-search",
+    "organization": "anthropic"
+  },
+  {
+    "model": "claude-sonnet-4-6",
+    "organization": "anthropic"
+  },
+  {
+    "model": "claude-sonnet-4-6-search",
+    "organization": "anthropic"
+  },
+  {
+    "model": "claude-sonnet-5",
+    "organization": "anthropic"
+  },
+  {
+    "model": "claude-sonnet-5-search",
+    "organization": "anthropic"
+  },
+  {
+    "model": "cosmos3-super",
+    "organization": "nvidia"
+  },
+  {
+    "model": "cosmos3-super-agentic",
+    "organization": "nvidia"
+  },
+  {
+    "model": "deep-octo",
+    "organization": "minimax"
+  },
+  {
+    "model": "deepseek-v4-flash-max",
+    "organization": "deepseek"
+  },
+  {
+    "model": "devstral-2",
+    "organization": "mistral"
+  },
+  {
+    "model": "devstral-medium-2507",
+    "organization": "mistral"
+  },
+  {
+    "model": "eren-v2",
+    "organization": "microsoft-ai"
+  },
+  {
+    "model": "flux-1-kontext-dev",
+    "organization": "bfl"
+  },
+  {
+    "model": "flux-1-kontext-pro",
+    "organization": "bfl"
+  },
+  {
+    "model": "flux-2-dev",
+    "organization": "bfl"
+  },
+  {
+    "model": "flux-2-pro",
+    "organization": "bfl"
+  },
+  {
+    "model": "flux-3-video",
+    "organization": "bfl"
+  },
+  {
+    "model": "flux-3-video-20260811-i2v",
+    "organization": "bfl"
+  },
+  {
+    "model": "gemini-2.0-flash-001",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-2.5-flash",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-2.5-flash-image-preview (nano-banana)",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-2.5-pro",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-2.5-pro-grounding",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3-flash",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3-flash (thinking-minimal)",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3-flash-grounding",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.1-flash-lite",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.1-flash-lite-image (nano-banana-2-lite)",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.1-pro-preview",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.5-flash",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.5-flash-high",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.5-flash-lite",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.6-flash",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.7-flash",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.8-flash-high",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.8-flash-low",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-3.8-flash-medium",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-omni-1.1-flash",
+    "organization": "google"
+  },
+  {
+    "model": "gemini-omni-flash",
+    "organization": "google"
+  },
+  {
+    "model": "gemma-3-27b-it",
+    "organization": "google"
+  },
+  {
+    "model": "gemma-3n-e4b-it",
+    "organization": "google"
+  },
+  {
+    "model": "glm-4.7",
+    "organization": "zai"
+  },
+  {
+    "model": "glm-5",
+    "organization": "zai"
+  },
+  {
+    "model": "glm-5.1",
+    "organization": "zai"
+  },
+  {
+    "model": "glm-5v-turbo",
+    "organization": "zai"
+  },
+  {
+    "model": "gpt-4.1-2025-04-14",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-4.1-mini-2025-04-14",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5-chat",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5-high",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5-high-new-system-prompt",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5-medium",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5-mini-high",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5-nano-high",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5-search",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.1",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.1-codex",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.1-codex-max",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.1-codex-mini",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.1-high",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.1-medium",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.1-search",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.1-search-sp",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.2",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.2-codex",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.2-high",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.2-search",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.2-search-non-reasoning",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.3-codex",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.4-mini-high",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.4-nano-high",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-5.5-instant",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-image-1",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-oss-120b",
+    "organization": "openai"
+  },
+  {
+    "model": "gpt-oss-20b",
+    "organization": "openai"
+  },
+  {
+    "model": "granite-4.1-8b",
+    "organization": "ibm"
+  },
+  {
+    "model": "grok-4-1-fast-search",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-4-search",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-4.20-beta-0309-reasoning",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-4.20-multi-agent-beta-0309",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-4.3",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-4.5-search",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-4.6",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-build-0.1",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-imagine-image",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-imagine-image-quality",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-imagine-video",
+    "organization": "xai"
+  },
+  {
+    "model": "grok-imagine-video-1.5-preview-720p",
+    "organization": "xai"
+  },
+  {
+    "model": "groudon",
+    "organization": "bytedance"
+  },
+  {
+    "model": "hailuo-02-fast",
+    "organization": "minimax"
+  },
+  {
+    "model": "hailuo-02-pro",
+    "organization": "minimax"
+  },
+  {
+    "model": "hailuo-02-standard",
+    "organization": "minimax"
+  },
+  {
+    "model": "hailuo-2.3",
+    "organization": "minimax"
+  },
+  {
+    "model": "hailuo-2.3-fast",
+    "organization": "minimax"
+  },
+  {
+    "model": "hailuo-3",
+    "organization": "minimax"
+  },
+  {
+    "model": "happyhorse-1.1",
+    "organization": "aorizon"
+  },
+  {
+    "model": "hidream-o1-image",
+    "organization": "hidream"
+  },
+  {
+    "model": "hidream-o1-video",
+    "organization": "hidream"
+  },
+  {
+    "model": "hunyuan-image-2.1",
+    "organization": "tencent"
+  },
+  {
+    "model": "hunyuan-video-1.5",
+    "organization": "tencent"
+  },
+  {
+    "model": "hunyuan-vision-1.5-thinking",
+    "organization": "tencent"
+  },
+  {
+    "model": "ibm-granite-h-small",
+    "organization": "ibm"
+  },
+  {
+    "model": "ideogram-v3-quality",
+    "organization": "Ideogram"
+  },
+  {
+    "model": "inkling-low",
+    "organization": "thinky"
+  },
+  {
+    "model": "inkling-medium",
+    "organization": "thinky"
+  },
+  {
+    "model": "inkling-small",
+    "organization": "thinky"
+  },
+  {
+    "model": "inkling-small-low",
+    "organization": "thinky"
+  },
+  {
+    "model": "inkling-small-medium",
+    "organization": "thinky"
+  },
+  {
+    "model": "intellect-3",
+    "organization": "prime-intellect"
+  },
+  {
+    "model": "k2",
+    "organization": "bytedance"
+  },
+  {
+    "model": "kandinsky-5.0-i2v-pro",
+    "organization": "kandinsky"
+  },
+  {
+    "model": "kandinsky-5.0-t2v-lite",
+    "organization": "kandinsky"
+  },
+  {
+    "model": "kandinsky-5.0-t2v-pro",
+    "organization": "kandinsky"
+  },
+  {
+    "model": "kimi-k2-0711-preview",
+    "organization": "moonshot"
+  },
+  {
+    "model": "kimi-k2-0905-preview",
+    "organization": "moonshot"
+  },
+  {
+    "model": "kimi-k2-thinking-turbo",
+    "organization": "moonshot"
+  },
+  {
+    "model": "kimi-k2.6",
+    "organization": "moonshot"
+  },
+  {
+    "model": "kimi-k2.7-code",
+    "organization": "moonshot"
+  },
+  {
+    "model": "kiteki",
+    "organization": "alibaba"
+  },
+  {
+    "model": "kizen-alpha",
+    "organization": "alibaba"
+  },
+  {
+    "model": "kling-2.5-turbo-1080p",
+    "organization": "kling"
+  },
+  {
+    "model": "kling-o1-pro",
+    "organization": "kling"
+  },
+  {
+    "model": "kling-o3-pro",
+    "organization": "kling"
+  },
+  {
+    "model": "kling-v2.1-master",
+    "organization": "kling"
+  },
+  {
+    "model": "kling-v2.1-standard",
+    "organization": "kling"
+  },
+  {
+    "model": "kling-v3",
+    "organization": "kling"
+  },
+  {
+    "model": "korin",
+    "organization": "alibaba"
+  },
+  {
+    "model": "krea-2-large",
+    "organization": "krea"
+  },
+  {
+    "model": "krea-2-medium",
+    "organization": "krea"
+  },
+  {
+    "model": "krea-2-turbo",
+    "organization": "krea"
+  },
+  {
+    "model": "laguna-m.1-v2",
+    "organization": "poolside"
+  },
+  {
+    "model": "laguna-xs-2.1",
+    "organization": "poolside"
+  },
+  {
+    "model": "lhotse",
+    "organization": "bytedance"
+  },
+  {
+    "model": "ling-2.5-1t",
+    "organization": "ant-group"
+  },
+  {
+    "model": "ling-flash-2.0",
+    "organization": "ant-group"
+  },
+  {
+    "model": "lo-bah-png",
+    "organization": "microsoft-ai"
+  },
+  {
+    "model": "longcat-2.0",
+    "organization": "meituan"
+  },
+  {
+    "model": "longcat-flash-chat",
+    "organization": "meituan"
+  },
+  {
+    "model": "ltx-2-19b",
+    "organization": "lightricks"
+  },
+  {
+    "model": "lucid-origin",
+    "organization": "leonardo-ai"
+  },
+  {
+    "model": "march26-chatbot1-public",
+    "organization": "nvidia"
+  },
+  {
+    "model": "may-alpha",
+    "organization": "alibaba"
+  },
+  {
+    "model": "may26-chatbot4-public",
+    "organization": "nvidia"
+  },
+  {
+    "model": "melyora",
+    "organization": "alibaba"
+  },
+  {
+    "model": "mercury",
+    "organization": "inception-ai"
+  },
+  {
+    "model": "mercury-2",
+    "organization": "inception-ai"
+  },
+  {
+    "model": "mimo-v2.5",
+    "organization": "xiaomi"
+  },
+  {
+    "model": "mimo-v2.5-pro",
+    "organization": "xiaomi"
+  },
+  {
+    "model": "minimax-h3-max",
+    "organization": "minimax"
+  },
+  {
+    "model": "minimax-m1",
+    "organization": "minimax"
+  },
+  {
+    "model": "minimax-m2",
+    "organization": "minimax"
+  },
+  {
+    "model": "minimax-m2-preview",
+    "organization": "minimax"
+  },
+  {
+    "model": "minimax-m2.1-preview",
+    "organization": "minimax"
+  },
+  {
+    "model": "minimax-m2.5",
+    "organization": "minimax"
+  },
+  {
+    "model": "minimax-m3",
+    "organization": "minimax"
+  },
+  {
+    "model": "mistral-large-3",
+    "organization": "mistral"
+  },
+  {
+    "model": "mistral-medium-2508",
+    "organization": "mistral"
+  },
+  {
+    "model": "mistral-medium-3.5",
+    "organization": "mistral"
+  },
+  {
+    "model": "mochi-v1",
+    "organization": "genmo"
+  },
+  {
+    "model": "nova-2-lite",
+    "organization": "amazon"
+  },
+  {
+    "model": "nvidia-nemotron-3-nano-30b-a3b-bf16",
+    "organization": "nvidia"
+  },
+  {
+    "model": "o3-2025-04-16",
+    "organization": "openai"
+  },
+  {
+    "model": "o3-mini",
+    "organization": "openai"
+  },
+  {
+    "model": "o3-search",
+    "organization": "openai"
+  },
+  {
+    "model": "o4-mini-2025-04-16",
+    "organization": "openai"
+  },
+  {
+    "model": "onyx-v1-4",
+    "organization": "meta"
+  },
+  {
+    "model": "paisley",
+    "organization": "alibaba"
+  },
+  {
+    "model": "photon",
+    "organization": "luma-ai"
+  },
+  {
+    "model": "pika-v2.2",
+    "organization": "pika"
+  },
+  {
+    "model": "polaris",
+    "organization": "wan"
+  },
+  {
+    "model": "pteronura",
+    "organization": "google"
+  },
+  {
+    "model": "qwen-image-2.0",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen-image-2.0-pro",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen-image-2512",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen-image-edit-2511",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen-vl-max-2025-08-13",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-235b-a22b",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-235b-a22b-instruct-2507",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-235b-a22b-no-thinking",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-235b-a22b-thinking-2507",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-30b-a3b",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-30b-a3b-instruct-2507",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-coder-480b-a35b-instruct",
+    "organization": "Alibaba"
+  },
+  {
+    "model": "qwen3-max-2025-09-23",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-max-2025-09-26",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-max-preview",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-max-thinking",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-next-80b-a3b-instruct",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-next-80b-a3b-thinking",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-omni-flash",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-vl-235b-a22b-instruct",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-vl-235b-a22b-thinking",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-vl-8b-instruct",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3-vl-8b-thinking",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.5-122b-a10b",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.5-122b-a10b-code",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.5-27b",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.5-27b-code",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.5-35b-a3b",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.5-35b-a3b-code",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.5-397b-a17b",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.5-flash",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.6-27b",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.6-max-preview",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.6-plus",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.6-plus-preview",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.7-max",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwen3.7-plus",
+    "organization": "alibaba"
+  },
+  {
+    "model": "qwq-32b",
+    "organization": "alibaba"
+  },
+  {
+    "model": "ray-3",
+    "organization": "luma-ai"
+  },
+  {
+    "model": "ray2",
+    "organization": "luma-ai"
+  },
+  {
+    "model": "recraft-v3",
+    "organization": "Recraft"
+  },
+  {
+    "model": "recraft-v4",
+    "organization": "Recraft"
+  },
+  {
+    "model": "ring-2.5-1t",
+    "organization": "ant-group"
+  },
+  {
+    "model": "ring-flash-2.0",
+    "organization": "ant-group"
+  },
+  {
+    "model": "runway-gen-4.5",
+    "organization": "runway"
+  },
+  {
+    "model": "runway-gen4-aleph",
+    "organization": "runway"
+  },
+  {
+    "model": "runway-gen4-turbo",
+    "organization": "runway"
+  },
+  {
+    "model": "seedance-v1-lite",
+    "organization": "bytedance"
+  },
+  {
+    "model": "seedance-v1-pro",
+    "organization": "bytedance"
+  },
+  {
+    "model": "seededit-3.0",
+    "organization": "bytedance"
+  },
+  {
+    "model": "seedream-3",
+    "organization": "bytedance"
+  },
+  {
+    "model": "seedream-4.5",
+    "organization": "bytedance"
+  },
+  {
+    "model": "seedream-5.0-lite",
+    "organization": "bytedance"
+  },
+  {
+    "model": "seedream-5.0-pro",
+    "organization": "bytedance"
+  },
+  {
+    "model": "significant-otter",
+    "organization": "google"
+  },
+  {
+    "model": "snowflake",
+    "organization": "shengshu"
+  },
+  {
+    "model": "solar-pro4",
+    "organization": "upstage"
+  },
+  {
+    "model": "sora",
+    "organization": "openai"
+  },
+  {
+    "model": "sora-2",
+    "organization": "openai"
+  },
+  {
+    "model": "sora-2-pro",
+    "organization": "openai"
+  },
+  {
+    "model": "step-3.5-flash",
+    "organization": "stepfun"
+  },
+  {
+    "model": "sungod",
+    "organization": "tencent"
+  },
+  {
+    "model": "trinity-large",
+    "organization": "arcee-ai"
+  },
+  {
+    "model": "trinity-large-thinking",
+    "organization": "arcee-ai"
+  },
+  {
+    "model": "uni-1.1",
+    "organization": "luma-ai"
+  },
+  {
+    "model": "uni-1.1-max",
+    "organization": "luma-ai"
+  },
+  {
+    "model": "vega",
+    "organization": "wan"
+  },
+  {
+    "model": "veo-2",
+    "organization": "google"
+  },
+  {
+    "model": "veo-3.1-audio",
+    "organization": "google"
+  },
+  {
+    "model": "veo-3.1-audio-1080p",
+    "organization": "google"
+  },
+  {
+    "model": "veo-3.1-audio-4k",
+    "organization": "google"
+  },
+  {
+    "model": "veo-3.1-fast-audio",
+    "organization": "google"
+  },
+  {
+    "model": "veo-3.1-fast-audio-1080p",
+    "organization": "google"
+  },
+  {
+    "model": "veo-3.1-fast-audio-4k",
+    "organization": "google"
+  },
+  {
+    "model": "wan-v2.2-a14b",
+    "organization": "wan"
+  },
+  {
+    "model": "wan-vace",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.5-i2i-preview",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.5-t2i-preview",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.5-t2v-preview",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.6-i2v",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.6-image",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.6-t2i",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.6-t2v",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.7-i2v",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.7-image",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.7-image-pro",
+    "organization": "wan"
+  },
+  {
+    "model": "wan2.7-t2v",
+    "organization": "wan"
+  },
+  {
+    "model": "zen-bear-v14r",
+    "organization": "alibaba"
+  },
+  {
+    "model": "zen-bear-v4",
+    "organization": "alibaba"
+  }
+]

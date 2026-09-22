@@ -3,6 +3,8 @@
 import os
 import platform
 import sys
+import json
+from pathlib import Path
 
 # Google OAuth2 Endpoints
 OAUTH_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -100,41 +102,25 @@ FAMILY_GEMINI = "gemini"
 FAMILY_CLAUDE = "claude"
 FAMILY_GPT = "gpt"
 
-# Default Model Specifications — Exclusively the 5 Selected Models
-DEFAULT_MODELS = {
-    "gemini-3.8-flash-high": {
-        "upstream_id": "gemini-3.8-flash-tiered",
-        "family": FAMILY_GEMINI,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 65536,
-        "description": "Gemini 3.8 Flash High (Fast Thinking)",
-    },
-    "gemini-3.1-pro-low": {
-        "upstream_id": "gemini-3.1-pro-low",
-        "family": FAMILY_GEMINI,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 8192,
-        "description": "Gemini 3.1 Pro Low (Pro Reasoning)",
-    },
-    "claude-sonnet-4-6": {
-        "upstream_id": "claude-sonnet-4-6",
-        "family": FAMILY_CLAUDE,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 16384,
-        "description": "Claude Sonnet 4.6 (Thinking)",
-    },
-    "claude-opus-4-6-thinking": {
-        "upstream_id": "claude-opus-4-6-thinking",
-        "family": FAMILY_CLAUDE,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 16384,
-        "description": "Claude Opus 4.6 (Thinking)",
-    },
-    "gpt-oss-120b-medium": {
-        "upstream_id": "gpt-oss-120b-medium",
-        "family": FAMILY_GPT,
-        "capabilities": ["tools", "streaming"],
-        "max_output_tokens": 16384,
-        "description": "GPT-OSS 120B (Medium)",
-    },
-}
+# Default Model Specifications — Loaded from categorized models catalog
+DEFAULT_MODELS = {}
+_cat_models_path = Path(__file__).parent / "categorized_models.json"
+if _cat_models_path.is_file():
+    with open(_cat_models_path, "r", encoding="utf-8") as f:
+        _raw_cat = json.load(f)
+    for mid, spec in _raw_cat.items():
+        DEFAULT_MODELS[mid] = {
+            "upstream_id": spec.get("upstream_id", mid),
+            "family": spec.get("family", "all"),
+            "category": spec.get("category", "Other"),
+            "subcategory": spec.get("subcategory", "General"),
+            "description": spec.get("display", mid),
+            "intelligence_level": spec.get("intelligence", 80),
+            "capabilities": ["tools", "streaming"],
+            "max_output_tokens": 32768,
+        }
+else:
+    DEFAULT_MODELS = {
+        "gpt-5.6": {"upstream_id": "gpt-5.6", "family": FAMILY_GPT, "description": "GPT-5.6", "intelligence_level": 100},
+        "claude-sonnet-5": {"upstream_id": "claude-sonnet-5", "family": FAMILY_CLAUDE, "description": "Claude Sonnet 5", "intelligence_level": 100},
+    }

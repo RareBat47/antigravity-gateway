@@ -7,9 +7,30 @@ from agw.main import create_app
 
 
 @pytest.mark.asyncio
-async def test_multi_api_key_role_restrictions():
+async def test_multi_api_key_role_restrictions(test_repo, temp_dir):
     cfg = load_config()
+    cfg.storage.database_path = test_repo.db_path
+    
+    # Override api keys for strict testing
+    for ak in cfg.security.api_keys:
+        if ak.key == "agw-plan-claude-9x82":
+            ak.allowed_families = ["claude"]
+            ak.allowed_models = []
+        elif ak.key == "agw-code-gemini-3-8d52":
+            ak.allowed_families = []
+            ak.allowed_models = ["gemini-3.8-flash-high"]
+        elif ak.key == "agw-code-hybrid-1-4a29":
+            ak.allowed_families = []
+            ak.allowed_models = ["gemini-3.1-pro-low"]
+        elif ak.key == "agw-code-hybrid-2-6e83":
+            ak.allowed_families = []
+            ak.allowed_models = ["claude-sonnet-4-6"]
+        elif ak.key == "agw-debug-all-9c37":
+            ak.allowed_families = []
+            ak.allowed_models = ["gpt-oss-120b-medium"]
+    
     app = create_app(cfg)
+    # The new create_app uses the cfg path, so we're good.
     transport = ASGITransport(app=app)
 
     async with AsyncClient(transport=transport, base_url="http://test") as client:
