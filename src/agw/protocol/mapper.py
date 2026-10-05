@@ -218,6 +218,12 @@ def build_generation_config(body: Dict[str, Any], max_output_tokens: int) -> Dic
         stop = body["stop"]
         cfg["stopSequences"] = [stop] if isinstance(stop, str) else stop
 
+    # Thinking configuration (pass-through if specified by caller)
+    if "thinking" in body and isinstance(body["thinking"], dict):
+        cfg["thinkingConfig"] = body["thinking"]
+    elif "thinking_config" in body and isinstance(body["thinking_config"], dict):
+        cfg["thinkingConfig"] = body["thinking_config"]
+
     return cfg
 
 

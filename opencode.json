@@ -1,0 +1,47 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "antigravity": {
+      "name": "Antigravity Gateway",
+      "type": "openai",
+      "baseURL": "http://127.0.0.1:8999/v1",
+      "apiKey": "agw-hermes-secret-key-change-me",
+      "models": {
+        "claude-opus-5-5-medium": {
+          "name": "Claude Opus 5.5 (Medium)"
+        },
+        "claude-sonnet-5-5-medium": {
+          "name": "Claude Sonnet 5.5 (Medium)"
+        },
+        "claude-opus-4-6-thinking": {
+          "name": "Claude Opus 4.6 (Thinking)"
+        },
+        "claude-sonnet-4-6": {
+          "name": "Claude Sonnet 4.6 (Thinking)"
+        },
+        "gemini-3.8-flash-high": {
+          "name": "Gemini 3.8 Flash High"
+        },
+        "gemini-3.6-flash-high": {
+          "name": "Gemini 3.6 Flash High"
+        },
+        "gemini-3.6-flash-medium": {
+          "name": "Gemini 3.6 Flash Medium"
+        },
+        "gemini-3.7-flash-medium": {
+          "name": "Gemini 3.7 Flash Medium"
+        },
+        "gemini-3.1-pro-low": {
+          "name": "Gemini 3.1 Pro Low"
+        },
+        "gemini-pro-agent": {
+          "name": "Gemini Pro Agent"
+        },
+        "gpt-oss-120b-medium": {
+          "name": "GPT-OSS 120B (Medium)"
+        }
+      }
+    }
+  }
+}
+

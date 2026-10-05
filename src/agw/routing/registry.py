@@ -7,34 +7,44 @@ Tuple_Upstream = Tuple[str, str, int]
 
 
 MODEL_ALIASES: Dict[str, str] = {
-    # Gemini 3.8 Flash High (Sole Flash model)
-    "gemini-flash": "gemini-3.8-flash-high",
-    "gemini-3.8-flash": "gemini-3.8-flash-high",
-    "gemini-3.8-flash-tiered": "gemini-3.8-flash-high",
-    "gemini-3.8-flash-tiered-high": "gemini-3.8-flash-high",
-    "gemini-3.5-flash": "gemini-3.8-flash-high",
-    "gemini-2.5-flash": "gemini-3.8-flash-high",
-    "gemini-2.0-flash": "gemini-3.8-flash-high",
-    "gemini-1.5-flash": "gemini-3.8-flash-high",
-    # Gemini 3.1 Pro Low
-    "gemini-3.1-pro": "gemini-3.1-pro-low",
-    "gemini-3.1-pro-high": "gemini-3.1-pro-low",
-    "gemini-pro": "gemini-3.1-pro-low",
-    "gemini-pro-agent": "gemini-3.1-pro-low",
-    "gemini-2.5-pro": "gemini-3.1-pro-low",
-    "gemini-1.5-pro": "gemini-3.1-pro-low",
-    # Claude Sonnet 4.6 (Thinking)
+    # Claude 5.5 Generation Aliases
+    "claude-opus-5-5": "claude-opus-5-5-medium",
+    "claude-opus-5.5": "claude-opus-5-5-medium",
+    "claude-5-5-opus": "claude-opus-5-5-medium",
+    "claude-5.5-opus": "claude-opus-5-5-medium",
+    "claude-sonnet-5-5": "claude-sonnet-5-5-medium",
+    "claude-sonnet-5.5": "claude-sonnet-5-5-medium",
+    "claude-5-5-sonnet": "claude-sonnet-5-5-medium",
+    "claude-5.5-sonnet": "claude-sonnet-5-5-medium",
+    # Claude 4.6 Generation Aliases
     "claude-sonnet": "claude-sonnet-4-6",
     "claude-sonnet-4.6": "claude-sonnet-4-6",
     "claude-3-7-sonnet": "claude-sonnet-4-6",
     "claude-3.7-sonnet": "claude-sonnet-4-6",
     "claude-3-5-sonnet": "claude-sonnet-4-6",
     "claude-3.5-sonnet": "claude-sonnet-4-6",
-    # Claude Opus 4.6 (Thinking)
     "claude-opus": "claude-opus-4-6-thinking",
     "claude-opus-4-6": "claude-opus-4-6-thinking",
     "claude-3-opus": "claude-opus-4-6-thinking",
     "claude-3.0-opus": "claude-opus-4-6-thinking",
+    # Gemini 3.8 / 3.7 / 3.6 Flash Aliases
+    "gemini-flash": "gemini-3.8-flash-high",
+    "gemini-3.8-flash": "gemini-3.8-flash-high",
+    "gemini-3.8-flash-tiered": "gemini-3.8-flash-high",
+    "gemini-3.8-flash-tiered-high": "gemini-3.8-flash-high",
+    "gemini-3.7-flash": "gemini-3.8-flash-high",
+    "gemini-3.7-flash-medium": "gemini-3.8-flash-high",
+    "gemini-3.6-flash": "gemini-3.6-flash-high",
+    "gemini-3.5-flash": "gemini-3.8-flash-high",
+    "gemini-2.5-flash": "gemini-3.8-flash-high",
+    "gemini-2.0-flash": "gemini-3.8-flash-high",
+    "gemini-1.5-flash": "gemini-3.8-flash-high",
+    # Gemini Pro Reasoning Aliases
+    "gemini-3.1-pro": "gemini-3.1-pro-low",
+    "gemini-3.1-pro-high": "gemini-pro-agent",
+    "gemini-pro": "gemini-3.1-pro-low",
+    "gemini-2.5-pro": "gemini-3.1-pro-low",
+    "gemini-1.5-pro": "gemini-3.1-pro-low",
     # GPT-OSS 120B (Medium)
     "gpt-oss": "gpt-oss-120b-medium",
     "gpt-oss-120b": "gpt-oss-120b-medium",
@@ -51,13 +61,16 @@ def normalize_model_id(model_id: str) -> str:
 
 
 class ModelRegistry:
-    """Manages models supported by the gateway."""
+    """Manages models supported by the gateway with dynamic auto-registration."""
 
     def __init__(self, custom_models: Optional[Dict[str, Any]] = None):
-        if custom_models is not None:
-            self._models = dict(custom_models)
-        else:
-            self._models = dict(DEFAULT_MODELS)
+        self._models = dict(DEFAULT_MODELS)
+        if custom_models:
+            self._models.update(custom_models)
+
+    def register_model(self, model_id: str, definition: Dict[str, Any]) -> None:
+        """Register or update a model definition dynamically."""
+        self._models[model_id] = definition
 
     def get_model(self, model_id: str) -> Optional[Dict[str, Any]]:
         """Get model definition by ID or alias."""
@@ -100,3 +113,4 @@ class ModelRegistry:
         """Check if model exists in registry."""
         normalized = normalize_model_id(model_id)
         return normalized in self._models or model_id in self._models
+
