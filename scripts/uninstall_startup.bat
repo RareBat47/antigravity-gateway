@@ -1,5 +1,6 @@
 @echo off
-echo Removing Antigravity Gateway from Windows Startup...
-del "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\AntigravityGateway.lnk" >nul 2>&1
-echo [SUCCESS] Removed Antigravity Gateway from Windows Startup.
-pause
+setlocal
+set "STARTUP=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+del /Q "%STARTUP%\AntigravityGateway.vbs" >nul 2>&1
+del /Q "%STARTUP%\AntigravityGateway.lnk" >nul 2>&1
+echo [SUCCESS] Antigravity Gateway startup trigger removed.
