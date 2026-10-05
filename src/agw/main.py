@@ -12,6 +12,7 @@ from agw.api.middleware import AuditLoggingMiddleware, RedactingLogger
 from agw.api.routes_admin import create_admin_router
 from agw.api.routes_anthropic import create_anthropic_router
 from agw.api.routes_auth import create_auth_router
+from agw.api.routes_setup import create_setup_router
 from agw.api.routes_v1 import create_v1_router
 from agw.auth.crypto import TokenEncryption
 from agw.auth.vault import CredentialVault
@@ -24,6 +25,7 @@ from agw.routing.cooldown import CooldownManager
 from agw.routing.health import AccountHealthTracker
 from agw.routing.registry import ModelRegistry
 from agw.routing.scheduler import AccountScheduler
+from agw.security.identity import LocalIdentityManager
 
 
 def configure_logging(debug: bool = False) -> None:
@@ -46,6 +48,7 @@ def configure_logging(debug: bool = False) -> None:
 def create_app(config: AppConfig | None = None) -> FastAPI:
     """Application factory."""
     cfg = config or load_config()
+    LocalIdentityManager().ensure_identity(cfg)
     configure_logging(cfg.server.debug)
 
     # Core singletons
@@ -96,7 +99,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     app = FastAPI(
         title="Antigravity Gateway",
         description="Multi-Account OpenAI-compatible Gateway for Hermes Agent",
-        version="1.0.0",
+        version="2.0.0",
         lifespan=lifespan,
     )
 
@@ -124,6 +127,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         }
 
     # Register Routers
+    app.include_router(create_setup_router(cfg, repo))
     app.include_router(create_auth_router(cfg, account_mgr))
     app.include_router(
         create_v1_router(

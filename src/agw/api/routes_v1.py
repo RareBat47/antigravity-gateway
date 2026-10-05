@@ -27,6 +27,7 @@ from agw.protocol.tools import oai_tool_choice_to_gemini, oai_tools_to_gemini
 from agw.routing.cooldown import CooldownManager
 from agw.routing.health import AccountHealthTracker
 from agw.routing.registry import ModelRegistry, normalize_model_id
+from agw.routing.profiles import resolve_profile
 from agw.routing.scheduler import AccountScheduler
 
 logger = logging.getLogger("agw.v1")
@@ -44,6 +45,11 @@ def create_v1_router(
 ) -> APIRouter:
     verify_key = get_api_key_auth(config)
     router = APIRouter(prefix="/v1", tags=["OpenAI Compatible API"], dependencies=[Depends(verify_key)])
+
+    @router.get("/routing/profiles")
+    async def list_routing_profiles():
+        from agw.routing.profiles import profile_items
+        return {"object": "list", "data": profile_items()}
 
     @router.get("/models")
     async def list_models(request: Request):
@@ -145,10 +151,14 @@ def create_v1_router(
                 detail={"error": {"message": "Request body is not valid JSON", "type": "invalid_request_error"}},
             )
 
-        model_id = body.get("model", "gemini-3.8-flash-high")
+        model_id = body.get("model", "auto")
         is_streaming = bool(body.get("stream", False))
 
-        m_def = model_registry.get_model(model_id, fallback_to_default=True)
+        if str(model_id).strip().lower() in {"auto", "fast", "balanced", "powerful", "reasoning"}:
+            upstream_id, family, max_tokens = resolve_profile(str(model_id), model_registry)
+            m_def = model_registry.get_model(upstream_id, fallback_to_default=True)
+        else:
+            m_def = model_registry.get_model(model_id, fallback_to_default=True)
         if not m_def:
             raise HTTPException(
                 status_code=404,
@@ -161,7 +171,8 @@ def create_v1_router(
             )
 
         try:
-            upstream_id, family, max_tokens = model_registry.resolve_upstream(model_id, strict=False)
+            if str(model_id).strip().lower() not in {"auto", "fast", "balanced", "powerful", "reasoning"}:
+                upstream_id, family, max_tokens = model_registry.resolve_upstream(model_id, strict=False)
         except ValueError as e:
             raise HTTPException(
                 status_code=404,

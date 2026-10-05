@@ -16,7 +16,7 @@ from agw.constants import (
 
 
 class ServerSettings(BaseModel):
-    host: str = "0.0.0.0"
+    host: str = "127.0.0.1"
     port: int = 8999
     debug: bool = False
     public_base_url: str = ""
@@ -31,8 +31,8 @@ class ApiKeyEntry(BaseModel):
 
 
 class SecuritySettings(BaseModel):
-    gateway_api_key: str = Field(default="agw-hermes-secret-key-change-me")
-    admin_api_key: str = Field(default="agw-admin-super-secret-key-change-me")
+    gateway_api_key: str = Field(default="")
+    admin_api_key: str = Field(default="")
     encryption_key: Optional[str] = None
     rate_limit_per_minute: int = 120
     cors_origins: List[str] = Field(default_factory=list)
