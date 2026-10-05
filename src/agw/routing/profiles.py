@@ -16,11 +16,11 @@ class RoutingProfile:
 
 
 PROFILES = {
-    "auto": RoutingProfile("auto", "Best available route for this request", ("gemini-3.8-flash-high", "claude-sonnet-4-6", "gemini-3.1-pro-low")),
+    "auto": RoutingProfile("auto", "Best available route for this request", ("gemini-3.8-flash-high", "claude-sonnet-5-5-medium", "gemini-3.1-pro-low")),
     "fast": RoutingProfile("fast", "Fast Flash-first route", ("gemini-3.8-flash-high", "gemini-3.6-flash-medium")),
-    "balanced": RoutingProfile("balanced", "Quality and latency balanced", ("claude-sonnet-4-6", "gemini-3.8-flash-high", "gemini-3.1-pro-low")),
-    "powerful": RoutingProfile("powerful", "Highest-quality reasoning route", ("claude-opus-4-6-thinking", "gemini-3.1-pro-low", "claude-sonnet-4-6")),
-    "reasoning": RoutingProfile("reasoning", "Thinking/reasoning-capable route", ("claude-opus-4-6-thinking", "gemini-3.1-pro-low", "claude-sonnet-4-6"), "thinking"),
+    "balanced": RoutingProfile("balanced", "Quality and latency balanced", ("claude-sonnet-5-5-medium", "gemini-3.8-flash-high", "gemini-3.1-pro-low")),
+    "powerful": RoutingProfile("powerful", "Highest-quality route", ("claude-opus-5-5-medium", "gemini-3.1-pro-low", "claude-sonnet-5-5-medium")),
+    "reasoning": RoutingProfile("reasoning", "Reasoning-capable route", ("claude-opus-5-5-medium", "gemini-3.1-pro-low", "claude-sonnet-5-5-medium"), "thinking"),
 }
 
 

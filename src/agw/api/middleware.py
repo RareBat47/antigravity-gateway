@@ -131,7 +131,9 @@ def get_admin_key_auth(config: AppConfig) -> Callable:
         # only browser requests from loopback may access admin data without copying a key.
         if config.security.dashboard_local_access and is_loopback_client(request):
             user_agent = request.headers.get("user-agent", "").lower()
-            if not provided and ("mozilla" in user_agent or "chrome" in user_agent or "safari" in user_agent or "edge" in user_agent):
+            if "mozilla" in user_agent or "chrome" in user_agent or "safari" in user_agent or "edge" in user_agent:
+                # Ignore stale browser-held credentials for a loopback dashboard.
+                # The browser is already local; normal remote/admin clients still require exact keys.
                 return "local-dashboard"
 
         # Preserve the explicit legacy compatibility switch for automated local clients/tests.

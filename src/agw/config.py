@@ -28,6 +28,8 @@ class ApiKeyEntry(BaseModel):
     description: Optional[str] = None
     allowed_families: List[str] = Field(default_factory=lambda: ["all"])
     allowed_models: List[str] = Field(default_factory=list)
+    profile: Optional[str] = None
+    advertise_all_models: bool = True
 
 
 class SecuritySettings(BaseModel):

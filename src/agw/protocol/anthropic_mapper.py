@@ -80,7 +80,7 @@ def anthropic_to_openai_request(body: Dict[str, Any]) -> Dict[str, Any]:
                 oai_messages.append(entry)
 
     oai_req: Dict[str, Any] = {
-        "model": body.get("model", "claude-sonnet-4-6"),
+        "model": body.get("model", "claude-sonnet-5-5-medium"),
         "messages": oai_messages,
         "stream": bool(body.get("stream", False)),
     }

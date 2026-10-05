@@ -59,7 +59,7 @@ def create_anthropic_router(
 
         # Convert to internal OpenAI-like format
         body = anthropic_to_openai_request(anthropic_body)
-        raw_model = anthropic_body.get("model", "claude-sonnet-4-6")
+        raw_model = anthropic_body.get("model", "claude-sonnet-5-5-medium")
         is_streaming = bool(body.get("stream", False))
 
         m_def = model_registry.get_model(raw_model, fallback_to_default=True)

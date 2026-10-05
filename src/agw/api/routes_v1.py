@@ -24,6 +24,7 @@ from agw.protocol.mapper import (
 )
 from agw.protocol.streamer import parse_and_transform_sse_stream
 from agw.protocol.tools import oai_tool_choice_to_gemini, oai_tools_to_gemini
+from agw.api.client_profiles import profile_items as client_profile_items
 from agw.routing.cooldown import CooldownManager
 from agw.routing.health import AccountHealthTracker
 from agw.routing.registry import ModelRegistry, normalize_model_id
@@ -50,6 +51,10 @@ def create_v1_router(
     async def list_routing_profiles():
         from agw.routing.profiles import profile_items
         return {"object": "list", "data": profile_items()}
+
+    @router.get("/client-profiles")
+    async def list_client_profiles():
+        return {"object": "list", "data": client_profile_items(config)}
 
     @router.get("/models")
     async def list_models(request: Request):

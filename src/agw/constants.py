@@ -154,64 +154,30 @@ DEFAULT_MODELS = {
         "max_output_tokens": 65535,
         "description": "Gemini 3.5 Flash Lite",
     },
-    # 4. Claude 5.5 Generation (New 1M Context / 128k Output)
-    "claude-opus-5-5-high": {
-        "upstream_id": "claude-opus-5-5-high",
-        "family": FAMILY_CLAUDE,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 128000,
-        "description": "Claude Opus 5.5 High (Adaptive Thinking)",
-    },
+    # 4. Claude 5.5 Generation (verified live on connected accounts)
     "claude-opus-5-5-medium": {
         "upstream_id": "claude-opus-5-5-medium",
         "family": FAMILY_CLAUDE,
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 128000,
-        "description": "Claude Opus 5.5 Medium (Adaptive Thinking)",
-    },
-    "claude-opus-5-5-low": {
-        "upstream_id": "claude-opus-5-5-low",
-        "family": FAMILY_CLAUDE,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 128000,
-        "description": "Claude Opus 5.5 Low (Adaptive Thinking)",
+        "description": "Claude Opus 5.5 Medium",
     },
     "claude-sonnet-5-5-high": {
         "upstream_id": "claude-sonnet-5-5-high",
         "family": FAMILY_CLAUDE,
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 128000,
-        "description": "Claude Sonnet 5.5 High (Adaptive Thinking)",
+        "description": "Claude Sonnet 5.5 High",
     },
     "claude-sonnet-5-5-medium": {
         "upstream_id": "claude-sonnet-5-5-medium",
         "family": FAMILY_CLAUDE,
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 128000,
-        "description": "Claude Sonnet 5.5 Medium (Adaptive Thinking)",
+        "description": "Claude Sonnet 5.5 Medium",
     },
-    "claude-sonnet-5-5-low": {
-        "upstream_id": "claude-sonnet-5-5-low",
-        "family": FAMILY_CLAUDE,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 128000,
-        "description": "Claude Sonnet 5.5 Low (Adaptive Thinking)",
-    },
-    # 5. Claude 4.6 Generation (Established Stability)
-    "claude-sonnet-4-6": {
-        "upstream_id": "claude-sonnet-4-6",
-        "family": FAMILY_CLAUDE,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 16384,
-        "description": "Claude Sonnet 4.6 (Thinking)",
-    },
-    "claude-opus-4-6-thinking": {
-        "upstream_id": "claude-opus-4-6-thinking",
-        "family": FAMILY_CLAUDE,
-        "capabilities": ["tools", "streaming", "vision", "thinking"],
-        "max_output_tokens": 16384,
-        "description": "Claude Opus 4.6 (Thinking)",
-    },
+    # 5. GPT Diagnostic Fallback
+
     # 6. GPT Diagnostic Fallback (Notice: Upstream deprecation Nov 2, 2026)
     "gpt-oss-120b-medium": {
         "upstream_id": "gpt-oss-120b-medium",

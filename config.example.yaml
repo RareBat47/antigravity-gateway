@@ -13,40 +13,28 @@ security:
   rate_limit_per_minute: 120
   cors_origins: []
   api_keys:
-    # 1. Planning (Claude Opus 4.6 Thinking)
-    - key: "agw-plan-claude-9x82"
-      name: "Planning"
-      description: "Planning Agent - Claude Opus 4.6 (Thinking)"
-      allowed_families: ["claude"]
-      allowed_models: ["claude-opus-4-6-thinking"]
-
-    # 2. Coding Worker (Gemini 3.8 Flash High)
-    - key: "agw-code-gemini-3-8d52"
-      name: "Coding"
-      description: "Coding Worker - Gemini 3.8 Flash High"
-      allowed_families: ["gemini"]
-      allowed_models: ["gemini-3.8-flash-high"]
-
-    # 3. Pro Reasoning Worker (Gemini 3.1 Pro Low)
-    - key: "agw-code-hybrid-1-4a29"
-      name: "Pro"
-      description: "Pro Reasoning Worker - Gemini 3.1 Pro Low"
-      allowed_families: ["gemini"]
-      allowed_models: ["gemini-3.1-pro-low"]
-
-    # 4. Debugging Worker (Claude Sonnet 4.6 Thinking)
-    - key: "agw-code-hybrid-2-6e83"
-      name: "Debugging"
-      description: "Debugging Worker - Claude Sonnet 4.6 (Thinking)"
-      allowed_families: ["claude"]
-      allowed_models: ["claude-sonnet-4-6"]
-
-    # 5. GPT Worker (GPT-OSS 120B Medium)
-    - key: "agw-debug-all-9c37"
-      name: "GPT"
-      description: "GPT Diagnostic Worker - GPT-OSS 120B (Medium)"
-      allowed_families: ["gpt"]
-      allowed_models: ["gpt-oss-120b-medium"]
+    # Client profiles: each sees the complete active model catalog.
+    - key: "agw-hermes-local"
+      name: "Hermes Agent"
+      description: "Hermes Agent complete model catalog"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "hermes"
+      advertise_all_models: true
+    - key: "agw-claude-code-local"
+      name: "Claude Code"
+      description: "Claude Code complete model catalog via Anthropic Messages API"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "claude-code"
+      advertise_all_models: true
+    - key: "agw-opencode-local"
+      name: "OpenCode"
+      description: "OpenCode complete model catalog"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "opencode"
+      advertise_all_models: true
 
 storage:
   database_path: "data/gateway.db"

@@ -18,8 +18,8 @@ MODEL_ALIASES: Dict[str, str] = {
     "auto": "gemini-3.8-flash-high",
     "antigravity": "gemini-3.8-flash-high",
     "coding": "gemini-3.8-flash-high",
-    "planning": "claude-opus-4-6-thinking",
-    "debugging": "claude-sonnet-4-6",
+    "planning": "claude-opus-5-5-medium",
+    "debugging": "claude-sonnet-5-5-medium",
     "pro": "gemini-3.1-pro-low",
 
     # Claude 5.5 Generation Aliases
@@ -31,26 +31,28 @@ MODEL_ALIASES: Dict[str, str] = {
     "claude-sonnet-5.5": "claude-sonnet-5-5-medium",
     "claude-5-5-sonnet": "claude-sonnet-5-5-medium",
     "claude-5.5-sonnet": "claude-sonnet-5-5-medium",
-    # Claude 4.6 Generation Aliases
-    "claude-sonnet": "claude-sonnet-4-6",
-    "claude-sonnet-4.6": "claude-sonnet-4-6",
-    "claude-3-7-sonnet": "claude-sonnet-4-6",
-    "claude-3.7-sonnet": "claude-sonnet-4-6",
-    "claude-3-5-sonnet": "claude-sonnet-4-6",
-    "claude-3.5-sonnet": "claude-sonnet-4-6",
-    "claude-3-5-sonnet-20241022": "claude-sonnet-4-6",
-    "claude-3-5-sonnet-20240620": "claude-sonnet-4-6",
-    "claude-3-7-sonnet-20250219": "claude-sonnet-4-6",
-    "claude-3-5-haiku": "claude-sonnet-4-6",
-    "claude-3-5-haiku-20241022": "claude-sonnet-4-6",
-    "claude-3-haiku": "claude-sonnet-4-6",
-    "claude-3-haiku-20240307": "claude-sonnet-4-6",
-    "claude-opus": "claude-opus-4-6-thinking",
-    "claude-opus-4-6": "claude-opus-4-6-thinking",
-    "claude-3-opus": "claude-opus-4-6-thinking",
-    "claude-3-opus-20240229": "claude-opus-4-6-thinking",
-    "claude-3.0-opus": "claude-opus-4-6-thinking",
-    "claude-code": "claude-sonnet-4-6",
+    # Claude compatibility aliases now route to the verified 5.5 generation
+    "claude-sonnet": "claude-sonnet-5-5-medium",
+    "claude-sonnet-4.6": "claude-sonnet-5-5-medium",
+    "claude-3-7-sonnet": "claude-sonnet-5-5-medium",
+    "claude-3.7-sonnet": "claude-sonnet-5-5-medium",
+    "claude-3-5-sonnet": "claude-sonnet-5-5-medium",
+    "claude-3.5-sonnet": "claude-sonnet-5-5-medium",
+    "claude-3-5-sonnet-20241022": "claude-sonnet-5-5-medium",
+    "claude-3-5-sonnet-20240620": "claude-sonnet-5-5-medium",
+    "claude-3-7-sonnet-20250219": "claude-sonnet-5-5-medium",
+    "claude-3-5-haiku": "claude-sonnet-5-5-medium",
+    "claude-3-5-haiku-20241022": "claude-sonnet-5-5-medium",
+    "claude-3-haiku": "claude-sonnet-5-5-medium",
+    "claude-3-haiku-20240307": "claude-sonnet-5-5-medium",
+    "claude-opus": "claude-opus-5-5-medium",
+    "claude-opus-4-6": "claude-opus-5-5-medium",
+    "claude-3-opus": "claude-opus-5-5-medium",
+    "claude-3-opus-20240229": "claude-opus-5-5-medium",
+    "claude-3.0-opus": "claude-opus-5-5-medium",
+    "claude-code": "claude-sonnet-5-5-medium",
+    "claude-opus-4-6-thinking": "claude-opus-5-5-medium",
+    "claude-sonnet-4-6": "claude-sonnet-5-5-medium",
     # Gemini 3.8 / 3.7 / 3.6 Flash Aliases
     "gemini-flash": "gemini-3.8-flash-high",
     "gemini-3.8-flash": "gemini-3.8-flash-high",
@@ -83,11 +85,11 @@ MODEL_ALIASES: Dict[str, str] = {
     "gpt-4": "gpt-oss-120b-medium",
     "gpt-4-turbo": "gpt-oss-120b-medium",
     "gpt-3.5-turbo": "gemini-3.8-flash-high",
-    "o1": "claude-opus-4-6-thinking",
-    "o1-preview": "claude-opus-4-6-thinking",
-    "o1-mini": "claude-opus-4-6-thinking",
-    "o3": "claude-opus-4-6-thinking",
-    "o3-mini": "claude-opus-4-6-thinking",
+    "o1": "claude-opus-5-5-medium",
+    "o1-preview": "claude-opus-5-5-medium",
+    "o1-mini": "claude-opus-5-5-medium",
+    "o3": "claude-opus-5-5-medium",
+    "o3-mini": "claude-opus-5-5-medium",
     "chatgpt-4o-latest": "gpt-oss-120b-medium",
 }
 
@@ -111,17 +113,13 @@ def fuzzy_normalize_model_id(model_id: str) -> Optional[str]:
 
     # Pattern heuristics
     if "opus" in cleaned:
-        if "5" in cleaned:
-            return "claude-opus-5-5-medium"
-        return "claude-opus-4-6-thinking"
+        return "claude-opus-5-5-medium"
 
     if "sonnet" in cleaned or "haiku" in cleaned:
-        if "5" in cleaned:
-            return "claude-sonnet-5-5-medium"
-        return "claude-sonnet-4-6"
+        return "claude-sonnet-5-5-medium"
 
     if "claude" in cleaned:
-        return "claude-sonnet-4-6"
+        return "claude-sonnet-5-5-medium"
 
     if "pro" in cleaned and ("gemini" in cleaned or "google" in cleaned or "agent" in cleaned):
         return "gemini-3.1-pro-low"
