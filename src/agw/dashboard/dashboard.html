@@ -506,6 +506,7 @@
             <button class="btn-primary" id="unlockBtn" onclick="loadData()">Unlock Dashboard</button>
             <button class="btn-secondary" onclick="startOAuthLogin()">+ Add Google Account</button>
             <button class="btn-secondary" style="background: #0284c7; color: white;" onclick="triggerSetupPC()">⚡ Auto-Configure PC</button>
+            <button class="btn-secondary" onclick="loadSetupStatus()">✓ Setup Status</button>
         </div>
     </header>
 
@@ -569,9 +570,9 @@
     <div class="card" id="apiKeysCard">
         <div class="card-header">
             <div>
-                <h2>Role-Based API Keys &amp; Provider Pool</h2>
+                <h2>Advanced API Access</h2>
                 <p style="color: var(--text-muted); font-size: 0.85rem;">
-                    Pre-configured API keys with isolated model family permissions for planning, agentic jobs, hybrid coding, and debugging.
+                    Your local gateway is ready. Most applications should use the generated local key and model <code>auto</code>; role-specific keys are for advanced clients only.
                 </p>
             </div>
             <span class="badge badge-active">7 Configured Keys</span>
@@ -601,11 +602,11 @@
         <div class="card-header">
             <div>
                 <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;">
-                    <span style="font-size: 1.4rem;">🤖</span>
-                    <h2>Hermes Agent Integration &amp; Setup Guide</h2>
+                    <span style="font-size: 1.4rem;">🔌</span>
+                    <h2>Local Client Integrations</h2>
                 </div>
                 <p style="color: var(--text-muted); font-size: 0.85rem;">
-                    Consolidated one-pager document containing all 7 API keys, the setup prompt, YAML config, and remote tunnel instructions.
+                    Use one local endpoint and model <code>auto</code>. Configure supported clients with the button above; advanced Hermes role references are available below only for compatibility.
                 </p>
             </div>
             <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
@@ -636,13 +637,14 @@
     </div>
 
     <script>
-        const DEFAULT_KEY = "agw-admin-super-secret-key-change-me";
-        const GATEWAY_KEY = "agw-hermes-secret-key-change-me";
+        const DEFAULT_KEY = "";
+        const GATEWAY_KEY = "";
         let autoRefreshInterval = null;
         let activeTab = 'onepager';
 
-        // Auto-prefill saved key or default configuration key
-        const savedKey = localStorage.getItem('agw_admin_key') || DEFAULT_KEY;
+        // Localhost setup endpoints do not require a manually copied admin key.
+        // Keep a saved key only for explicit remote/advanced access.
+        const savedKey = localStorage.getItem('agw_admin_key') || '';
         const keyInput = document.getElementById('adminKey');
         keyInput.value = savedKey;
 
@@ -672,7 +674,7 @@
             const key = keyInput.value.trim();
             if (key) localStorage.setItem('agw_admin_key', key);
             const headers = {
-                'Authorization': `Bearer ${key}`,
+                ...(key ? {'Authorization': `Bearer ${key}`} : {}),
                 'Content-Type': 'application/json',
                 ...(options.headers || {})
             };
@@ -707,6 +709,16 @@
                 }
             } catch (err) {
                 showAlert('Failed to initiate login: ' + err.message);
+            }
+        }
+
+        async function loadSetupStatus() {
+            try {
+                const res = await fetch('/setup/status');
+                const data = await res.json();
+                showAlert(`Setup: ${data.state} · ${data.active_accounts}/${data.accounts_connected} active accounts`);
+            } catch (err) {
+                showAlert('Setup status error: ' + err.message, true);
             }
         }
 
@@ -797,8 +809,8 @@
                             <p style="color: var(--text-muted); margin-bottom: 1rem;">
                                 Enter your Admin API Key in the top right to inspect connected accounts, monitor quotas, and trigger token refreshes.
                             </p>
-                            <button class="btn-secondary" onclick="keyInput.value=DEFAULT_KEY; loadData();" style="border-color: var(--primary); color: var(--primary);">
-                                Use Default Key &amp; Unlock
+                            <button class="btn-secondary" onclick="loadData();" style="border-color: var(--primary); color: var(--primary);">
+                                Retry Local Connection
                             </button>
                         </div>
                     </td>

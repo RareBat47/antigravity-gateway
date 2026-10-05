@@ -127,7 +127,14 @@ def get_admin_key_auth(config: AppConfig) -> Callable:
         if provided and provided == expected:
             return provided
 
-        # Local trust bypass for admin loopback requests (e.g. browser opening dashboard)
+        # Local dashboard bootstrap bypass is narrower than legacy local_trust:
+        # only browser requests from loopback may access admin data without copying a key.
+        if config.security.dashboard_local_access and is_loopback_client(request):
+            user_agent = request.headers.get("user-agent", "").lower()
+            if not provided and ("mozilla" in user_agent or "chrome" in user_agent or "safari" in user_agent or "edge" in user_agent):
+                return "local-dashboard"
+
+        # Preserve the explicit legacy compatibility switch for automated local clients/tests.
         if config.security.local_trust and is_loopback_client(request):
             if not provided or provided in ("local", "admin", "auto", "default", "dummy"):
                 return provided or "local-admin"

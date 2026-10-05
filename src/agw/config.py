@@ -38,8 +38,12 @@ class SecuritySettings(BaseModel):
     cors_origins: List[str] = Field(default_factory=list)
     api_keys: List[ApiKeyEntry] = Field(default_factory=list)
     local_trust: bool = Field(
+        default=False,
+        description="Legacy compatibility mode for arbitrary loopback API keys",
+    )
+    dashboard_local_access: bool = Field(
         default=True,
-        description="Trust loopback/localhost requests without requiring strict API keys",
+        description="Allow the local dashboard to access admin data without manual key entry",
     )
 
 
