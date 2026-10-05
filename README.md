@@ -1,4 +1,63 @@
-# Antigravity Multi-Account Gateway for Hermes Agent
+# Antigravity Gateway
+
+A self-hosted local gateway that unifies multiple **authorized Google Antigravity accounts** behind OpenAI-compatible and Anthropic-compatible APIs. Use one endpoint from Hermes Agent, Claude Code, OpenCode, Aider, Cursor, or any compatible client while the gateway handles account selection, quota-aware cooldowns, and failover.
+
+> **Important:** This is an unofficial integration with Antigravity/Cloud Code. Use only accounts you own or are authorized to administer, and review applicable provider terms. Do not expose the gateway or OAuth credentials publicly.
+
+## Quick start
+
+```bash
+git clone https://github.com/RareBat47/antigravity-gateway.git
+cd antigravity-gateway
+python -m venv .venv
+# Windows: .venv\\Scripts\\activate
+# Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+```
+
+Copy `config.example.yaml` to `config.yaml`, set unique local gateway/admin/encryption keys, then run:
+
+```bash
+python -m agw.main
+```
+
+Dashboard: <http://127.0.0.1:8999/admin/dashboard>  
+Health: <http://127.0.0.1:8999/health>  
+Models: `GET http://127.0.0.1:8999/v1/models`
+
+## Unified client endpoint
+
+OpenAI-compatible clients and Hermes:
+
+```text
+Base URL: http://127.0.0.1:8999/v1
+API key: YOUR_GATEWAY_API_KEY
+Model: auto (or a model returned by /v1/models)
+```
+
+Claude Code:
+
+```text
+ANTHROPIC_BASE_URL=http://127.0.0.1:8999
+ANTHROPIC_API_KEY=YOUR_GATEWAY_API_KEY
+```
+
+The gateway provides a single multi-account pool, quota-aware account selection, cooldowns, automatic failover, tool calling, streaming, and an encrypted local credential vault. Connect accounts from the dashboard or with `python -m agw.cli.main accounts login`.
+
+## Verify and build
+
+```bash
+python -m compileall -q src
+python -m pytest -q
+.venv/Scripts/python.exe -m PyInstaller --noconfirm GeminiAPI.spec
+```
+
+The Windows executable is written to `dist/GeminiAPI.exe`.
+
+## Security
+
+Keep `config.yaml`, `.env`, `data/`, OAuth tokens, vault keys, logs, and quota reports private. Keep the default bind address at `127.0.0.1` unless authenticated HTTPS/network controls are configured. The public repository contains templates only; local credentials are excluded.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.11+](https://img.shields.io/badge/Python-3.11%2B-brightgreen.svg)](https://python.org)

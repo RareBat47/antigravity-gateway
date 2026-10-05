@@ -4,7 +4,7 @@ import contextlib
 import logging
 import sys
 from typing import AsyncIterator
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from agw.accounts.manager import AccountManager
@@ -167,7 +167,6 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     )
 
     # Root redirect / welcome
-    from fastapi import Request
     from fastapi.responses import RedirectResponse
 
     @app.get("/", tags=["Root"])
@@ -177,7 +176,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             return RedirectResponse(url="/admin/dashboard")
         return {
             "service": "Antigravity Gateway",
-            "version": "1.1.0",
+            "version": "2.0.0",
             "docs": "/docs",
             "dashboard": "/admin/dashboard",
             "endpoints": {

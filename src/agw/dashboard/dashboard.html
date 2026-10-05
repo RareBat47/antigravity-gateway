@@ -575,7 +575,7 @@
                     Your local gateway is ready. Most applications should use the generated local key and model <code>auto</code>; role-specific keys are for advanced clients only.
                 </p>
             </div>
-            <span class="badge badge-active">7 Configured Keys</span>
+            <span class="badge badge-active">Unified Account Pool</span>
         </div>
         <div style="overflow-x: auto;">
             <table>
@@ -606,7 +606,7 @@
                     <h2>Local Client Integrations</h2>
                 </div>
                 <p style="color: var(--text-muted); font-size: 0.85rem;">
-                    Use one local endpoint and model <code>auto</code>. Configure supported clients with the button above; advanced Hermes role references are available below only for compatibility.
+                    One local endpoint unifies all connected Antigravity accounts. Use live model discovery and let the gateway handle account selection, quota cooldowns, and failover.
                 </p>
             </div>
             <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
@@ -620,11 +620,11 @@
         </div>
 
         <div class="tab-header">
-            <button class="tab-btn active" id="tab-onepager" onclick="selectHermesTab('onepager')">📄 Complete One-Pager (Everything)</button>
-            <button class="tab-btn" id="tab-prompt" onclick="selectHermesTab('prompt')">⚡ Hermes Prompt Only</button>
-            <button class="tab-btn" id="tab-yaml" onclick="selectHermesTab('yaml')">⚙️ 7-Provider config.yaml</button>
+            <button class="tab-btn active" id="tab-onepager" onclick="selectHermesTab('onepager')">📄 Quick Start</button>
+            <button class="tab-btn" id="tab-prompt" onclick="selectHermesTab('prompt')">⚡ Client Prompt</button>
+            <button class="tab-btn" id="tab-yaml" onclick="selectHermesTab('yaml')">⚙️ Client Config</button>
             <button class="tab-btn" id="tab-env" onclick="selectHermesTab('env')">🔐 Environment (.env)</button>
-            <button class="tab-btn" id="tab-tunnel" onclick="selectHermesTab('tunnel')">🌐 Remote Azure Tunnel</button>
+            <button class="tab-btn" id="tab-tunnel" onclick="selectHermesTab('tunnel')">🌐 Remote Access</button>
             <button class="tab-btn" id="tab-curl" onclick="selectHermesTab('curl')">🧪 cURL Tests</button>
         </div>
 
@@ -1027,448 +1027,89 @@
             }
         }
 
-        // --- Hermes Documentation Snippets ---
+        // --- Local Client Integration Snippets ---
         function getHermesSnippets() {
-            const baseUrl = `${window.location.origin}/v1`;
-
-            const onepagerDoc = `# Antigravity Gateway — Hermes Agent Complete Integration One-Pager
-Base URL: ${baseUrl}
-Master Admin Key: ${DEFAULT_KEY}
-Master Gateway Key: ${GATEWAY_KEY}
-
-================================================================================
-1. CONFIGURED ROLE-BASED API KEYS & 7 TARGET MODELS
-================================================================================
-1. Planning Agent (Claude Opus Thinking):
-   - Provider Name: Planning
-   - API Key: agw-plan-claude-9x82
-   - Allowed Families: claude
-   - Default Model: claude-opus-4-6-thinking
-   - Role: Deep architectural reasoning and long-horizon planning
-
-2. Coding Worker 1 (Gemini 3.6 Flash Medium):
-   - Provider Name: Coding-1
-   - API Key: agw-code-gemini-1-7b41
-   - Allowed Families: gemini
-   - Default Model: gemini-3.6-flash-medium
-   - Role: High-volume implementation, quick iterations (Fast)
-
-3. Coding Worker 2 (Gemini 3.7 Flash Medium):
-   - Provider Name: Coding-2
-   - API Key: agw-code-gemini-2-3f19
-   - Allowed Families: gemini
-   - Default Model: gemini-3.7-flash-medium
-   - Role: General coding + agentic work (Fast Thinking)
-
-4. Coding Worker 3 (Gemini 3.8 Flash High):
-   - Provider Name: Coding-3
-   - API Key: agw-code-gemini-3-8d52
-   - Allowed Families: gemini
-   - Default Model: gemini-3.8-flash-high
-   - Role: Difficult implementation, refactors, multi-file reasoning (High Fast)
-
-5. Hybrid Worker 1 (Gemini 3.1 Pro Low):
-   - Provider Name: Hybrid-1
-   - API Key: agw-code-hybrid-1-4a29
-   - Allowed Families: gemini
-   - Default Model: gemini-3.1-pro-low
-   - Role: Strong Google Pro deep reasoning path
-
-6. Hybrid Worker 2 (Claude Sonnet 4.6 Thinking):
-   - Provider Name: Hybrid-2
-   - API Key: agw-code-hybrid-2-6e83
-   - Allowed Families: claude
-   - Default Model: claude-sonnet-4-6
-   - Role: Independent Claude coding & thinking path
-
-7. Debugging Agent (GPT-OSS 120B Medium & All 7 Models):
-   - Provider Name: Debugging
-   - API Key: agw-debug-all-9c37
-   - Allowed Families: all
-   - Default Model: gpt-oss-120b-medium
-   - Role: Root-cause analysis, complex stack trace diagnoses (All 7 models)
-
-================================================================================
-2. PROMPT FOR HERMES AGENT (Copy & Paste to Hermes)
-================================================================================
-You are connected to an Antigravity Multi-Account Gateway at ${baseUrl}.
-The gateway has 7 specialized role-based providers with model family permissions, restricted strictly to 7 models. Please configure your internal routing according to these exact provider names and model assignments:
-
-1. PLANNING TASKS (Claude Opus Thinking):
-   - Provider Name: "Planning"
-   - Base URL: "${baseUrl}"
-   - API Key: "agw-plan-claude-9x82"
-   - Model: "claude-opus-4-6-thinking"
-   - Role: Deep architectural reasoning, long-horizon planning, and system design.
-
-2. HIGH-VOLUME & AGENTIC WORK (Gemini 3.6 / 3.7 / 3.8 Flash):
-   - Provider "Coding-1": Key "agw-code-gemini-1-7b41", Model "gemini-3.6-flash-medium" (Fast iterations)
-   - Provider "Coding-2": Key "agw-code-gemini-2-3f19", Model "gemini-3.7-flash-medium" (General coding + agentic work)
-   - Provider "Coding-3": Key "agw-code-gemini-3-8d52", Model "gemini-3.8-flash-high" (Difficult implementation, refactors, multi-file reasoning)
-   - Base URL: "${baseUrl}"
-
-3. HYBRID AGENTS (Gemini 3.1 Pro & Claude Sonnet 4.6 Thinking):
-   - Provider "Hybrid-1": Key "agw-code-hybrid-1-4a29", Model "gemini-3.1-pro-low" (Deep Google Pro reasoning)
-   - Provider "Hybrid-2": Key "agw-code-hybrid-2-6e83", Model "claude-sonnet-4-6" (Independent Claude coding & thinking)
-   - Base URL: "${baseUrl}"
-
-4. DEBUGGING & ROOT CAUSE ANALYSIS (GPT-OSS 120B Medium & All 7 Models):
-   - Provider Name: "Debugging"
-   - Base URL: "${baseUrl}"
-   - API Key: "agw-debug-all-9c37"
-   - Model: "gpt-oss-120b-medium" (also supports all 7 models: "claude-opus-4-6-thinking", "claude-sonnet-4-6", "gemini-3.8-flash-high")
-   - Role: Deep root-cause analysis, complex bug diagnosing, and stack trace investigations.
-
-Always supply "Authorization: Bearer <API_KEY>" and enable streaming ("stream": true) with tool calling support.
-
-================================================================================
-3. COMPLETE HERMES AGENT YAML CONFIG (~/.hermes/config.yaml)
-================================================================================
-providers:
-  Planning:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-plan-claude-9x82"
-    default_model: "claude-opus-4-6-thinking"
-    models:
-      - id: claude-opus-4-6-thinking
-        name: "Claude Opus 4.6 (Thinking)"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-
-  Coding-1:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-code-gemini-1-7b41"
-    default_model: "gemini-3.6-flash-medium"
-    models:
-      - id: gemini-3.6-flash-medium
-        name: "Gemini 3.6 Flash Medium"
-        capabilities: ["tools", "streaming", "vision"]
-
-  Coding-2:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-code-gemini-2-3f19"
-    default_model: "gemini-3.7-flash-medium"
-    models:
-      - id: gemini-3.7-flash-medium
-        name: "Gemini 3.7 Flash Medium"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-
-  Coding-3:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-code-gemini-3-8d52"
-    default_model: "gemini-3.8-flash-high"
-    models:
-      - id: gemini-3.8-flash-high
-        name: "Gemini 3.8 Flash High"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-
-  Hybrid-1:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-code-hybrid-1-4a29"
-    default_model: "gemini-3.1-pro-low"
-    models:
-      - id: gemini-3.1-pro-low
-        name: "Gemini 3.1 Pro Low"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-
-  Hybrid-2:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-code-hybrid-2-6e83"
-    default_model: "claude-sonnet-4-6"
-    models:
-      - id: claude-sonnet-4-6
-        name: "Claude Sonnet 4.6 (Thinking)"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-
-  Debugging:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-debug-all-9c37"
-    default_model: "gpt-oss-120b-medium"
-    models:
-      - id: gpt-oss-120b-medium
-        name: "GPT-OSS 120B (Medium)"
-        capabilities: ["tools", "streaming"]
-      - id: claude-opus-4-6-thinking
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-      - id: gemini-3.8-flash-high
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-      - id: claude-sonnet-4-6
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-
-================================================================================
-4. ENVIRONMENT VARIABLES SETUP (.env)
-================================================================================
-OPENAI_BASE_URL="${baseUrl}"
-# Planning:
-# OPENAI_API_KEY="agw-plan-claude-9x82"
-# DEFAULT_MODEL="claude-opus-4-6-thinking"
-
-# Coding-1:
-# OPENAI_API_KEY="agw-code-gemini-1-7b41"
-# DEFAULT_MODEL="gemini-3.6-flash-medium"
-
-# Coding-2:
-# OPENAI_API_KEY="agw-code-gemini-2-3f19"
-# DEFAULT_MODEL="gemini-3.7-flash-medium"
-
-# Coding-3:
-# OPENAI_API_KEY="agw-code-gemini-3-8d52"
-# DEFAULT_MODEL="gemini-3.8-flash-high"
-
-# Hybrid-1:
-# OPENAI_API_KEY="agw-code-hybrid-1-4a29"
-# DEFAULT_MODEL="gemini-3.1-pro-low"
-
-# Hybrid-2:
-# OPENAI_API_KEY="agw-code-hybrid-2-6e83"
-# DEFAULT_MODEL="claude-sonnet-4-6"
-
-# Debugging:
-# OPENAI_API_KEY="agw-debug-all-9c37"
-# DEFAULT_MODEL="gpt-oss-120b-medium"
-
-================================================================================
-5. REMOTE AZURE VM TUNNEL SETUP (WINDOWS <-> AZURE)
-================================================================================
-# Option 1: Cloudflare Tunnel (Automatic HTTPS, No Port Forwarding)
-# Run on Windows:
-winget install Cloudflare.cloudflared
-cloudflared tunnel --url http://127.0.0.1:8999
-# Replace ${baseUrl} in Hermes config with: https://<YOUR_TUNNEL>.trycloudflare.com/v1
-
-# Option 2: Reverse SSH Tunnel
-# Run on Windows:
-ssh -N -R 8999:localhost:8999 azureuser@<AZURE_VM_IP>
-# Then in Hermes on Azure: base_url: "http://127.0.0.1:8999/v1"
-
-================================================================================
-6. QUICK VERIFICATION CURL TESTS
-================================================================================
-# Test Planning Key (Claude Opus 4.6 Thinking):
-curl ${baseUrl}/chat/completions \\
-  -H "Authorization: Bearer agw-plan-claude-9x82" \\
-  -H "Content-Type: application/json" \\
-  -d '{"model": "claude-opus-4-6-thinking", "messages": [{"role": "user", "content": "Ping"}]}'
-
-# Test Coding-1 Key (Gemini 3.6 Flash Medium):
-curl ${baseUrl}/chat/completions \\
-  -H "Authorization: Bearer agw-code-gemini-1-7b41" \\
-  -H "Content-Type: application/json" \\
-  -d '{"model": "gemini-3.6-flash-medium", "messages": [{"role": "user", "content": "Ping"}]}'
-
-# Test Coding-2 Key (Gemini 3.7 Flash Medium):
-curl ${baseUrl}/chat/completions \\
-  -H "Authorization: Bearer agw-code-gemini-2-3f19" \\
-  -H "Content-Type: application/json" \\
-  -d '{"model": "gemini-3.7-flash-medium", "messages": [{"role": "user", "content": "Ping"}]}'
-
-# Test Coding-3 Key (Gemini 3.8 Flash High):
-curl ${baseUrl}/chat/completions \\
-  -H "Authorization: Bearer agw-code-gemini-3-8d52" \\
-  -H "Content-Type: application/json" \\
-  -d '{"model": "gemini-3.8-flash-high", "messages": [{"role": "user", "content": "Ping"}]}'
-
-# Test Hybrid-1 Key (Gemini 3.1 Pro Low):
-curl ${baseUrl}/chat/completions \\
-  -H "Authorization: Bearer agw-code-hybrid-1-4a29" \\
-  -H "Content-Type: application/json" \\
-  -d '{"model": "gemini-3.1-pro-low", "messages": [{"role": "user", "content": "Ping"}]}'
-
-# Test Hybrid-2 Key (Claude Sonnet 4.6):
-curl ${baseUrl}/chat/completions \\
-  -H "Authorization: Bearer agw-code-hybrid-2-6e83" \\
-  -H "Content-Type: application/json" \\
-  -d '{"model": "claude-sonnet-4-6", "messages": [{"role": "user", "content": "Ping"}]}'
-
-# Test Debugging Key (GPT-OSS 120B Medium):
-curl ${baseUrl}/chat/completions \\
-  -H "Authorization: Bearer agw-debug-all-9c37" \\
-  -H "Content-Type: application/json" \\
-  -d '{"model": "gpt-oss-120b-medium", "messages": [{"role": "user", "content": "Diagnose: connection refused"}]}'
-`;
+            const apiBase = `${window.location.origin}/v1`;
+            const gatewayKey = 'YOUR_GATEWAY_API_KEY';
+            const anthropicBase = window.location.origin;
 
             return {
-                onepager: onepagerDoc,
+                onepager: `# Antigravity Gateway — Local Client Setup
 
-                prompt: `### Hermes Agent Setup Prompt (Copy & Paste to Hermes Agent)
+One local endpoint unifies all connected Antigravity accounts. The gateway handles model routing, account selection, cooldowns, and failover.
 
-You are connected to an Antigravity Multi-Account Gateway at ${baseUrl}.
-The gateway has 7 specialized role-based providers with model family permissions, restricted strictly to 7 models. Please configure your internal providers according to these specifications:
+OpenAI-compatible base URL: ${apiBase}
+Anthropic-compatible base URL: ${anthropicBase}
+API key: ${gatewayKey}
 
-1. PLANNING TASKS (Claude Opus Thinking):
-   - Provider Name: "Planning"
-   - Base URL: "${baseUrl}"
-   - API Key: "agw-plan-claude-9x82"
-   - Model: "claude-opus-4-6-thinking"
-   - Use For: Deep architectural reasoning, long-horizon planning, and system design.
+## Available models
+Use GET ${apiBase}/models and choose a model returned by the live gateway. Use model "auto" when supported by your client.
 
-2. HIGH-VOLUME & AGENTIC WORK (Gemini 3.6 / 3.7 / 3.8 Flash):
-   - Provider "Coding-1": Key "agw-code-gemini-1-7b41", Model "gemini-3.6-flash-medium" (Fast iterations)
-   - Provider "Coding-2": Key "agw-code-gemini-2-3f19", Model "gemini-3.7-flash-medium" (General coding + agentic work)
-   - Provider "Coding-3": Key "agw-code-gemini-3-8d52", Model "gemini-3.8-flash-high" (Difficult implementation, refactors, multi-file reasoning)
-   - Base URL: "${baseUrl}"
+## OpenAI-compatible clients
+Base URL: ${apiBase}
+API key: ${gatewayKey}
 
-3. HYBRID AGENTS (Gemini 3.1 Pro & Claude Sonnet 4.6 Thinking):
-   - Provider "Hybrid-1": Key "agw-code-hybrid-1-4a29", Model "gemini-3.1-pro-low" (Deep Google Pro reasoning)
-   - Provider "Hybrid-2": Key "agw-code-hybrid-2-6e83", Model "claude-sonnet-4-6" (Independent Claude coding & thinking)
-   - Base URL: "${baseUrl}"
+## Claude Code
+ANTHROPIC_BASE_URL=${anthropicBase}
+ANTHROPIC_API_KEY=${gatewayKey}
 
-4. DEBUGGING & ROOT CAUSE ANALYSIS (GPT-OSS 120B Medium & All 7 Models):
-   - Provider Name: "Debugging"
-   - Base URL: "${baseUrl}"
-   - API Key: "agw-debug-all-9c37"
-   - Model: "gpt-oss-120b-medium" (also supports all 7 models: "claude-opus-4-6-thinking", "claude-sonnet-4-6", "gemini-3.8-flash-high")
-   - Use For: Deep root-cause analysis, complex bug diagnosing, and stack trace investigations.
+## Quick test
+curl ${apiBase}/chat/completions \
+  -H "Authorization: Bearer ${gatewayKey}" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"auto","messages":[{"role":"user","content":"Reply with exactly OK"}]}'
 
-Always supply "Authorization: Bearer <API_KEY>" and enable streaming ("stream": true) with tool calling support.`,
+Do not expose this endpoint publicly without authentication and transport protection.`,
 
-                yaml: `# Complete 7-Provider Hermes Agent Configuration (~/.hermes/config.yaml):
-providers:
-  # 1. Planning Provider (Claude Opus 4.6 Thinking)
-  Planning:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-plan-claude-9x82"
-    default_model: "claude-opus-4-6-thinking"
-    models:
-      - id: claude-opus-4-6-thinking
-        name: "Claude Opus 4.6 (Thinking)"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
+                prompt: `### Local Antigravity Gateway Setup
 
-  # 2. Coding Worker 1 (Gemini 3.6 Flash Medium)
-  Coding-1:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-code-gemini-1-7b41"
-    default_model: "gemini-3.6-flash-medium"
-    models:
-      - id: gemini-3.6-flash-medium
-        name: "Gemini 3.6 Flash Medium"
-        capabilities: ["tools", "streaming", "vision"]
+Use this single gateway for all model requests:
+- OpenAI base URL: ${apiBase}
+- Anthropic base URL: ${anthropicBase}
+- API key: ${gatewayKey}
 
-  # 3. Coding Worker 2 (Gemini 3.7 Flash Medium)
-  Coding-2:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-code-gemini-2-3f19"
-    default_model: "gemini-3.7-flash-medium"
-    models:
-      - id: gemini-3.7-flash-medium
-        name: "Gemini 3.7 Flash Medium"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
+The gateway unifies the connected Antigravity accounts and performs account selection, quota-aware cooldowns, and failover. Discover the current model catalog from ${apiBase}/models; do not assume model names from old configuration files. Prefer model "auto" when supported.`,
 
-  # 4. Coding Worker 3 (Gemini 3.8 Flash High)
-  Coding-3:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-code-gemini-3-8d52"
-    default_model: "gemini-3.8-flash-high"
-    models:
-      - id: gemini-3.8-flash-high
-        name: "Gemini 3.8 Flash High"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
+                yaml: `# Generic OpenAI-compatible client configuration
+base_url: "${apiBase}"
+api_key: "${gatewayKey}"
+model: "auto"
 
-  # 5. Hybrid Worker 1 (Gemini 3.1 Pro Low)
-  Hybrid-1:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-code-hybrid-1-4a29"
-    default_model: "gemini-3.1-pro-low"
-    models:
-      - id: gemini-3.1-pro-low
-        name: "Gemini 3.1 Pro Low"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
+# Claude Code uses the Anthropic-compatible endpoint instead:
+# ANTHROPIC_BASE_URL="${anthropicBase}"
+# ANTHROPIC_API_KEY="${gatewayKey}"`,
 
-  # 6. Hybrid Worker 2 (Claude Sonnet 4.6 Thinking)
-  Hybrid-2:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-code-hybrid-2-6e83"
-    default_model: "claude-sonnet-4-6"
-    models:
-      - id: claude-sonnet-4-6
-        name: "Claude Sonnet 4.6 (Thinking)"
-        capabilities: ["tools", "streaming", "thinking", "vision"]
+                env: `# OpenAI-compatible clients
+OPENAI_BASE_URL="${apiBase}"
+OPENAI_API_KEY="${gatewayKey}"
 
-  # 7. Debugging Provider (GPT-OSS 120B Medium & All 7 Models)
-  Debugging:
-    type: openai
-    base_url: "${baseUrl}"
-    api_key: "agw-debug-all-9c37"
-    default_model: "gpt-oss-120b-medium"
-    models:
-      - id: gpt-oss-120b-medium
-        name: "GPT-OSS 120B (Medium)"
-        capabilities: ["tools", "streaming"]
-      - id: claude-opus-4-6-thinking
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-      - id: gemini-3.8-flash-high
-        capabilities: ["tools", "streaming", "thinking", "vision"]
-      - id: claude-sonnet-4-6
-        capabilities: ["tools", "streaming", "thinking", "vision"]`,
+# Claude Code
+ANTHROPIC_BASE_URL="${anthropicBase}"
+ANTHROPIC_API_KEY="${gatewayKey}"`,
 
-                env: `# Environment variables for Hermes Agent:
-OPENAI_BASE_URL="${baseUrl}"
-# Planning:
-# OPENAI_API_KEY="agw-plan-claude-9x82"
-# DEFAULT_MODEL="claude-opus-4-6-thinking"
-
-# Coding-1:
-# OPENAI_API_KEY="agw-code-gemini-1-7b41"
-# DEFAULT_MODEL="gemini-3.6-flash-medium"
-
-# Coding-2:
-# OPENAI_API_KEY="agw-code-gemini-2-3f19"
-# DEFAULT_MODEL="gemini-3.7-flash-medium"
-
-# Coding-3:
-# OPENAI_API_KEY="agw-code-gemini-3-8d52"
-# DEFAULT_MODEL="gemini-3.8-flash-high"
-
-# Hybrid-1:
-# OPENAI_API_KEY="agw-code-hybrid-1-4a29"
-# DEFAULT_MODEL="gemini-3.1-pro-low"
-
-# Hybrid-2:
-# OPENAI_API_KEY="agw-code-hybrid-2-6e83"
-# DEFAULT_MODEL="claude-sonnet-4-6"
-
-# Debugging:
-# OPENAI_API_KEY="agw-debug-all-9c37"
-# DEFAULT_MODEL="gpt-oss-120b-medium"`,
-
-                tunnel: `# If Hermes Agent is on an Azure VM and Gateway runs on Windows:
-
-# Option 1: Cloudflare Tunnel (Recommended - Zero port forwarding, automatic HTTPS)
-# Run on Windows workstation:
-winget install Cloudflare.cloudflared
+                tunnel: `# Only use a tunnel when remote access is required.
+# Keep the gateway authenticated and expose inference only.
 cloudflared tunnel --url http://127.0.0.1:8999
-# Copy the generated URL (https://your-tunnel.trycloudflare.com)
-# Replace ${baseUrl} in Hermes config with:
-# https://your-tunnel.trycloudflare.com/v1
 
-# Option 2: SSH Reverse Tunnel
-# Run on Windows:
-ssh -N -R 8999:localhost:8999 azureuser@<AZURE_VM_IP>
-# In Hermes on Azure VM:
-# base_url: "http://127.0.0.1:8999/v1"`,
+# Then replace the local base URL with the protected tunnel URL.
+# Do not expose the dashboard, account management, or OAuth callbacks.`,
 
-                curl: `# Test Planning Key with Claude Opus 4.6 Thinking:
-curl ${baseUrl}/chat/completions \\
-  -H "Authorization: Bearer agw-plan-claude-9x82" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "model": "claude-opus-4-6-thinking",
-    "messages": [
-      {"role": "user", "content": "Outline a 3-step refactoring plan."}
-    ]
-  }'`
+                curl: `# List live models
+curl ${apiBase}/models \
+  -H "Authorization: Bearer ${gatewayKey}"
+
+# OpenAI-compatible request
+curl ${apiBase}/chat/completions \
+  -H "Authorization: Bearer ${gatewayKey}" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"auto","messages":[{"role":"user","content":"Reply with exactly OK"}]}'
+
+# Anthropic-compatible request for Claude Code
+curl ${anthropicBase}/v1/messages \
+  -H "x-api-key: ${gatewayKey}" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"auto","max_tokens":128,"messages":[{"role":"user","content":"Reply with exactly OK"}]}'`
             };
         }
 
