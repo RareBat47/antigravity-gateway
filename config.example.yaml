@@ -1,13 +1,14 @@
 server:
-  host: "0.0.0.0"
+  host: "127.0.0.1"
   port: 8999
   debug: false
   public_base_url: ""
 
 security:
-  gateway_api_key: "agw-hermes-secret-key-change-me"
-  admin_api_key: "agw-admin-super-secret-key-change-me"
-  local_trust: true
+  gateway_api_key: ""
+  admin_api_key: ""
+  local_trust: false
+  dashboard_local_access: true
   encryption_key: ""
   rate_limit_per_minute: 120
   cors_origins: []

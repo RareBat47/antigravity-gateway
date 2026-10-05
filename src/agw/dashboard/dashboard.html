@@ -728,7 +728,10 @@
                 const res = await apiFetch('/admin/setup-pc', { method: 'POST' });
                 if (res.ok) {
                     const data = await res.json();
-                    showAlert('✓ PC Auto-Configured! OPENAI_BASE_URL and ANTHROPIC_BASE_URL set. OpenCode & VS Code ready.');
+                    const details = data.details || {};
+                    const files = (details.files_written || []).length;
+                    const tools = (details.tools_configured || []).length;
+                    showAlert(`✓ PC configured: ${files} config files and ${tools} integrations ready. Restart affected apps.`);
                 } else {
                     showAlert('Setup failed: ' + res.statusText, true);
                 }
