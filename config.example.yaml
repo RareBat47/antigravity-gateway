@@ -94,11 +94,6 @@ models:
     capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 65535
   # 4. Claude 5.5 Generation (1M Context / 128k Output)
-  claude-opus-5-5-high:
-    upstream_id: "claude-opus-5-5-high"
-    family: "claude"
-    capabilities: ["tools", "streaming", "vision", "thinking"]
-    max_output_tokens: 128000
   claude-opus-5-5-medium:
     upstream_id: "claude-opus-5-5-medium"
     family: "claude"
@@ -115,16 +110,6 @@ models:
     capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 128000
   # 5. Claude 4.6 Generation
-  claude-sonnet-4-6:
-    upstream_id: "claude-sonnet-4-6"
-    family: "claude"
-    capabilities: ["tools", "streaming", "vision", "thinking"]
-    max_output_tokens: 16384
-  claude-opus-4-6-thinking:
-    upstream_id: "claude-opus-4-6-thinking"
-    family: "claude"
-    capabilities: ["tools", "streaming", "vision", "thinking"]
-    max_output_tokens: 16384
   # 6. GPT Fallback
   gpt-oss-120b-medium:
     upstream_id: "gpt-oss-120b-medium"

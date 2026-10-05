@@ -1,0 +1,150 @@
+server:
+  host: 127.0.0.1
+  port: 8999
+  debug: false
+  public_base_url: ''
+security:
+  gateway_api_key: agw-local-dE9XbJxEmq2AJpjsk1zTPxbF0O7f2Q2WyQO8g5GQgOM
+  admin_api_key: agw-admin-YvMPfKwf5tYbYRIeMC-AV2R6wI3oRYTwQJ1EnmZefL4
+  local_trust: false
+  encryption_key: ''
+  rate_limit_per_minute: 120
+  cors_origins: []
+  api_keys:
+  - key: agw-hermes-local
+    name: Hermes Agent
+    description: Hermes Agent complete model catalog
+    allowed_families:
+    - all
+    allowed_models: []
+    profile: hermes
+    advertise_all_models: true
+  - key: agw-claude-code-local
+    name: Claude Code
+    description: Claude Code complete model catalog via Anthropic Messages API
+    allowed_families:
+    - all
+    allowed_models: []
+    profile: claude-code
+    advertise_all_models: true
+  - key: agw-opencode-local
+    name: OpenCode
+    description: OpenCode complete model catalog
+    allowed_families:
+    - all
+    allowed_models: []
+    profile: opencode
+    advertise_all_models: true
+  - key: agw-advanced-local
+    name: Advanced Client
+    description: Full model catalog for additional software integrations
+    allowed_families:
+    - all
+    allowed_models: []
+    profile: advanced
+    advertise_all_models: true
+storage:
+  database_path: data/gateway.db
+  vault_key_path: data/vault.key
+  quota_state_path: data/quota-state.json
+  status_report_path: docs/account-status.md
+scheduler:
+  strategy: hybrid
+  weights:
+    health: 2.0
+    tokens: 5.0
+    quota: 3.0
+    lru: 0.1
+  global_quota_threshold: 0.05
+  max_account_retries: 3
+  default_cooldown_seconds: 60
+  upstream_timeout_seconds: 300
+  cooldown_tiers_seconds:
+  - 60
+  - 300
+  - 1800
+  - 7200
+quota_monitor:
+  enabled: true
+  interval_seconds: 300
+  stale_threshold_seconds: 600
+models:
+  gemini-3.8-flash-high:
+    upstream_id: gemini-3.8-flash-tiered
+    family: gemini
+    capabilities:
+    - tools
+    - streaming
+    - vision
+    - thinking
+    max_output_tokens: 65536
+  gemini-3.6-flash-high:
+    upstream_id: gemini-3.6-flash-high
+    family: gemini
+    capabilities:
+    - tools
+    - streaming
+    - vision
+    - thinking
+    max_output_tokens: 65536
+  gemini-3.6-flash-medium:
+    upstream_id: gemini-3.6-flash-medium
+    family: gemini
+    capabilities:
+    - tools
+    - streaming
+    - vision
+    - thinking
+    max_output_tokens: 65536
+  gemini-3.1-pro-low:
+    upstream_id: gemini-3.1-pro-low
+    family: gemini
+    capabilities:
+    - tools
+    - streaming
+    - vision
+    - thinking
+    max_output_tokens: 8192
+  gemini-pro-agent:
+    upstream_id: gemini-pro-agent
+    family: gemini
+    capabilities:
+    - tools
+    - streaming
+    - vision
+    - thinking
+    max_output_tokens: 65535
+  claude-opus-5-5-medium:
+    upstream_id: claude-opus-5-5-medium
+    family: claude
+    capabilities:
+    - tools
+    - streaming
+    - vision
+    - thinking
+    max_output_tokens: 128000
+  claude-sonnet-5-5-high:
+    upstream_id: claude-sonnet-5-5-high
+    family: claude
+    capabilities:
+    - tools
+    - streaming
+    - vision
+    - thinking
+    max_output_tokens: 128000
+  claude-sonnet-5-5-medium:
+    upstream_id: claude-sonnet-5-5-medium
+    family: claude
+    capabilities:
+    - tools
+    - streaming
+    - vision
+    - thinking
+    max_output_tokens: 128000
+  gpt-oss-120b-medium:
+    upstream_id: gpt-oss-120b-medium
+    family: gpt
+    capabilities:
+    - tools
+    - streaming
+    max_output_tokens: 16384
