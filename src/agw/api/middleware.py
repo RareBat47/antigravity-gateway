@@ -36,6 +36,14 @@ class RedactingLogger(logging.Filter):
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
+def is_loopback_client(request: Request) -> bool:
+    """Check if request originates from local machine loopback."""
+    if not request.client or not request.client.host:
+        return True
+    host = request.client.host.strip()
+    return host in ("127.0.0.1", "::1", "localhost", "testclient")
+
+
 def get_api_key_auth(config: AppConfig) -> Callable:
     """Dependency for client API key verification (/v1/*) with role/model permissions."""
     async def verify_gateway_key(
@@ -44,15 +52,9 @@ def get_api_key_auth(config: AppConfig) -> Callable:
     ) -> str:
         provided = None
         if auth and auth.credentials:
-            provided = auth.credentials
+            provided = auth.credentials.strip()
         elif header_key := (request.headers.get("x-api-key") or request.headers.get("api-key")):
             provided = header_key.strip()
-
-        if not provided:
-            raise HTTPException(
-                status_code=401,
-                detail={"error": {"message": "Invalid or missing Gateway API key", "type": "auth_error"}},
-            )
 
         # 1. Check primary master gateway key
         if config.security.gateway_api_key and provided == config.security.gateway_api_key:
@@ -65,15 +67,34 @@ def get_api_key_auth(config: AppConfig) -> Callable:
             return provided
 
         # 2. Check multi-key pool
-        for entry in config.security.api_keys:
-            if provided == entry.key:
+        if provided:
+            for entry in config.security.api_keys:
+                if provided == entry.key:
+                    request.state.api_key_info = {
+                        "key": entry.key,
+                        "name": entry.name,
+                        "allowed_families": [f.lower() for f in entry.allowed_families],
+                        "allowed_models": entry.allowed_models,
+                    }
+                    return provided
+
+        # 3. Local trust bypass for loopback requests (OpenCode, Cursor, Aider, Claude Code, etc.)
+        if config.security.local_trust and is_loopback_client(request):
+            if not provided or provided in ("local", "auto", "default", "dummy", "none") or provided.startswith("sk-") or provided.startswith("agw-"):
+                effective_key = provided or "local-trusted"
                 request.state.api_key_info = {
-                    "key": entry.key,
-                    "name": entry.name,
-                    "allowed_families": [f.lower() for f in entry.allowed_families],
-                    "allowed_models": entry.allowed_models,
+                    "key": effective_key,
+                    "name": "local-trusted",
+                    "allowed_families": ["all"],
+                    "allowed_models": [],
                 }
-                return provided
+                return effective_key
+
+        if not provided:
+            raise HTTPException(
+                status_code=401,
+                detail={"error": {"message": "Invalid or missing Gateway API key", "type": "auth_error"}},
+            )
 
         raise HTTPException(
             status_code=401,
@@ -95,13 +116,21 @@ def get_admin_key_auth(config: AppConfig) -> Callable:
 
         provided = None
         if auth and auth.credentials:
-            provided = auth.credentials
+            provided = auth.credentials.strip()
         elif header_key := (
             request.headers.get("x-admin-key")
             or request.headers.get("x-api-key")
             or request.headers.get("api-key")
         ):
             provided = header_key.strip()
+
+        if provided and provided == expected:
+            return provided
+
+        # Local trust bypass for admin loopback requests (e.g. browser opening dashboard)
+        if config.security.local_trust and is_loopback_client(request):
+            if not provided or provided in ("local", "admin", "auto", "default", "dummy"):
+                return provided or "local-admin"
 
         if not provided or provided != expected:
             raise HTTPException(

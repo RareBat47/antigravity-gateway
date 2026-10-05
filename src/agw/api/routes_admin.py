@@ -277,4 +277,11 @@ def create_admin_router(
             keys.append(k.model_dump())
         return keys
 
+    @router.post("/setup-pc", dependencies=[Depends(verify_admin)])
+    async def trigger_pc_setup():
+        """Auto-configure PC environment variables and IDE config files."""
+        from agw.integrations.setup_pc import run_full_pc_setup
+        result = run_full_pc_setup()
+        return {"status": "success", "details": result}
+
     return router

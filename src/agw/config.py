@@ -37,6 +37,10 @@ class SecuritySettings(BaseModel):
     rate_limit_per_minute: int = 120
     cors_origins: List[str] = Field(default_factory=list)
     api_keys: List[ApiKeyEntry] = Field(default_factory=list)
+    local_trust: bool = Field(
+        default=True,
+        description="Trust loopback/localhost requests without requiring strict API keys",
+    )
 
 
 class StorageSettings(BaseModel):
@@ -129,6 +133,8 @@ def load_config(config_path: Optional[str] = None) -> AppConfig:
         sec_data["admin_api_key"] = admin_key
     if enc_key := os.environ.get("GATEWAY_ENCRYPTION_KEY"):
         sec_data["encryption_key"] = enc_key
+    if local_trust_env := os.environ.get("GATEWAY_LOCAL_TRUST"):
+        sec_data["local_trust"] = local_trust_env.lower() in ("true", "1", "yes")
     cfg_data["security"] = sec_data
 
     oauth_data = cfg_data.get("oauth", {})

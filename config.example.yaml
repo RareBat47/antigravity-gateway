@@ -7,6 +7,7 @@ server:
 security:
   gateway_api_key: "agw-hermes-secret-key-change-me"
   admin_api_key: "agw-admin-super-secret-key-change-me"
+  local_trust: true
   encryption_key: ""
   rate_limit_per_minute: 120
   cors_origins: []

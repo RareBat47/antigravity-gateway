@@ -148,7 +148,7 @@ def create_v1_router(
         model_id = body.get("model", "gemini-3.8-flash-high")
         is_streaming = bool(body.get("stream", False))
 
-        m_def = model_registry.get_model(model_id)
+        m_def = model_registry.get_model(model_id, fallback_to_default=True)
         if not m_def:
             raise HTTPException(
                 status_code=404,
@@ -161,7 +161,7 @@ def create_v1_router(
             )
 
         try:
-            upstream_id, family, max_tokens = model_registry.resolve_upstream(model_id)
+            upstream_id, family, max_tokens = model_registry.resolve_upstream(model_id, strict=False)
         except ValueError as e:
             raise HTTPException(
                 status_code=404,

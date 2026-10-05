@@ -505,6 +505,7 @@
             </div>
             <button class="btn-primary" id="unlockBtn" onclick="loadData()">Unlock Dashboard</button>
             <button class="btn-secondary" onclick="startOAuthLogin()">+ Add Google Account</button>
+            <button class="btn-secondary" style="background: #0284c7; color: white;" onclick="triggerSetupPC()">⚡ Auto-Configure PC</button>
         </div>
     </header>
 
@@ -709,27 +710,37 @@
             }
         }
 
+        async function triggerSetupPC() {
+            try {
+                showAlert('Configuring PC environment variables and client configs...');
+                const res = await apiFetch('/admin/setup-pc', { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    showAlert('✓ PC Auto-Configured! OPENAI_BASE_URL and ANTHROPIC_BASE_URL set. OpenCode & VS Code ready.');
+                } else {
+                    showAlert('Setup failed: ' + res.statusText, true);
+                }
+            } catch (err) {
+                showAlert('Setup error: ' + err.message, true);
+            }
+        }
+
         async function loadData() {
             const unlockBtn = document.getElementById('unlockBtn');
             const key = keyInput.value.trim();
-
-            if (!key) {
-                showAlert("Please enter an Admin API Key.", true);
-                unlockBtn.innerText = "Unlock Dashboard";
-                unlockBtn.style.background = "";
-                checkPublicHealth();
-                renderLockedState();
-                return;
-            }
 
             unlockBtn.innerText = "Connecting...";
 
             try {
                 const healthRes = await apiFetch('/admin/health');
                 if (!healthRes.ok) {
+                    if (!key) {
+                        showAlert("Please enter an Admin API Key (or connect from localhost).", true);
+                    } else {
+                        showAlert('Authentication failed. Check your Admin API Key.', true);
+                    }
                     unlockBtn.innerText = "Unlock Dashboard";
                     unlockBtn.style.background = "";
-                    showAlert('Authentication failed. Check your Admin API Key (default: agw-admin-super-secret-key-change-me).', true);
                     checkPublicHealth();
                     renderLockedState();
                     return;

@@ -424,5 +424,32 @@ def logs_cmd(limit: int):
         sys.exit(1)
 
 
+# --- Setup-PC Command ---
+
+
+@cli.command("setup-pc")
+def setup_pc_cmd():
+    """Auto-configure Windows environment variables, OpenCode, and VS Code for zero-manual setup."""
+    from agw.integrations.setup_pc import run_full_pc_setup
+    console.print(Panel("[bold cyan]Auto-Configuring PC for Antigravity Gateway[/bold cyan]", title="Zero-Config Integration"))
+
+    res = run_full_pc_setup()
+
+    console.print("\n[bold green]Environment Variables Configured (Persistent):[/bold green]")
+    for k, v in res.get("env_vars", {}).items():
+        status_col = "[green]OK[/green]" if v == "set" else "[red]FAIL[/red]"
+        console.print(f"  • {k}: {status_col}")
+
+    console.print("\n[bold green]Configuration Files Generated:[/bold green]")
+    for f in res.get("files_written", []):
+        console.print(f"  • {f}")
+
+    console.print("\n[bold green]Tools Ready to Use Immediately:[/bold green]")
+    for t in res.get("tools_configured", []):
+        console.print(f"  ✓ {t}")
+
+    console.print("\n[bold yellow]Ready! Any terminal, IDE, or tool on your PC can now use Antigravity Gateway seamlessly.[/bold yellow]\n")
+
+
 if __name__ == "__main__":
     cli()

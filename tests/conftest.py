@@ -32,6 +32,7 @@ def test_config(temp_dir):
     cfg.security.encryption_key = Fernet.generate_key().decode()
     cfg.security.gateway_api_key = "test-gateway-key"
     cfg.security.admin_api_key = "test-admin-key"
+    cfg.security.local_trust = False
     return cfg
 
 

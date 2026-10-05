@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from agw.accounts.manager import AccountManager
 from agw.api.middleware import AuditLoggingMiddleware, RedactingLogger
 from agw.api.routes_admin import create_admin_router
+from agw.api.routes_anthropic import create_anthropic_router
 from agw.api.routes_auth import create_auth_router
 from agw.api.routes_v1 import create_v1_router
 from agw.auth.crypto import TokenEncryption
@@ -148,17 +149,37 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         )
     )
 
+    app.include_router(
+        create_anthropic_router(
+            config=cfg,
+            repo=repo,
+            account_mgr=account_mgr,
+            cloudcode_client=client,
+            model_registry=model_registry,
+            scheduler=scheduler,
+            cooldown_mgr=cooldown_mgr,
+            health_tracker=health_tracker,
+        )
+    )
+
     # Root redirect / welcome
+    from fastapi import Request
+    from fastapi.responses import RedirectResponse
+
     @app.get("/", tags=["Root"])
-    async def root():
+    async def root(request: Request):
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept:
+            return RedirectResponse(url="/admin/dashboard")
         return {
             "service": "Antigravity Gateway",
-            "version": "1.0.0",
+            "version": "1.1.0",
             "docs": "/docs",
             "dashboard": "/admin/dashboard",
             "endpoints": {
                 "models": "/v1/models",
                 "chat_completions": "/v1/chat/completions",
+                "anthropic_messages": "/v1/messages",
                 "health": "/health",
             },
         }
