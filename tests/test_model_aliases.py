@@ -22,11 +22,11 @@ def test_model_alias_resolution():
 
     # Claude aliases
     up_c35, fam_c35, _ = registry.resolve_upstream("claude-3-5-sonnet")
-    assert up_c35 == "claude-sonnet-4-6"
+    assert up_c35 == "claude-sonnet-5-5-medium"
     assert fam_c35 == "claude"
 
     up_c37, fam_c37, _ = registry.resolve_upstream("claude-3.7-sonnet")
-    assert up_c37 == "claude-sonnet-4-6"
+    assert up_c37 == "claude-sonnet-5-5-medium"
     assert fam_c37 == "claude"
 
     # Claude 5.5 aliases
