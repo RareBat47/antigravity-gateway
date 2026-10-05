@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import secrets
+from pathlib import Path
 from typing import Any
+import yaml
 
 DEFAULT_MARKERS = (
     "change-me",
@@ -40,11 +42,28 @@ class LocalIdentityManager:
         if is_default_secret(config.security.admin_api_key):
             config.security.admin_api_key = generate_secret("agw-admin")
             changed = True
+        self._persist_if_config_file(config, changed)
         return {
             "changed": changed,
             "gateway_key": masked_key(config.security.gateway_api_key),
             "admin_key": masked_key(config.security.admin_api_key),
         }
+
+    @staticmethod
+    def _persist_if_config_file(config: Any, changed: bool) -> None:
+        """Persist generated credentials only for the real config file, never test objects."""
+        config_path = Path(__import__("os").environ.get("GATEWAY_CONFIG_PATH", "config.yaml"))
+        if not changed or not config_path.is_file():
+            return
+        try:
+            data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+            security = data.setdefault("security", {})
+            security["gateway_api_key"] = config.security.gateway_api_key
+            security["admin_api_key"] = config.security.admin_api_key
+            config_path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        except Exception:
+            # Startup must remain available; the dashboard can report migration attention.
+            return
 
     def rotate_keys(self, config: Any) -> dict[str, str]:
         config.security.gateway_api_key = generate_secret("agw-local")
