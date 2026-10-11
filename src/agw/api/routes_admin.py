@@ -195,20 +195,20 @@ def create_admin_router(
                     "gemini_web": {
                         "name": "Gemini Web",
                         "code": "gweb",
-                        "working": False,
-                        "status": "unconfigured",
-                        "latency_ms": 0,
-                        "detail": "Web cookies not bound for this account.",
-                        "models": ["Gemini Web Consumer"],
+                        "working": bool(s.get("cookies_verified")),
+                        "status": "healthy" if s.get("cookies_verified") else "unconfigured",
+                        "latency_ms": round(lat) if s.get("cookies_verified") else 0,
+                        "detail": "Consumer Web Session Active" if s.get("cookies_verified") else "Web cookies not bound for this account.",
+                        "models": ["Gemini Web Consumer"] if s.get("cookies_verified") else [],
                     },
                     "aistudio": {
                         "name": "Google AI Studio",
                         "code": "aistudio",
-                        "working": False,
-                        "status": "unconfigured",
-                        "latency_ms": 0,
-                        "detail": "No AI Studio key bound for this account.",
-                        "models": ["Gemini 2.5 Pro", "Gemini 2.5 Flash"],
+                        "working": bool(s.get("vertex_verified")),
+                        "status": "healthy" if s.get("vertex_verified") else "unconfigured",
+                        "latency_ms": round(lat) if s.get("vertex_verified") else 0,
+                        "detail": "Vertex AI / Studio Key Active" if s.get("vertex_verified") else "No Vertex/Studio key bound for this account.",
+                        "models": ["Gemini 2.5 Pro", "Gemini 2.5 Flash"] if s.get("vertex_verified") else [],
                     },
                     "gemini_cli": {
                         "name": "Gemini CLI OAuth",
@@ -547,6 +547,42 @@ def create_admin_router(
         """Clear active cooldown for an account."""
         await cooldown_mgr.clear(account_id)
         return {"status": "success", "cleared": account_id}
+
+    class LinkCookiesRequest(BaseModel):
+        cookies: Optional[Dict[str, str]] = None
+
+    @router.post("/accounts/{account_id}/link-cookies", dependencies=[Depends(verify_admin)])
+    async def admin_link_cookies(account_id: str, req: LinkCookiesRequest):
+        """Link Gemini Web cookies to an existing account, auto-harvesting from Chrome if omitted."""
+        cookies = req.cookies
+        snlm0e = ""
+        if not cookies:
+            ok, extracted, msg = geminiweb_client.extract_from_local_chrome()
+            if not ok:
+                raise HTTPException(status_code=400, detail=f"Chrome cookie extraction failed: {msg}")
+            cookies = extracted
+
+        valid, vmsg, token = await geminiweb_client.validate_session(cookies)
+        if not valid:
+            raise HTTPException(status_code=400, detail=f"Gemini Web session validation failed: {vmsg}")
+        snlm0e = token
+
+        res = await account_mgr.link_account_cookies(account_id, cookies, snlm0e)
+        return {"status": "success", "account_id": account_id, "channel": "cookies", "bindings": res}
+
+    class LinkVertexRequest(BaseModel):
+        api_key: str
+
+    @router.post("/accounts/{account_id}/link-vertex", dependencies=[Depends(verify_admin)])
+    async def admin_link_vertex(account_id: str, req: LinkVertexRequest):
+        """Link Vertex AI / AI Studio API key to an existing account."""
+        key = req.api_key.strip()
+        valid, msg, models = await aistudio_client.validate_key(key)
+        if not valid:
+            raise HTTPException(status_code=400, detail=f"Vertex AI / Studio key validation failed: {msg}")
+
+        res = await account_mgr.link_account_vertex_key(account_id, key)
+        return {"status": "success", "account_id": account_id, "channel": "vertex", "models": models, "bindings": res}
 
     @router.get("/providers", dependencies=[Depends(verify_admin)])
     async def admin_list_providers():

@@ -88,6 +88,18 @@ CREATE TABLE IF NOT EXISTS health_events (
     FOREIGN KEY(account_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS account_channel_bindings (
+    account_id TEXT PRIMARY KEY,
+    oauth_verified INTEGER DEFAULT 0,
+    cookies_verified INTEGER DEFAULT 0,
+    vertex_verified INTEGER DEFAULT 0,
+    completed_methods INTEGER DEFAULT 0,
+    is_setup_complete INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(account_id) REFERENCES accounts(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_quota_account ON quota_snapshots(account_id, recorded_at);
 CREATE INDEX IF NOT EXISTS idx_usage_account ON usage_events(account_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_health_account ON health_events(account_id, created_at);

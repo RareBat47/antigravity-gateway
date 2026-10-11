@@ -2,6 +2,7 @@
 
 import asyncio
 import hashlib
+import json
 import logging
 import time
 from typing import Any, Dict, List, Optional
@@ -95,6 +96,7 @@ class AccountManager:
             enabled=True,
         )
         await self.repo.update_token_metadata(account_id, int(expires_at))
+        await self.repo.upsert_channel_bindings(account_id, oauth_verified=True)
 
         logger.info(f"Successfully enrolled account {account_id} ({safe_email}), tier: {tier}")
         return {
@@ -147,6 +149,7 @@ class AccountManager:
             enabled=True,
         )
         await self.repo.update_token_metadata(account_id, int(expires_at))
+        await self.repo.upsert_channel_bindings(account_id, oauth_verified=True)
 
         return {
             "account_id": account_id,
@@ -244,13 +247,24 @@ class AccountManager:
         await self.repo.set_account_enabled(account_id, enabled)
 
     async def list_accounts_summary(self) -> List[Dict[str, Any]]:
-        """List accounts with safely sanitized public representation."""
+        """List accounts with safely sanitized public representation and channel completion status."""
         accounts = await self.repo.list_accounts()
+        bindings = await self.repo.get_all_channel_bindings()
         summaries = []
         for acc in accounts:
             acc_id = acc["id"]
             has_tok = self.vault.has_token(acc_id)
             email_val = acc.get("email_safe", "")
+
+            b = bindings.get(acc_id, {})
+            # A channel is verified if recorded in bindings or present in vault
+            oauth_v = bool(b.get("oauth_verified", 1 if has_tok else 0))
+            cookies_v = bool(b.get("cookies_verified", 1 if self.vault.has_token(f"{acc_id}:cookies") or acc.get("tier") == "gweb" else 0))
+            vertex_v = bool(b.get("vertex_verified", 1 if self.vault.has_token(f"{acc_id}:vertex") or acc.get("tier") == "studio" else 0))
+
+            completed = (1 if oauth_v else 0) + (1 if cookies_v else 0) + (1 if vertex_v else 0)
+            is_complete = completed >= 3
+
             summaries.append({
                 "id": acc_id,
                 "email": email_val,
@@ -265,8 +279,34 @@ class AccountManager:
                 "total_requests": acc.get("total_requests", 0),
                 "total_tokens": acc.get("total_tokens", 0),
                 "last_used_at": acc.get("last_used_at"),
+                "oauth_verified": oauth_v,
+                "cookies_verified": cookies_v,
+                "vertex_verified": vertex_v,
+                "completed_methods": completed,
+                "is_setup_complete": is_complete,
             })
         return summaries
+
+    async def link_account_cookies(
+        self,
+        account_id: str,
+        cookies: Dict[str, str],
+        snlm0e: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Link validated Gemini Web cookies to an existing account."""
+        stored = json.dumps({"cookies": cookies, "snlm0e": snlm0e or ""})
+        self.vault.store_token(f"{account_id}:cookies", stored)
+        return await self.repo.upsert_channel_bindings(account_id, cookies_verified=True)
+
+    async def link_account_vertex_key(
+        self,
+        account_id: str,
+        api_key: str,
+    ) -> Dict[str, Any]:
+        """Link validated Vertex / AI Studio API key to an existing account."""
+        clean_key = api_key.strip()
+        self.vault.store_token(f"{account_id}:vertex", clean_key)
+        return await self.repo.upsert_channel_bindings(account_id, vertex_verified=True)
 
     async def add_aistudio_account(
         self,

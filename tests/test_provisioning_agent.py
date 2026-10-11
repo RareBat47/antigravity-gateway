@@ -63,3 +63,29 @@ async def test_admin_agent_provision_endpoint(test_config):
         )
         assert resp_launch.status_code == 200
         assert resp_launch.json()["url"] == "https://gemini.google.com"
+
+
+@pytest.mark.asyncio
+async def test_channel_bindings_and_incomplete_status(test_config):
+    repo = DatabaseRepository(db_path=test_config.storage.database_path)
+    await repo.init_db()
+    aid = "acc-wizard-test"
+    await repo.upsert_account(aid, "wizard@example.com")
+
+    # Step 1: Initial OAuth binding
+    b1 = await repo.upsert_channel_bindings(aid, oauth_verified=True)
+    assert b1["oauth_verified"] is True
+    assert b1["completed_methods"] == 1
+    assert b1["is_setup_complete"] is False
+
+    # Step 2: Cookies binding
+    b2 = await repo.upsert_channel_bindings(aid, cookies_verified=True)
+    assert b2["cookies_verified"] is True
+    assert b2["completed_methods"] == 2
+    assert b2["is_setup_complete"] is False
+
+    # Step 3: Vertex binding
+    b3 = await repo.upsert_channel_bindings(aid, vertex_verified=True)
+    assert b3["vertex_verified"] is True
+    assert b3["completed_methods"] == 3
+    assert b3["is_setup_complete"] is True

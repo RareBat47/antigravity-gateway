@@ -669,6 +669,88 @@
         .badge-danger { background: rgba(239, 68, 68, 0.12); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.25); }
         .badge-muted { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border: 1px solid var(--border); }
 
+        /* Glowing Incomplete Badge: !! lad youre lazy */
+        .badge-lazy-red {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            color: #ff3344;
+            background: rgba(255, 51, 68, 0.12);
+            border: 1px solid rgba(255, 51, 68, 0.55);
+            text-shadow: 0 0 8px rgba(255, 51, 68, 0.9), 0 0 16px rgba(255, 51, 68, 0.6);
+            box-shadow: 0 0 12px rgba(255, 51, 68, 0.3);
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            animation: lazyGlowPulsate 1.8s infinite ease-in-out;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .badge-lazy-red:hover {
+            transform: scale(1.04);
+            border-color: #ff3344;
+            box-shadow: 0 0 18px rgba(255, 51, 68, 0.6);
+        }
+        @keyframes lazyGlowPulsate {
+            0%, 100% {
+                text-shadow: 0 0 6px rgba(255, 51, 68, 0.9), 0 0 14px rgba(255, 51, 68, 0.5);
+                border-color: rgba(255, 51, 68, 0.5);
+                box-shadow: 0 0 10px rgba(255, 51, 68, 0.25);
+            }
+            50% {
+                text-shadow: 0 0 12px rgba(255, 51, 68, 1), 0 0 24px rgba(255, 51, 68, 0.85), 0 0 35px rgba(255, 51, 68, 0.6);
+                border-color: rgba(255, 51, 68, 0.95);
+                box-shadow: 0 0 20px rgba(255, 51, 68, 0.65);
+            }
+        }
+
+        /* 3-Method Wizard Styles */
+        .wizard-card-step {
+            background: rgba(17, 24, 39, 0.75);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+            transition: all 0.25s ease;
+        }
+        .wizard-card-step.step-active {
+            border-color: rgba(56, 189, 248, 0.5);
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 14px rgba(56, 189, 248, 0.15);
+        }
+        .wizard-card-step.step-completed {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.05);
+        }
+        .wizard-step-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .wizard-step-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .wizard-agent-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            line-height: 1.45;
+            margin: 8px 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
         .models-tags {
             display: flex;
             flex-wrap: wrap;
@@ -1494,17 +1576,13 @@
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                         Check All 4 Connections
                     </button>
-                    <button class="btn btn-primary" onclick="initiateOAuthFlow()" id="header-quick-oauth-btn" title="Automated setup with Google Sign-in">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                        1-Click Google Sign-In
-                    </button>
-                    <button class="btn btn-primary" onclick="openAgentProvisionModal()" id="btn-run-agent" title="Run Autonomous 4-Way Provisioning Agent" style="background: linear-gradient(135deg, #0284c7, #8b5cf6); color: #fff; font-weight: 700; border: none; box-shadow: 0 0 16px rgba(139, 92, 246, 0.4); display: flex; align-items: center; gap: 6px;">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M10 17h4"/></svg>
-                        🤖 Autonomous 4-Way Setup Agent
+                    <button class="btn btn-primary" onclick="openAccountWizard()" id="btn-add-account-wizard" title="Add Google Account with 3-Method Setup Wizard" style="background: linear-gradient(135deg, #0284c7, #8b5cf6); color: #fff; font-weight: 700; border: none; box-shadow: 0 0 16px rgba(139, 92, 246, 0.4); display: flex; align-items: center; gap: 6px;">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+                        + Add Account
                     </button>
                     <button class="btn btn-secondary" onclick="openAddModal()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                        More Methods
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                        Legacy Hub
                     </button>
                 </div>
             </div>
@@ -2345,6 +2423,104 @@
                         ⚡ Run Setup Agent
                     </button>
                 </div>
+    <!-- 3-Method Account Setup Wizard Modal -->
+    <div class="modal-overlay" id="wizard-modal" onclick="handleWizardOverlayClick(event)">
+        <div class="modal-card" style="max-width: 650px; border: 1px solid rgba(56, 189, 248, 0.4); box-shadow: 0 10px 45px rgba(0, 0, 0, 0.8);">
+            <div class="modal-header">
+                <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px; color: #38bdf8; margin: 0;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M10 17h4"/></svg>
+                        3-Method Account Setup Wizard
+                    </h3>
+                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 3px;">
+                        Connect all 3 methods (OAuth • Cookie Extraction • Vertex AI API) for full multi-engine routing
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeWizardModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem;">
+                <!-- Overall Progress Bar -->
+                <div style="margin-bottom: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.76rem; margin-bottom: 5px;">
+                        <span id="wizard-account-label" style="color: #94a3b8; font-weight: 600;">Target: New Google Account</span>
+                        <span id="wizard-progress-text" style="color: #38bdf8; font-weight: 700;">0/3 Methods Configured</span>
+                    </div>
+                    <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border); border-radius: 8px; padding: 3px;">
+                        <div id="wizard-progress-bar" style="height: 7px; width: 5%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 6px; transition: width 0.4s ease;"></div>
+                    </div>
+                </div>
+
+                <!-- Step 1: Google OAuth -->
+                <div class="wizard-card-step step-active" id="wizard-card-oauth">
+                    <div class="wizard-step-header">
+                        <div class="wizard-step-title">
+                            <span>1. Google OAuth (Cloud Code Engine)</span>
+                        </div>
+                        <span id="wizard-badge-oauth" class="badge badge-warning">Pending</span>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;">
+                        Authorizes primary Cloud Code token. Unlocks Claude 3.7 Sonnet & Gemini Pro models without per-token fees.
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;" id="wizard-oauth-action-area">
+                        <span id="wizard-oauth-detail" style="font-size: 0.75rem; color: #94a3b8;">Click below to launch Google PKCE login:</span>
+                        <button type="button" class="btn btn-primary btn-sm" id="wizard-btn-oauth" onclick="startWizardOAuth()">
+                            ⚡ Sign In with Google
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Cookie Extraction -->
+                <div class="wizard-card-step" id="wizard-card-cookies">
+                    <div class="wizard-step-header">
+                        <div class="wizard-step-title">
+                            <span>2. Cookie Extraction (Gemini Web Engine)</span>
+                        </div>
+                        <span id="wizard-badge-cookies" class="badge badge-muted">Locked</span>
+                    </div>
+                    <div class="wizard-agent-box" id="wizard-agent-box-cookies">
+                        🤖 <strong>Agent Guidance:</strong> Make sure your browser has opened <code>gemini.google.com</code> under this account. Click <strong>"Open Gemini Web"</strong> to touch the session, then click <strong>"Detect Cookies"</strong>.
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 6px;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="wizardLaunchUrl('https://gemini.google.com')">
+                            🌐 Open Gemini Web
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" id="wizard-btn-cookies" onclick="detectWizardCookies()">
+                            🔍 Detect & Verify Cookies
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Vertex AI API -->
+                <div class="wizard-card-step" id="wizard-card-vertex">
+                    <div class="wizard-step-header">
+                        <div class="wizard-step-title">
+                            <span>3. Vertex AI / Studio API Key</span>
+                        </div>
+                        <span id="wizard-badge-vertex" class="badge badge-muted">Locked</span>
+                    </div>
+                    <div class="wizard-agent-box" id="wizard-agent-box-vertex">
+                        🤖 <strong>Agent Guidance:</strong> Click <strong>"Open API Console"</strong> to get your API key. I will auto-capture it from your clipboard the moment you copy it, or you can paste your <code>AIza...</code> key below.
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 6px;">
+                        <input type="text" id="wizard-vertex-input" placeholder="AIzaSy... (or auto-detected from clipboard)" style="flex: 1; padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; background: rgba(15,23,42,0.8); border: 1px solid var(--border); color: #fff;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="wizardLaunchUrl('https://aistudio.google.com/app/apikey')">
+                            🔑 Open Console
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" id="wizard-btn-vertex" onclick="verifyWizardVertexKey()">
+                            ⚡ Verify & Bind Key
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Celebration & Auto-Vanishing Notice -->
+                <div id="wizard-celebration-box" style="display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 12px; text-align: center; margin-top: 10px;">
+                    <div style="font-size: 1rem; font-weight: 800; color: #10b981;">🎉 All 3 Connections Verified for this Account!</div>
+                    <div style="font-size: 0.78rem; color: #cbd5e1; margin-top: 4px;">Account setup complete! This popup will vanish in a moment...</div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 1.25rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeWizardModal()">Close Setup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -2763,6 +2939,7 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to fetch accounts`);
 
                 const accounts = await res.json();
+                window.allAccounts = accounts;
                 renderAccountsTable(accounts);
                 if (isManual) showToast('Account list updated', 'success');
             } catch (err) {
@@ -2788,7 +2965,7 @@
                                 </div>
                                 <h3 class="empty-title">No Google accounts connected yet</h3>
                                 <p class="empty-desc">Connect your Google AI Pro Family member accounts or Antigravity sessions to aggregate quotas and route Claude & Gemini requests.</p>
-                                <button class="btn btn-primary" onclick="openAddModal()" style="margin-top: 0.5rem;">
+                                <button class="btn btn-primary" onclick="openAccountWizard()" style="margin-top: 0.5rem; background: linear-gradient(135deg, #0284c7, #8b5cf6); border: none;">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
                                     Add Google Account
                                 </button>
@@ -2823,12 +3000,17 @@
                 
                 // Status badge
                 let statusBadge = '';
+                const completedCount = acc.completed_methods !== undefined ? acc.completed_methods : (acc.has_credentials ? 1 : 0);
+                const isComplete = acc.is_setup_complete === true || completedCount >= 3;
+
                 if (!isEnabled) {
                     statusBadge = '<span class="badge badge-muted">Disabled</span>';
+                } else if (!isComplete) {
+                    statusBadge = `<span class="badge-lazy-red" onclick="openAccountWizard('${acc.id}')" title="Setup Incomplete: Click to resume 3-method setup">!! lad youre lazy (${completedCount}/3)</span>`;
                 } else if (hasCooldown) {
                     statusBadge = '<span class="badge badge-warning">Cooldown</span>';
                 } else {
-                    statusBadge = '<span class="badge badge-success">Healthy</span>';
+                    statusBadge = '<span class="badge badge-success" style="box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); font-weight: 700;">🟢 Active (3/3 Complete)</span>';
                 }
 
                 // Provider badge inference
@@ -3407,6 +3589,338 @@
                         fetchAccounts(true);
                     }
                 } catch(e) {}
+            }
+        // ==========================================
+        // 3-Method Account Setup Wizard
+        // ==========================================
+        let activeWizardAccountId = null;
+        let wizardOAuthPollInterval = null;
+        let wizardAutoCloseTimeout = null;
+
+        function openAccountWizard(accountId = null) {
+            activeWizardAccountId = accountId;
+            if (wizardAutoCloseTimeout) { clearTimeout(wizardAutoCloseTimeout); wizardAutoCloseTimeout = null; }
+            if (wizardOAuthPollInterval) { clearInterval(wizardOAuthPollInterval); wizardOAuthPollInterval = null; }
+
+            const modal = document.getElementById('wizard-modal');
+            const celebBox = document.getElementById('wizard-celebration-box');
+            if (celebBox) celebBox.style.display = 'none';
+
+            const cardOauth = document.getElementById('wizard-card-oauth');
+            const cardCookies = document.getElementById('wizard-card-cookies');
+            const cardVertex = document.getElementById('wizard-card-vertex');
+            const badgeOauth = document.getElementById('wizard-badge-oauth');
+            const badgeCookies = document.getElementById('wizard-badge-cookies');
+            const badgeVertex = document.getElementById('wizard-badge-vertex');
+            const detailOauth = document.getElementById('wizard-oauth-detail');
+            const btnOauth = document.getElementById('wizard-btn-oauth');
+            const btnCookies = document.getElementById('wizard-btn-cookies');
+            const btnVertex = document.getElementById('wizard-btn-vertex');
+            const inpVertex = document.getElementById('wizard-vertex-input');
+            const labelAcc = document.getElementById('wizard-account-label');
+
+            if (inpVertex) inpVertex.value = '';
+
+            if (accountId) {
+                // Resume existing account
+                const acc = (window.allAccounts || []).find(a => a.id === accountId) || {};
+                const name = acc.email_safe || acc.email || acc.display_name || accountId;
+                if (labelAcc) labelAcc.textContent = `Target: ${name}`;
+
+                // Step 1: OAuth
+                cardOauth.className = 'wizard-card-step step-completed';
+                badgeOauth.className = 'badge badge-success';
+                badgeOauth.textContent = '🟢 Active';
+                detailOauth.textContent = `✓ Identity & Cloud Code Token Linked (${name})`;
+                btnOauth.disabled = true;
+                btnOauth.textContent = '✓ Connected';
+
+                // Step 2: Cookies
+                if (acc.cookies_verified) {
+                    cardCookies.className = 'wizard-card-step step-completed';
+                    badgeCookies.className = 'badge badge-success';
+                    badgeCookies.textContent = '🟢 Active';
+                    btnCookies.disabled = true;
+                    btnCookies.textContent = '✓ Verified';
+                } else {
+                    cardCookies.className = 'wizard-card-step step-active';
+                    badgeCookies.className = 'badge badge-warning';
+                    badgeCookies.textContent = 'Pending';
+                    btnCookies.disabled = false;
+                    btnCookies.textContent = '🔍 Detect & Verify Cookies';
+                }
+
+                // Step 3: Vertex
+                if (acc.vertex_verified) {
+                    cardVertex.className = 'wizard-card-step step-completed';
+                    badgeVertex.className = 'badge badge-success';
+                    badgeVertex.textContent = '🟢 Active';
+                    btnVertex.disabled = true;
+                    btnVertex.textContent = '✓ Bound';
+                } else {
+                    cardVertex.className = 'wizard-card-step ' + (acc.cookies_verified ? 'step-active' : '');
+                    badgeVertex.className = 'badge ' + (acc.cookies_verified ? 'badge-warning' : 'badge-muted');
+                    badgeVertex.textContent = acc.cookies_verified ? 'Pending' : 'Locked';
+                    btnVertex.disabled = false;
+                    btnVertex.textContent = '⚡ Verify & Bind Key';
+                }
+
+                const completed = (acc.oauth_verified ? 1 : 0) + (acc.cookies_verified ? 1 : 0) + (acc.vertex_verified ? 1 : 0);
+                updateWizardProgress(completed);
+            } else {
+                // New Account Flow
+                if (labelAcc) labelAcc.textContent = 'Target: New Google Account';
+
+                cardOauth.className = 'wizard-card-step step-active';
+                badgeOauth.className = 'badge badge-warning';
+                badgeOauth.textContent = 'Pending';
+                detailOauth.textContent = 'Click below to launch Google PKCE login:';
+                btnOauth.disabled = false;
+                btnOauth.textContent = '⚡ Sign In with Google';
+
+                cardCookies.className = 'wizard-card-step';
+                badgeCookies.className = 'badge badge-muted';
+                badgeCookies.textContent = 'Locked';
+                btnCookies.disabled = true;
+                btnCookies.textContent = '🔍 Detect & Verify Cookies';
+
+                cardVertex.className = 'wizard-card-step';
+                badgeVertex.className = 'badge badge-muted';
+                badgeVertex.textContent = 'Locked';
+                btnVertex.disabled = true;
+                btnVertex.textContent = '⚡ Verify & Bind Key';
+
+                updateWizardProgress(0);
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeWizardModal() {
+            if (wizardAutoCloseTimeout) { clearTimeout(wizardAutoCloseTimeout); wizardAutoCloseTimeout = null; }
+            if (wizardOAuthPollInterval) { clearInterval(wizardOAuthPollInterval); wizardOAuthPollInterval = null; }
+            document.getElementById('wizard-modal').classList.remove('active');
+            fetchAccounts();
+        }
+
+        function handleWizardOverlayClick(e) {
+            if (e.target.id === 'wizard-modal') closeWizardModal();
+        }
+
+        function updateWizardProgress(completed) {
+            const bar = document.getElementById('wizard-progress-bar');
+            const txt = document.getElementById('wizard-progress-text');
+            const pct = completed === 0 ? 5 : Math.round((completed / 3) * 100);
+            if (bar) {
+                bar.style.width = `${pct}%`;
+                if (completed >= 3) {
+                    bar.style.background = 'linear-gradient(90deg, #10b981, #38bdf8)';
+                } else {
+                    bar.style.background = 'linear-gradient(90deg, #38bdf8, #818cf8)';
+                }
+            }
+            if (txt) {
+                txt.textContent = `${completed}/3 Methods Configured`;
+                if (completed >= 3) txt.style.color = '#10b981';
+                else txt.style.color = '#38bdf8';
+            }
+
+            if (completed >= 3) {
+                const celeb = document.getElementById('wizard-celebration-box');
+                if (celeb) celeb.style.display = 'block';
+                showToast('🎉 All 3 connections verified! Auto-saving and closing...', 'success');
+                wizardAutoCloseTimeout = setTimeout(() => {
+                    closeWizardModal();
+                    showToast('✓ Account setup complete! You can now add another new account.', 'success');
+                }, 1600);
+            }
+        }
+
+        async function startWizardOAuth() {
+            const btn = document.getElementById('wizard-btn-oauth');
+            if (btn) { btn.disabled = true; btn.textContent = 'Opening Login Window...'; }
+
+            const preAccounts = window.allAccounts || [];
+            const preCount = preAccounts.length;
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/oauth/start`, { headers: getAdminHeaders() });
+                if (!res.ok) throw new Error('Failed to initiate OAuth');
+                const data = await res.json();
+
+                const oauthWin = window.open(data.auth_url, 'GoogleOAuth', 'width=600,height=720');
+                if (btn) btn.textContent = 'Waiting for Google Login...';
+
+                let attempts = 0;
+                wizardOAuthPollInterval = setInterval(async () => {
+                    attempts++;
+                    try {
+                        const checkRes = await fetch(`${API_BASE}/admin/accounts`, { headers: getAdminHeaders() });
+                        const currentAccs = await checkRes.json();
+                        if (Array.isArray(currentAccs) && currentAccs.length > preCount) {
+                            clearInterval(wizardOAuthPollInterval);
+                            wizardOAuthPollInterval = null;
+                            if (oauthWin && !oauthWin.closed) { try { oauthWin.close(); } catch(e) {} }
+
+                            window.allAccounts = currentAccs;
+                            const newAcc = currentAccs[currentAccs.length - 1];
+                            activeWizardAccountId = newAcc.id;
+
+                            // Update step 1
+                            const cardOauth = document.getElementById('wizard-card-oauth');
+                            const badgeOauth = document.getElementById('wizard-badge-oauth');
+                            const detailOauth = document.getElementById('wizard-oauth-detail');
+                            cardOauth.className = 'wizard-card-step step-completed';
+                            badgeOauth.className = 'badge badge-success';
+                            badgeOauth.textContent = '🟢 Active';
+                            detailOauth.textContent = `✓ Identity Linked (${newAcc.email_safe || newAcc.display_name})`;
+                            if (btn) { btn.disabled = true; btn.textContent = '✓ Connected'; }
+
+                            // Unlock step 2
+                            const cardCookies = document.getElementById('wizard-card-cookies');
+                            const badgeCookies = document.getElementById('wizard-badge-cookies');
+                            const btnCookies = document.getElementById('wizard-btn-cookies');
+                            cardCookies.className = 'wizard-card-step step-active';
+                            badgeCookies.className = 'badge badge-warning';
+                            badgeCookies.textContent = 'Pending';
+                            btnCookies.disabled = false;
+
+                            updateWizardProgress(1);
+                            renderAccountsTable(currentAccs);
+                            showToast(`✓ OAuth linked for ${newAcc.email_safe || newAcc.display_name}! Next: Step 2.`, 'success');
+                        }
+                    } catch(e) {}
+
+                    if (attempts > 80) {
+                        clearInterval(wizardOAuthPollInterval);
+                        wizardOAuthPollInterval = null;
+                        if (btn) { btn.disabled = false; btn.textContent = '⚡ Sign In with Google'; }
+                    }
+                }, 1500);
+            } catch(e) {
+                showToast(`OAuth initialization error: ${e.message}`, 'error');
+                if (btn) { btn.disabled = false; btn.textContent = '⚡ Sign In with Google'; }
+            }
+        }
+
+        async function wizardLaunchUrl(url) {
+            try {
+                await fetch(`${API_BASE}/admin/agent/launch-url`, {
+                    method: 'POST',
+                    headers: getAdminHeaders(),
+                    body: JSON.stringify({ url })
+                });
+                showToast(`Opened in your browser.`, 'info');
+            } catch(e) {
+                window.open(url, '_blank');
+            }
+        }
+
+        async function detectWizardCookies() {
+            if (!activeWizardAccountId) {
+                showToast('Please complete Step 1 (OAuth) first.', 'warning');
+                return;
+            }
+            const btn = document.getElementById('wizard-btn-cookies');
+            if (btn) { btn.disabled = true; btn.textContent = 'Harvesting Chrome Cookies...'; }
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/accounts/${activeWizardAccountId}/link-cookies`, {
+                    method: 'POST',
+                    headers: getAdminHeaders(),
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Cookie detection failed');
+
+                // Step 2 Completed
+                const cardCookies = document.getElementById('wizard-card-cookies');
+                const badgeCookies = document.getElementById('wizard-badge-cookies');
+                cardCookies.className = 'wizard-card-step step-completed';
+                badgeCookies.className = 'badge badge-success';
+                badgeCookies.textContent = '🟢 Active';
+                if (btn) { btn.disabled = true; btn.textContent = '✓ Verified'; }
+
+                // Unlock step 3
+                const cardVertex = document.getElementById('wizard-card-vertex');
+                const badgeVertex = document.getElementById('wizard-badge-vertex');
+                const btnVertex = document.getElementById('wizard-btn-vertex');
+                cardVertex.className = 'wizard-card-step step-active';
+                badgeVertex.className = 'badge badge-warning';
+                badgeVertex.textContent = 'Pending';
+                if (btnVertex) btnVertex.disabled = false;
+
+                const bindings = data.bindings || {};
+                const completed = (bindings.oauth_verified ? 1 : 0) + (bindings.cookies_verified ? 1 : 0) + (bindings.vertex_verified ? 1 : 0);
+                updateWizardProgress(completed);
+                fetchAccounts();
+                showToast('✓ Gemini Web session cookies extracted & verified! Next: Step 3.', 'success');
+            } catch(e) {
+                showToast(`Cookie detection: ${e.message}. Click "Open Gemini Web", ensure session is active, and try again.`, 'error');
+                if (btn) { btn.disabled = false; btn.textContent = '🔍 Detect & Verify Cookies'; }
+            }
+        }
+
+        async function verifyWizardVertexKey() {
+            if (!activeWizardAccountId) {
+                showToast('Please complete Step 1 (OAuth) first.', 'warning');
+                return;
+            }
+            const inp = document.getElementById('wizard-vertex-input');
+            const key = inp ? inp.value.trim() : '';
+            if (!key) {
+                showToast('Please paste or copy your AIza... API key first.', 'warning');
+                return;
+            }
+            const btn = document.getElementById('wizard-btn-vertex');
+            if (btn) { btn.disabled = true; btn.textContent = 'Validating Key with Google...'; }
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/accounts/${activeWizardAccountId}/link-vertex`, {
+                    method: 'POST',
+                    headers: getAdminHeaders(),
+                    body: JSON.stringify({ api_key: key })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Key validation failed');
+
+                // Step 3 Completed
+                const cardVertex = document.getElementById('wizard-card-vertex');
+                const badgeVertex = document.getElementById('wizard-badge-vertex');
+                cardVertex.className = 'wizard-card-step step-completed';
+                badgeVertex.className = 'badge badge-success';
+                badgeVertex.textContent = '🟢 Active';
+                if (btn) { btn.disabled = true; btn.textContent = '✓ Bound'; }
+
+                const bindings = data.bindings || {};
+                const completed = (bindings.oauth_verified ? 1 : 0) + (bindings.cookies_verified ? 1 : 0) + (bindings.vertex_verified ? 1 : 0);
+                updateWizardProgress(completed);
+                fetchAccounts();
+                showToast('✓ Vertex AI / AI Studio Key verified & bound!', 'success');
+            } catch(e) {
+                showToast(`Key validation error: ${e.message}`, 'error');
+                if (btn) { btn.disabled = false; btn.textContent = '⚡ Verify & Bind Key'; }
+            }
+        }
+
+        // Automatic Clipboard Listener on Window Focus
+        window.addEventListener('focus', async () => {
+            const modal = document.getElementById('wizard-modal');
+            if (modal && modal.classList.contains('active') && activeWizardAccountId) {
+                const cardVertex = document.getElementById('wizard-card-vertex');
+                if (cardVertex && cardVertex.classList.contains('step-active')) {
+                    try {
+                        const clipText = await navigator.clipboard.readText();
+                        if (clipText && clipText.trim().startsWith('AIza')) {
+                            const inp = document.getElementById('wizard-vertex-input');
+                            if (inp && (!inp.value || inp.value !== clipText.trim())) {
+                                inp.value = clipText.trim();
+                                showToast(`Auto-captured API Key: ${clipText.trim().slice(0, 8)}... Validating!`, 'info');
+                                verifyWizardVertexKey();
+                            }
+                        }
+                    } catch(e) {}
+                }
             }
         });
 

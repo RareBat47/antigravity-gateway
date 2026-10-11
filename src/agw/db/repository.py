@@ -121,7 +121,75 @@ class DatabaseRepository:
         """Delete account record and associated data."""
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("DELETE FROM accounts WHERE id = ?", (account_id,))
+            await db.execute("DELETE FROM account_channel_bindings WHERE account_id = ?", (account_id,))
             await db.commit()
+
+    async def get_channel_bindings(self, account_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch channel binding status for an account."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute("SELECT * FROM account_channel_bindings WHERE account_id = ?", (account_id,))
+            row = await cursor.fetchone()
+            return dict(row) if row else None
+
+    async def get_all_channel_bindings(self) -> Dict[str, Dict[str, Any]]:
+        """Fetch channel bindings for all accounts."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute("SELECT * FROM account_channel_bindings")
+            rows = await cursor.fetchall()
+            return {r["account_id"]: dict(r) for r in rows}
+
+    async def upsert_channel_bindings(
+        self,
+        account_id: str,
+        oauth_verified: Optional[bool] = None,
+        cookies_verified: Optional[bool] = None,
+        vertex_verified: Optional[bool] = None,
+    ) -> Dict[str, Any]:
+        """Update or insert channel bindings, computing completed count and completion status."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute("SELECT * FROM account_channel_bindings WHERE account_id = ?", (account_id,))
+            row = await cursor.fetchone()
+
+            cur_oauth = row["oauth_verified"] if row else 0
+            cur_cookies = row["cookies_verified"] if row else 0
+            cur_vertex = row["vertex_verified"] if row else 0
+
+            if oauth_verified is not None:
+                cur_oauth = 1 if oauth_verified else 0
+            if cookies_verified is not None:
+                cur_cookies = 1 if cookies_verified else 0
+            if vertex_verified is not None:
+                cur_vertex = 1 if vertex_verified else 0
+
+            completed = cur_oauth + cur_cookies + cur_vertex
+            is_complete = 1 if completed >= 3 else 0
+
+            await db.execute(
+                """
+                INSERT INTO account_channel_bindings (account_id, oauth_verified, cookies_verified, vertex_verified, completed_methods, is_setup_complete, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(account_id) DO UPDATE SET
+                    oauth_verified = excluded.oauth_verified,
+                    cookies_verified = excluded.cookies_verified,
+                    vertex_verified = excluded.vertex_verified,
+                    completed_methods = excluded.completed_methods,
+                    is_setup_complete = excluded.is_setup_complete,
+                    updated_at = CURRENT_TIMESTAMP
+                """,
+                (account_id, cur_oauth, cur_cookies, cur_vertex, completed, is_complete),
+            )
+            await db.commit()
+            return {
+                "account_id": account_id,
+                "oauth_verified": bool(cur_oauth),
+                "cookies_verified": bool(cur_cookies),
+                "vertex_verified": bool(cur_vertex),
+                "completed_methods": completed,
+                "is_setup_complete": bool(is_complete),
+            }
 
     async def record_account_usage(
         self,
