@@ -381,7 +381,7 @@ curl -s http://127.0.0.1:8999/v1/chat/completions \
     "messages": [
       {"role": "user", "content": "Respond with exactly: SPEED_FLASH_ONLINE"}
     ],
-    "max_tokens": 20
+    "max_tokens": 150
   }' | jq '.choices[0].message.content'
 ```
 **Expected Response:**
