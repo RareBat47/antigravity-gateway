@@ -1766,26 +1766,13 @@
             <div class="panel-header">
                 <div>
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <h2 class="panel-title">Curated Models & Bound Provider Groups</h2>
-                        <span class="count-badge" id="models-count">7 Models Active</span>
+                        <h2 class="panel-title">Bound Provider Groups & Setup Matrix</h2>
+                        <span class="count-badge" id="models-count">Active Channels</span>
                     </div>
-                    <p class="panel-desc">Curated 7-model system organized into 4 specialized provider categories. Each group is bound as a dedicated provider with its own API key and endpoint for external software setups.</p>
+                    <p class="panel-desc">Specialized provider categories bound with dedicated API keys and local endpoints for external software setups (Claude Code, OpenCode, Claude Desktop, and CLI scripts).</p>
                 </div>
                 <div class="header-actions" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                    <div class="search-box">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        <input type="text" id="model-search-input" placeholder="Search models, categories..." oninput="filterModelsTable()">
-                    </div>
-                    <div class="model-filter-tabs">
-                        <button class="filter-tab active" id="filter-tab-all" onclick="setModelFilter('all')">All (<span id="count-all">7</span>)</button>
-                        <button class="filter-tab" id="filter-tab-frontier" onclick="setModelFilter('frontier')">🔮 Frontier 5.5 (<span id="count-frontier">2</span>)</button>
-                        <button class="filter-tab" id="filter-tab-megacontext" onclick="setModelFilter('megacontext')">🧠 1M Context (<span id="count-megacontext">2</span>)</button>
-                        <button class="filter-tab" id="filter-tab-agentic" onclick="setModelFilter('agentic')">🛠️ Agentic Pro (<span id="count-agentic">2</span>)</button>
-                        <button class="filter-tab" id="filter-tab-speed" onclick="setModelFilter('speed')">⚡ Speed Flash (<span id="count-speed">1</span>)</button>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" onclick="fetchExposedModels(true)" id="btn-refresh-models" title="Refresh Models Catalog">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                    </button>
+                    <span class="badge badge-success">● Providers Operational</span>
                 </div>
             </div>
 
@@ -2068,34 +2055,6 @@
                 </div>
             </div>
 
-            <!-- README Table 2: The Curated 7-Model Catalog Reference Table -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 0.75rem;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <h3 style="font-size:0.98rem; font-weight:700; color:var(--text-main); margin:0;">🧩 Curated 7-Model Catalog Reference Table</h3>
-                    <span class="count-badge" id="models-table-badge">7 Models Curated</span>
-                </div>
-                <span style="font-size:0.75rem; color:var(--text-muted);">Exact match with project documentation & provider mapping</span>
-            </div>
-
-            <div class="table-container">
-                <table class="data-table" id="models-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 55px; text-align: center;">#</th>
-                            <th style="min-width: 250px;">Model Identifier & Role</th>
-                            <th style="min-width: 170px;">Provider Group</th>
-                            <th style="min-width: 150px;">Context Window</th>
-                            <th style="width: 120px;">Max Output</th>
-                            <th style="min-width: 260px;">Features & Capabilities</th>
-                            <th style="width: 90px;">Status</th>
-                            <th style="min-width: 150px; text-align: right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="models-table-body">
-                        <!-- Populated by renderModelsTable() -->
-                    </tbody>
-                </table>
-            </div>
         </section>
     </main>
 
