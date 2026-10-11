@@ -1592,18 +1592,18 @@
                 <div class="metric-card">
                     <div class="metric-header">
                         <span class="metric-title">Combined Usage Limit Consumed</span>
-                        <span class="metric-badge" id="pool-usage-badge">37% Limit Used</span>
+                        <span class="metric-badge" id="pool-usage-badge">0% Limit Used</span>
                     </div>
                     <div class="metric-main">
-                        <span class="metric-value" id="pool-usage-val">37%</span>
-                        <span class="metric-sub" id="pool-capacity-sub">63% Total Pool Quota Remaining</span>
+                        <span class="metric-value" id="pool-usage-val">0%</span>
+                        <span class="metric-sub" id="pool-capacity-sub">0% Total Pool Quota Remaining</span>
                     </div>
                     <div class="metric-progress-bg">
-                        <div class="metric-progress-fill" id="pool-usage-progress" style="width: 37%;"></div>
+                        <div class="metric-progress-fill" id="pool-usage-progress" style="width: 0%;"></div>
                     </div>
                     <div class="metric-footer-row">
-                        <span>Gemini Limit Used: <strong id="gemini-pool-usage">23%</strong></span>
-                        <span>Claude Limit Used: <strong id="claude-pool-usage">51%</strong></span>
+                        <span>Gemini Limit Used: <strong id="gemini-pool-usage">0%</strong></span>
+                        <span>Claude Limit Used: <strong id="claude-pool-usage">0%</strong></span>
                     </div>
                 </div>
 
@@ -1613,8 +1613,8 @@
                         <span class="metric-badge" id="cooldown-status-badge">All Healthy</span>
                     </div>
                     <div class="metric-main">
-                        <span class="metric-value" id="cooldown-count-val">0 / 7</span>
-                        <span class="metric-sub" id="cooldown-detail-sub">All accounts ready for Claude 5 & Gemini 3 routing</span>
+                        <span class="metric-value" id="cooldown-count-val">0 / 0</span>
+                        <span class="metric-sub" id="cooldown-detail-sub">Ready for Claude 5 & Gemini 3 routing</span>
                     </div>
                     <div class="metric-footer-row" style="margin-top:auto;" id="cooldown-tags-row">
                         <span>Status: <strong style="color:var(--success);" id="cooldown-status-text">Operational (No Rate Limits)</strong></span>
@@ -1625,14 +1625,14 @@
                 <div class="metric-card">
                     <div class="metric-header">
                         <span class="metric-title">Authorized Accounts Pool</span>
-                        <span class="metric-badge" style="color:var(--primary); background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.3);">7 Connected</span>
+                        <span class="metric-badge" id="pool-connected-badge" style="color:var(--primary); background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.3);">0 Connected</span>
                     </div>
                     <div class="metric-main">
-                        <span class="metric-value" id="pool-accounts-count-val">7 / 7 Active</span>
-                        <span class="metric-sub" id="pool-accounts-pro-sub">100% Pro-Tier Google Accounts</span>
+                        <span class="metric-value" id="pool-accounts-count-val">0 / 0 Active</span>
+                        <span class="metric-sub" id="pool-accounts-pro-sub">0 Pro-Tier Google Accounts</span>
                     </div>
                     <div class="metric-footer-row" style="margin-top:auto;">
-                        <span>4-Way Verification: <strong style="color:var(--success);">All Verified (agy • gweb • studio • gcli)</strong></span>
+                        <span>4-Way Verification: <strong style="color:var(--success);" id="pool-4way-status">Awaiting Account Setup</strong></span>
                         <span>Failover: <strong style="color:var(--primary);">Active</strong></span>
                     </div>
                 </div>
@@ -1641,7 +1641,7 @@
                 <div class="metric-card" style="min-width: 310px;">
                     <div class="metric-header">
                         <span class="metric-title">4-Way Usage Limits</span>
-                        <span class="metric-badge" style="color:var(--success); background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3);">All Probed</span>
+                        <span class="metric-badge" id="pool-4way-badge" style="color:var(--success); background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3);">Idle</span>
                     </div>
                     <div style="margin-top: 4px;">
                         <table style="width:100%; border-collapse:collapse; font-size:0.73rem;">
@@ -1656,27 +1656,27 @@
                             <tbody>
                                 <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
                                     <td style="padding:3px 4px;"><span class="method-badge method-agy">agy</span></td>
-                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-agy">37%</td>
-                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-agy">63% Free</td>
-                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--success);">● Active</span></td>
+                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-agy">0%</td>
+                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-agy">100% Free</td>
+                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--text-muted);" id="status-val-agy">○ Idle</span></td>
                                 </tr>
                                 <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
                                     <td style="padding:3px 4px;"><span class="method-badge method-gweb">gweb</span></td>
-                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-gweb">12%</td>
-                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-gweb">88% Free</td>
-                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--success);">● Active</span></td>
+                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-gweb">0%</td>
+                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-gweb">100% Free</td>
+                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--text-muted);" id="status-val-gweb">○ Idle</span></td>
                                 </tr>
                                 <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
                                     <td style="padding:3px 4px;"><span class="method-badge" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3);">studio</span></td>
-                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-studio">5%</td>
-                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-studio">95% Free</td>
-                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--success);">● Active</span></td>
+                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-studio">0%</td>
+                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-studio">100% Free</td>
+                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--text-muted);" id="status-val-studio">○ Idle</span></td>
                                 </tr>
                                 <tr>
                                     <td style="padding:3px 4px;"><span class="method-badge method-gcli">gcli</span></td>
-                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-gcli">4%</td>
-                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-gcli">96% Free</td>
-                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--success);">● Active</span></td>
+                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-gcli">0%</td>
+                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-gcli">100% Free</td>
+                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--text-muted);" id="status-val-gcli">○ Idle</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -2956,6 +2956,7 @@
 
             if (!accounts || accounts.length === 0) {
                 countBadge.textContent = '0 Connected';
+                updatePoolMetrics([]);
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="empty-state-cell">
@@ -3135,7 +3136,48 @@
 
         // Calculate and Render Pooled Quota, Cooldowns, and Reset Times
         function updatePoolMetrics(accounts) {
-            if (!accounts || accounts.length === 0) return;
+            if (!accounts || accounts.length === 0) {
+                const usageValEl = document.getElementById('pool-usage-val');
+                if (usageValEl) usageValEl.textContent = '0%';
+                const usageBadgeEl = document.getElementById('pool-usage-badge');
+                if (usageBadgeEl) usageBadgeEl.textContent = '0% Limit Used';
+                const capSubEl = document.getElementById('pool-capacity-sub');
+                if (capSubEl) capSubEl.textContent = '0% Total Pool Quota Remaining';
+                const progEl = document.getElementById('pool-usage-progress');
+                if (progEl) {
+                    progEl.style.width = '0%';
+                    progEl.style.background = 'linear-gradient(90deg, var(--primary), #a855f7)';
+                }
+                const gUsageEl = document.getElementById('gemini-pool-usage');
+                if (gUsageEl) gUsageEl.textContent = '0%';
+                const cUsageEl = document.getElementById('claude-pool-usage');
+                if (cUsageEl) cUsageEl.textContent = '0%';
+
+                const cdValEl = document.getElementById('cooldown-count-val');
+                if (cdValEl) cdValEl.textContent = '0 / 0';
+                const cdBadgeEl = document.getElementById('cooldown-status-badge');
+                if (cdBadgeEl) {
+                    cdBadgeEl.className = 'metric-badge';
+                    cdBadgeEl.style.color = 'var(--text-muted)';
+                    cdBadgeEl.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    cdBadgeEl.style.background = 'rgba(255, 255, 255, 0.05)';
+                    cdBadgeEl.textContent = 'All Healthy';
+                }
+                const cdSubEl = document.getElementById('cooldown-detail-sub');
+                if (cdSubEl) cdSubEl.textContent = 'Ready for Claude 5 & Gemini 3 routing';
+                const cdEtaEl = document.getElementById('cooldown-eta-val');
+                if (cdEtaEl) cdEtaEl.textContent = 'None active';
+
+                const poolAccValEl = document.getElementById('pool-accounts-count-val');
+                if (poolAccValEl) poolAccValEl.textContent = '0 / 0 Active';
+                const poolConnectedBadgeEl = document.getElementById('pool-connected-badge');
+                if (poolConnectedBadgeEl) poolConnectedBadgeEl.textContent = '0 Connected';
+                const poolProSubEl = document.getElementById('pool-accounts-pro-sub');
+                if (poolProSubEl) poolProSubEl.textContent = '0 Pro-Tier Google Accounts';
+                const pool4wayEl = document.getElementById('pool-4way-status');
+                if (pool4wayEl) pool4wayEl.textContent = 'Awaiting Account Setup';
+                return;
+            }
 
             let totalGeminiRem = 0;
             let totalClaudeRem = 0;
@@ -3250,6 +3292,14 @@
             if (poolProSubEl) {
                 const proCount = accounts.filter(a => (a.tier || '').toLowerCase().includes('pro') || (a.plan || '').toLowerCase().includes('pro')).length;
                 poolProSubEl.textContent = `${proCount} Pro-Tier Google Accounts`;
+            }
+            const poolConnectedBadgeEl = document.getElementById('pool-connected-badge');
+            if (poolConnectedBadgeEl) {
+                poolConnectedBadgeEl.textContent = `${accounts.length} Connected`;
+            }
+            const pool4wayEl = document.getElementById('pool-4way-status');
+            if (pool4wayEl) {
+                pool4wayEl.textContent = 'All Verified (agy • gweb • studio • gcli)';
             }
         }
 
