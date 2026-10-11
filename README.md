@@ -1,240 +1,472 @@
-# Antigravity Gateway
+# Antigravity Gateway (AGW)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.11+](https://img.shields.io/badge/Python-3.11%2B-brightgreen.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg)](https://fastapi.tiangolo.com)
 [![OpenAI Compatible](https://img.shields.io/badge/OpenAI%20API-Compatible-412991.svg)](https://platform.openai.com/docs/api-reference)
 [![Anthropic Compatible](https://img.shields.io/badge/Anthropic%20API-Compatible-d97706.svg)](https://docs.anthropic.com/en/api/getting-started)
-[![Models: Curated 7](https://img.shields.io/badge/Models-Curated%207%20Flagships-success.svg)](#the-curated-7-model-catalog)
-[![Context: 1M Tokens](https://img.shields.io/badge/Context-1%2C000%2C000%20Tokens-purple.svg)](#provider-2--claude-5-1m-mega-context)
+[![Encryption: AES-256](https://img.shields.io/badge/Vault-AES--256%20GCM-success.svg)](#zero-leakage-credential-security)
 
-A high-performance, self-hosted local inference gateway and load balancer that aggregates multiple **authorized Google Antigravity accounts** into OpenAI-compatible (`/v1/chat/completions`) and Anthropic-compatible (`/v1/messages`) APIs. 
+A high-performance, self-hosted local inference gateway and account load balancer that aggregates multiple **authorized Google accounts** into unified OpenAI-compatible (`/v1/chat/completions`) and Anthropic-compatible (`/v1/messages`) endpoints.
 
 It powers a seamless **dual-agent workflow**: running **Claude Code** (as the high-reasoning **Developer Brain**) and **OpenCode** (as the high-speed **Coding Engine**) simultaneously on your PC with zero rate-limit collisions, intelligent quota failover, and hardware-grade credential security.
 
 ---
 
-> [!IMPORTANT]
-> ### 💡 Installation Philosophy: *Use Antigravity for Installing This Software*
-> **The recommended and fastest way to install, configure, and maintain this gateway is to let Google Antigravity pair-program with you.**  
-> Simply clone this repository, open your terminal with Antigravity (`agy`), and instruct the agent to run the setup commands. Antigravity handles the Python venvs, Node.js dependencies, OAuth token extraction, and model provider routing automatically.
+## 📑 Table of Contents
+
+- [System Architecture](#-system-architecture)
+- [Prerequisites](#-prerequisites)
+- [Installation Guide](#-installation-guide)
+  - [Step 1: Clone and Set Up Virtual Environment](#step-1-clone-and-set-up-virtual-environment)
+  - [Step 2: Initialize Configuration](#step-2-initialize-configuration)
+  - [Step 3: Connect Google Accounts](#step-3-connect-google-accounts)
+  - [Step 4: Launch the Gateway Daemon](#step-4-launch-the-gateway-daemon)
+- [Client Integration Guides](#-client-integration-guides)
+  - [1. Claude Code CLI Setup](#1-claude-code-cli-setup)
+  - [2. OpenCode CLI Setup](#2-opencode-cli-setup)
+  - [3. Claude Desktop GUI Setup](#3-claude-desktop-gui-setup)
+- [Operational Suggestions & Best Practices](#-operational-suggestions--best-practices)
+  - [Model Selection & Quota Economics](#1-model-selection--quota-economics)
+  - [Multi-Account Pooling Strategy](#2-multi-account-pooling-strategy)
+  - [Vault Security & Git Hygiene](#3-vault-security--git-hygiene)
+- [Verification & Health Check Guide](#-verification--health-check-guide)
+  - [Check 1: Gateway Daemon & Health Probe](#check-1-gateway-daemon--health-probe)
+  - [Check 2: Model Listing Verification](#check-2-model-listing-verification)
+  - [Check 3: OpenAI API Completion Test](#check-3-openai-api-completion-test)
+  - [Check 4: Anthropic Messages API Test](#check-4-anthropic-messages-api-test)
+  - [Check 5: Claude Code CLI Live Test](#check-5-claude-code-cli-live-test)
+  - [Check 6: OpenCode CLI Live Test](#check-6-opencode-cli-live-test)
+  - [Check 7: Web Dashboard Inspection](#check-7-web-dashboard-inspection)
+- [Troubleshooting & FAQ](#-troubleshooting--faq)
+- [License](#-license)
 
 ---
 
-## 🚀 Quick Setup & Getting Started
-
-Follow these steps to get the gateway, Claude Code, and OpenCode running simultaneously on your PC.
-
-### Step 1: Install & Launch Gateway
-```bash
-# 1. Clone repository
-git clone https://github.com/RareBat47/antigravity-gateway.git
-cd antigravity-gateway
-
-# 2. Set up virtual environment and install dependencies
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-pip install -e .
-
-# 3. Start the gateway daemon
-python -m agw.main
-```
-* **Dashboard Hub**: [http://127.0.0.1:8999/admin/dashboard](http://127.0.0.1:8999/admin/dashboard)
-* **Health Check**: [http://127.0.0.1:8999/health](http://127.0.0.1:8999/health)
-* **Model Catalog**: `GET http://127.0.0.1:8999/v1/models`
-
-### Step 2: Connect Google Accounts
-Open the [Admin Web Dashboard](http://127.0.0.1:8999/admin/dashboard) and connect your Google Antigravity accounts (or run `python -m agw.cli.main accounts login`). The gateway automatically encrypts tokens with AES-256 in your local vault.
-
----
-
-## 👥 Dual-Agent Operating Guide: Simultaneous Execution
-
-Run **Claude Code** and **OpenCode** side-by-side without interference:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DEVELOPER WORKSPACE                               │
-├──────────────────────────────────────┬──────────────────────────────────────┤
-│  🧠 CLAUDE CODE (Developer Brain)     │  ⚡ OPENCODE (Coding Only Engine)    │
-│  • System architecture & planning    │  • Pure code execution & file edits  │
-│  • Deep research & whole-repo audits │  • Sub-second interactive latency    │
-│  • Models: Frontier 5.5 & 1M Mega    │  • Models: Gemini 3.8 Flash High     │
-│  • MCP: Filesystem & Memory tools    │  • Skill: Agentic Pro Escalation     │
-└──────────────────────────────────────┴──────────────────────────────────────┘
-```
-
-### 1. Claude Code CLI & GUI — The Developer Brain
-Claude Code acts as your primary architect, lead developer, and researcher.
-
-```bash
-# Launch with Frontier 5.5 Flagship (claude-sonnet-5.5 / claude-opus-5.5)
-claude-frontier
-
-# Or launch with 1M Mega-Context for whole-repository audits (claude-sonnet-5[1m])
-claude-mega
-
-# Or standard CLI command (pre-configured to gateway in ~/.bashrc)
-claude
-```
-* **Global Directive**: Pre-configured in `~/.claude/CLAUDE.md` to act as the master Developer Brain.
-* **Integrated MCP Servers**: Automatic access to `@modelcontextprotocol/server-filesystem` and `@modelcontextprotocol/server-memory`.
-* **Desktop GUI**: Configured in `~/.config/Claude/claude_desktop_config.json`.
-
-### 2. OpenCode CLI & Web GUI — Pure Coding Engine
-OpenCode is strictly constrained to **CODING ONLY** (no conversational filler, pure implementation, bug fixing, and test generation).
-
-```bash
-# Start OpenCode interactive terminal TUI (defaults to gemini-3.8-flash-high)
-opencode
-
-# Start OpenCode Web GUI in your browser
-opencode web
-
-# Execute a direct coding task via CLI
-opencode run "Implement JWT validation middleware"
-```
-* **Locked Default Engine**: `gemini-3.8-flash-high` for sub-second responses and instant file modifications.
-* **On-Demand Escalation**: Includes the `agentic-pro-escalation` skill. When facing complex architectural dilemmas or deep bugs, it dynamically escalates to `agentic-pro/gemini-pro-agent` or `agentic-pro/gemini-3.1-pro-low`, then immediately returns to speed flash.
-
----
-
-## 📊 Product Working Methods & Architecture Flowchart
+## 🏗️ System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Clients["🖥️ Developer Interfaces"]
-        CC["🧠 Claude Code CLI / GUI<br/><b>Developer Brain</b><br/><i>Architecture & Research</i>"]
-        OC["⚡ OpenCode CLI / Web GUI<br/><b>Coding Only Engine</b><br/><i>Fast Code & File Diffs</i>"]
+    subgraph Clients["🖥️ Connected Developer Workstations"]
+        CC["🧠 Claude Code CLI / Desktop GUI<br/><b>Developer Brain</b><br/><i>Architecture, Planning & Review</i>"]
+        OC["⚡ OpenCode CLI / Web GUI<br/><b>Coding Only Engine</b><br/><i>Fast Code Generation & Diffs</i>"]
+        EXT["🛠️ Custom LLM Scripts / Cursor / Hermes<br/><i>OpenAI & Anthropic SDKs</i>"]
     end
 
     subgraph Gateway["🚪 Antigravity Gateway (127.0.0.1:8999)"]
         direction TB
-        Auth["🛡️ Auth & Permissions<br/><i>Role-Key & Model Filtering</i>"]
-        Normalizer["🔄 Model Normalizer & Registry<br/><i>Clean Alias Resolution</i>"]
-        Sanitizer["🧹 OpenAPI & Schema Sanitizer<br/><i>Protobuf Whitelist & Thinking Filter</i>"]
+        Auth["🛡️ Auth & Channel Routing<br/><code>agw-frontier-local</code> • <code>agw-speed-local</code>"]
+        Normalizer["🔄 Model Normalizer & Registry<br/><i>Clean Alias & Protocol Translation</i>"]
+        Sanitizer["🧹 Protobuf Schema Sanitizer<br/><i>Tool Calling & Thinking Budget Filter</i>"]
         Scheduler["⚖️ Quota-Aware Hybrid Scheduler<br/><i>Health + Quota + Token Balancing</i>"]
-        Cooldown["❄️ Isolated Per-Family Cooldown<br/><i>Claude & Gemini Independent Tiers</i>"]
+        Cooldown["❄️ Isolated Family Cooldowns<br/><i>Claude & Gemini Independent Standby</i>"]
     end
 
-    subgraph Providers["🔑 4 Categorized Provider Groups"]
-        P1["🔮 claude-frontier<br/><code>agw-frontier-local</code><br/>claude-sonnet-5.5 / claude-opus-5.5"]
-        P2["🧠 mega-context-1m<br/><code>agw-megacontext-local</code><br/>claude-sonnet-5[1m] / claude-opus-5[1m]"]
-        P3["⚡ gemini-speed-flash<br/><code>agw-speed-local</code><br/>gemini-3.8-flash-high"]
-        P4["🛠️ gemini-agentic-pro<br/><code>agw-agentic-local</code><br/>gemini-pro-agent / gemini-3.1-pro-low"]
+    subgraph Storage["🔐 Secure Local Persistence"]
+        Vault["🔐 AES-256 Vault<br/><code>data/vault.enc</code>"]
+        DB["💾 SQLite State<br/><code>data/gateway.db</code>"]
     end
 
-    subgraph Backend["☁️ Google Antigravity Cloud Code Pool"]
-        Vault["🔐 AES-256 Credential Vault"]
+    subgraph Upstream["☁️ Google Cloud Infrastructure"]
         AccPool["👥 Multi-Account Rotation Pool<br/>Account 1 | Account 2 | ... | Account N"]
         GoogleAPI["🌐 Google Cloud Code Assist RPC<br/><code>v1internal:streamGenerateContent</code>"]
     end
 
     CC -->|Anthropic Protocol /v1/messages| Auth
     OC -->|OpenAI Protocol /v1/chat/completions| Auth
-    
-    Auth --> Providers
-    Providers --> Normalizer
+    EXT -->|OpenAI / Anthropic REST| Auth
+
+    Auth --> Normalizer
     Normalizer --> Sanitizer
     Sanitizer --> Scheduler
     Scheduler <--> Cooldown
     Scheduler --> Vault
+    Scheduler --> DB
     Vault --> AccPool
     AccPool --> GoogleAPI
-    GoogleAPI -->|Stream SSE / Output| Clients
+    GoogleAPI -->|Streamed SSE Output| Clients
 ```
 
 ---
 
-## 🔑 4-Way Connections (agy • gweb • studio • gcli) & Provider APIs
+## 📋 Prerequisites
 
-The gateway aggregates whatever can be accessed for free from Google into **4 primary connection channels**, plus dedicated dual-agent developer profiles:
+Ensure your system meets the following requirements before installation:
 
-| Channel / Provider | Virtual API Key | Base URL | Primary Upstream Source | Curated Models Available Free |
-|---|---|---|---|---|
-| **`agy` (Antigravity OAuth)** | `agw-agy-local` | `http://127.0.0.1:8999/v1` | Google Antigravity Cloud Code Assist | `claude-sonnet-5.5`, `claude-opus-5.5`, `claude-sonnet-5[1m]`, `claude-opus-5[1m]`, `claude-fable-5`, `claude-sonnet-5`, `claude-opus-5`, `gemini-3.8-flash-high`, `gemini-3.7-flash-high`, `gemini-pro-agent`, `gemini-3.1-pro-low`, `gpt-oss-120b-medium` |
-| **`gweb` (Gemini Web Sessions)** | `agw-gweb-local` | `http://127.0.0.1:8999/v1` | Consumer Gemini Web Session (`__Secure-1PSID` / `SNlM0e`) | `gemini-2.5-pro` (Web Advanced), `gemini-2.5-flash`, `gemini-2.0-flash-thinking-exp`, `gemini-advanced` |
-| **`studio` (Google AI Studio)** | `agw-studio-local` | `http://127.0.0.1:8999/v1` | Google AI Studio Free Developer API Keys (`AIza...`) | `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.0-flash`, `gemini-2.0-flash-thinking-exp`, `gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-1.5-flash-8b` |
-| **`gcli` (Gemini CLI Protocol)** | `agw-gcli-local` | `http://127.0.0.1:8999/v1` | Google Cloud CLI / Cloud Code gcli OAuth | `gemini-code-assist`, `gemini-1.5-pro` |
-| **`claude-frontier`** | `agw-frontier-local` | `http://127.0.0.1:8999/v1` | Claude Code Developer Brain Profile | `frontier-5.1` / `claude-sonnet-5.5`, `claude-opus-5.5` + Unlocked Free Google Catalog |
-| **`mega-context-1m`** | `agw-megacontext-local` | `http://127.0.0.1:8999/v1` | Mass Repository Audit Profile | `1m-mega` / `claude-sonnet-5[1m]`, `claude-opus-5[1m]` + Unlocked Free Google Catalog |
-| **`gemini-speed-flash`** | `agw-speed-local` | `http://127.0.0.1:8999/v1` | OpenCode Pure Coding Profile | `speed-flash` / `gemini-3.8-flash-high`, `gemini-2.5-flash` + Unlocked Free Google Catalog |
-| **`gemini-agentic-pro`** | `agw-agentic-local` | `http://127.0.0.1:8999/v1` | OpenCode Escalation Profile | `agentic-pro` / `gemini-pro-agent`, `gemini-3.1-pro-low`, `gemini-2.5-pro` + Unlocked Free Google Catalog |
-| **`Master Gateway`** | `agw-local-dE9X...` | `http://127.0.0.1:8999/v1` | Universal Master Key | *All Free Models Across All 4 Channels* |
+| Requirement | Minimum Version | Purpose |
+|---|---|---|
+| **Operating System** | Linux (Ubuntu/Debian/Arch/Fedora), macOS 13+, or Windows WSL2 | Host platform |
+| **Python** | `3.11` or higher | Gateway runtime and dependencies |
+| **Node.js** | `v18.0.0` or higher | Required for Claude Code CLI (`@anthropic-ai/claude-code`) |
+| **Git** | `2.30+` | Source repository management |
+| **Google Account** | 1 or more accounts | Access to Google Cloud Code developer quota |
 
 ---
 
-## 🎯 Golden Rules for Proper API Consumption
+## 🚀 Installation Guide
 
-To ensure optimal performance and avoid burning through account limits:
+### Step 1: Clone and Set Up Virtual Environment
 
-* ⚡ **Keep OpenCode strictly on `gemini-speed-flash` (`speed-flash`)**:
-  * Gemini 3.8 Flash High & Gemini 2.5 Flash provide near-instantaneous streaming and handle 95% of all code authoring, typing, and refactoring with zero rate-limit anxiety.
-* 🧠 **Reserve `1m-mega` for Whole-Repo Audits Only**:
-  * 1,000,000 tokens consume quota significantly faster. Use `claude-mega` or `1m-mega` when you need to ingest an entire multi-folder codebase or analyze massive log traces. For day-to-day coding, stick to `frontier-5.1`.
-* 🛠️ **Use `gemini-agentic-pro` via the Escalation Protocol**:
-  * When OpenCode encounters a tricky bug that fails after two attempts, escalate to `agentic-pro` to formulate a solution blueprint, then immediately revert to `speed-flash` to write the code.
-* 🔒 **4-Way Cross-Channel Redundancy**:
-  * Because the gateway manages Antigravity OAuth (`agy`), Gemini Web (`gweb`), AI Studio (`studio`), and Gemini CLI (`gcli`), if any single channel encounters an upstream cooldown, **requests transparently fail over to the next healthy free connection with zero disruption.**
+1. Clone the repository and enter the project directory:
+   ```bash
+   git clone https://github.com/RareBat47/antigravity-gateway.git
+   cd antigravity-gateway
+   ```
 
----
+2. Create an isolated Python virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
 
-## 🧩 Comprehensive Free Google AI Model Reference
-
-| Model Identifier | Primary 4-Way Channel | Context Window | Max Output | Features & Strengths |
-|---|---|---|---|---|
-| `frontier-5.1` / `claude-sonnet-5.5` | `agy` (Antigravity) | 200,000 | 16,384 | Flagship coding & reasoning, thinking tokens |
-| `claude-opus-5.5` | `agy` (Antigravity) | 200,000 | 16,384 | Deep architectural synthesis, thinking tokens |
-| `1m-mega` / `claude-sonnet-5[1m]` | `agy` (Antigravity) | 1,000,000 | 16,384 | 1M mega-context, whole-codebase audits |
-| `claude-opus-5[1m]` | `agy` (Antigravity) | 1,000,000 | 16,384 | 1M mega-context, deep long-context reasoning |
-| `claude-fable-5` | `agy` (Antigravity) | 200,000 | 16,384 | Experimental fast frontier coding |
-| `speed-flash` / `gemini-3.8-flash-high` | `agy` (Antigravity) | 1,048,576 | 65,536 | Sub-second latency, high-throughput streaming, tool calling |
-| `gemini-3.7-flash-high` | `agy` (Antigravity) | 1,048,576 | 65,536 | Hybrid thinking & fast streaming |
-| `agentic-pro` / `gemini-pro-agent` | `agy` (Antigravity) | 1,048,576 | 65,536 | Autonomous multi-turn agent execution, tools |
-| `gemini-3.1-pro-low` | `agy` (Antigravity) | 1,048,576 | 65,536 | Pro reasoning, structural planning, tool calling |
-| `gemini-2.5-pro` | `studio` / `gweb` | 2,097,152 | 65,536 | 2M context flagship reasoning free tier |
-| `gemini-2.5-flash` | `studio` / `gweb` | 1,048,576 | 65,536 | High-throughput ultra-fast free tier |
-| `gemini-2.5-flash-lite` | `studio` | 1,048,576 | 65,536 | Sub-100ms ultra-low latency free tier |
-| `gemini-2.0-flash` | `studio` | 1,048,576 | 65,536 | Multimodal free tier inference |
-| `gemini-2.0-flash-thinking-exp` | `studio` / `gweb` | 1,048,576 | 65,536 | Experimental deep reasoning free tier |
-| `gemini-1.5-pro` | `studio` | 2,097,152 | 65,536 | 2M context developer free tier |
-| `gemini-1.5-flash` | `studio` | 1,048,576 | 65,536 | Lightweight developer free tier |
-| `gemini-code-assist` | `gcli` (Gemini CLI) | 1,048,576 | 65,536 | Google Cloud CLI developer completions |
-| `gpt-oss-120b-medium` | `agy` (Antigravity) | 131,072 | 32,768 | Open-weights 120B parameter model via Google infra |
+3. Upgrade `pip` and install project dependencies:
+   ```bash
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   pip install -e .
+   ```
 
 ---
 
-## 🛡️ Core Engineering Highlights
+### Step 2: Initialize Configuration
 
-### 1. Smart Quota-Aware Hybrid Scheduling
-Requests are routed using a multi-factor scoring formula:
-$$\text{Score} = w_{\text{health}} \cdot H - w_{\text{tokens}} \cdot \hat{T} + w_{\text{quota}} \cdot Q - w_{\text{lru}} \cdot \Delta t$$
-Accounts with low remaining quota or recent failures are automatically deferred, giving healthy accounts priority while keeping depleted accounts on standby.
+1. Create your local `config.yaml` from the example template:
+   ```bash
+   cp config.example.yaml config.yaml
+   ```
 
-### 2. Isolated Per-Family Cooldowns
-Upstream 429 rate limits on `claude` models only place the account in cooldown for the `claude` family. Its `gemini` quota remains active and accessible. Cooldowns step through progressive backoff tiers (`60s` $\to$ `300s` $\to$ `1800s` $\to$ `7200s`) and persist across restarts in SQLite.
+2. Generate a secure Master Gateway API key:
+   ```bash
+   python3 -c "import secrets; print('agw-local-' + secrets.token_urlsafe(32))"
+   ```
 
-### 3. Strict Protobuf Schema Sanitizer
-Translates standard OpenAI and Claude tool declarations into Google's strict Cloud Code Protobuf schema. Strips unsupported draft schema fields (`propertyNames`, `additionalProperties`, etc.) and formats `thinkingConfig` budgets cleanly to avoid upstream 400 Bad Request errors.
+3. Open `config.yaml` and verify the server settings:
+   ```yaml
+   server:
+     host: "127.0.0.1"
+     port: 8999
+     debug: false
 
-### 4. Zero-Leakage Credential Security
-Refresh tokens are stored with AES-256 encryption. Bearer tokens, secrets, and auth headers are automatically stripped and redacted across all log sinks.
+   security:
+     gateway_api_key: "agw-local-YOUR_GENERATED_KEY"
+     admin_api_key: "agw-admin-YOUR_GENERATED_ADMIN_KEY"
+     rate_limit_per_minute: 120
+   ```
 
 ---
 
-## 🖥️ Admin Web Dashboard
+### Step 3: Connect Google Accounts
 
-Access the real-time dashboard at:
-👉 **[http://127.0.0.1:8999/admin/dashboard](http://127.0.0.1:8999/admin/dashboard)**
+The gateway supports multiple ways to link Google accounts into its local encrypted vault:
 
-* **Live Account Pool**: View Gmail IDs, free/pro account status, health scores, and individual connection statuses.
-* **One-Click Health Check**: Manually ping and refresh all connections on demand.
-* **Provider Categories Hub**: Copy keys and endpoints for `claude-frontier`, `mega-context-1m`, `gemini-agentic-pro`, and `gemini-speed-flash`.
-* **Aggregated Usage & Cooldown Tracker**: Real-time stats on combined quota limits and accounts on cooldown with auto-clear timers.
+#### Method A: Auto-Detect Local CLI Session (Fastest)
+If you already use Google Antigravity CLI (`agy`) or Cloud Code locally:
+```bash
+python3 -m agw.cli.main accounts detect-local
+```
+This imports your active session token directly from `~/.gemini/antigravity-cli`.
+
+#### Method B: Browser PKCE OAuth Sign-In
+1. Start the gateway (Step 4 below).
+2. Open the Admin Dashboard: [http://127.0.0.1:8999/admin/dashboard](http://127.0.0.1:8999/admin/dashboard).
+3. Click **"Add Account"** $\to$ **"Sign In with Google"**.
+4. Complete Google authentication in your browser. The authorization code exchanges automatically and saves into your local AES-256 vault.
+
+#### Method C: Manual Token Import via CLI
+```bash
+python3 -m agw.cli.main accounts add \
+  --label "Personal-Google-1" \
+  --email "user@gmail.com" \
+  --token "1//0g..."
+```
+
+---
+
+### Step 4: Launch the Gateway Daemon
+
+Launch the gateway server using Python:
+
+```bash
+# Foreground execution (for logs & debugging)
+PYTHONPATH=src python3 -m agw.main
+
+# Or run in background via nohup
+PYTHONPATH=src nohup python3 -m agw.main > data/gateway.log 2>&1 &
+```
+
+Once running:
+- **Admin Dashboard**: [http://127.0.0.1:8999/admin/dashboard](http://127.0.0.1:8999/admin/dashboard)
+- **Health Check Endpoint**: [http://127.0.0.1:8999/health](http://127.0.0.1:8999/health)
+- **OpenAI Endpoint**: `http://127.0.0.1:8999/v1`
+- **Anthropic Endpoint**: `http://127.0.0.1:8999/v1`
+
+---
+
+## 👥 Client Integration Guides
+
+### 1. Claude Code CLI Setup
+
+Claude Code acts as your primary **Developer Brain** for architectural decisions, complex reasoning, and multi-file code reviews.
+
+1. Install Claude Code globally via npm:
+   ```bash
+   npm install -g @anthropic-ai/claude-code
+   ```
+
+2. Configure environment variables in your shell configuration (`~/.bashrc` or `~/.zshrc`):
+   ```bash
+   # Point Claude Code to the local gateway
+   export ANTHROPIC_BASE_URL="http://127.0.0.1:8999"
+   export ANTHROPIC_API_KEY="agw-frontier-local"
+
+   # Create launcher aliases
+   alias claude-frontier="ANTHROPIC_MODEL=frontier-5.1 claude"
+   alias claude-mega="ANTHROPIC_MODEL=1m-mega claude"
+   ```
+
+3. Reload your shell:
+   ```bash
+   source ~/.bashrc
+   ```
+
+4. Launch Claude Code:
+   ```bash
+   claude-frontier
+   ```
+
+---
+
+### 2. OpenCode CLI Setup
+
+OpenCode is designed for **Pure Coding Only** (sub-second diff generation, rapid test authoring, and file refactoring).
+
+1. Install OpenCode:
+   ```bash
+   # If installing via npm
+   npm install -g opencode-ai
+   # Or using standalone Linux binary
+   curl -fsSL https://opencode.ai/install.sh | bash
+   ```
+
+2. Configure `~/.config/opencode/opencode.json`:
+   ```json
+   {
+     "$schema": "https://opencode.ai/config.json",
+     "provider": "custom-openai",
+     "custom": {
+       "baseURL": "http://127.0.0.1:8999/v1",
+       "apiKey": "agw-speed-local",
+       "defaultModel": "speed-flash",
+       "temperature": 0.2
+     }
+   }
+   ```
+
+3. Start OpenCode:
+   ```bash
+   # Interactive TUI mode
+   opencode
+
+   # Direct command execution
+   opencode run "Write unit tests for src/agw/auth/crypto.py"
+   ```
+
+---
+
+### 3. Claude Desktop GUI Setup
+
+For visual workflows and desktop interaction:
+
+1. Open your Claude Desktop configuration file:
+   - **Linux**: `~/.config/Claude/claude_desktop_config.json`
+   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+2. Add or update the endpoint configuration:
+   ```json
+   {
+     "mcpServers": {
+       "filesystem": {
+         "command": "npx",
+         "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/rarebat"]
+       }
+     },
+     "apiBaseUrl": "http://127.0.0.1:8999",
+     "apiKey": "agw-frontier-local",
+     "defaultModel": "frontier-5.1"
+   }
+   ```
+
+---
+
+## 💡 Operational Suggestions & Best Practices
+
+### 1. Model Selection & Quota Economics
+
+To maximize your free quota and avoid rate-limit delays, follow these operational rules:
+
+| Workstation Task | Recommended Model | Bound Channel | Reason |
+|---|---|---|---|
+| **High-Frequency Code Edits & Diffs** | `speed-flash` (Gemini Flash) | `agw-speed-local` | Sub-second latency, near-infinite token throughput. |
+| **System Architecture & Deep Reasoning** | `frontier-5.1` (Sonnet 5.5) | `agw-frontier-local` | Top-tier reasoning capability with thinking tokens. |
+| **Whole-Codebase Repository Audits** | `1m-mega` (1M Context) | `agw-megacontext-local` | Ingests entire projects; reserve strictly for audits to conserve quota. |
+| **Complex Diagnostic Escalation** | `agentic-pro` (Gemini Pro Agent) | `agw-agentic-local` | Deep multi-turn reasoning when a quick fix fails. |
+
+> [!TIP]
+> **Use the 90/10 Rule**: Perform 90% of your daily edits and test writing in **OpenCode** using `speed-flash`. Escalate the remaining 10% of architectural problems to **Claude Code** using `frontier-5.1`.
+
+---
+
+### 2. Multi-Account Pooling Strategy
+
+- **Connect at least 3 to 7 Google accounts**: Having multiple accounts in the pool provides continuous 24/7 uptime. When one account reaches its rate-limit window (HTTP 429), the gateway automatically shifts traffic to the next healthy account.
+- **Independent Cooldown Isolation**: The gateway tracks Claude and Gemini rate limits independently. If account 1 enters cooldown on Claude models, its Gemini quota remains active and operational.
+
+---
+
+### 3. Vault Security & Git Hygiene
+
+- **Keep Vault Keys Private**: Your credentials are encrypted in `data/vault.enc` using `data/vault.key`.
+- **Never Commit Secrets**: Ensure `.gitignore` includes:
+  ```gitignore
+  data/*.db
+  data/*.enc
+  data/*.key
+  data/*.json
+  config.yaml
+  ```
+
+---
+
+## 🔍 Verification & Health Check Guide
+
+Run this verification checklist after setup to guarantee that every component is properly connected and functioning.
+
+### Check 1: Gateway Daemon & Health Probe
+Verify that the gateway process is running and detecting your accounts:
+```bash
+curl -s http://127.0.0.1:8999/health | jq .
+```
+**Expected Response:**
+```json
+{
+  "status": "ok",
+  "active_accounts": 7,
+  "total_accounts": 7,
+  "total_requests": 24
+}
+```
+
+---
+
+### Check 2: Model Listing Verification
+Query the model catalog using the Frontier channel key:
+```bash
+curl -s http://127.0.0.1:8999/v1/models \
+  -H "Authorization: Bearer agw-frontier-local" | jq '.data[0:5]'
+```
+**Expected Response:**
+A JSON array listing active model objects such as `frontier-5.1`, `claude-sonnet-5.5`, `claude-opus-5.5`, and `speed-flash`.
+
+---
+
+### Check 3: OpenAI API Completion Test
+Test the OpenAI-compatible endpoint with the high-speed coding model:
+```bash
+curl -s http://127.0.0.1:8999/v1/chat/completions \
+  -H "Authorization: Bearer agw-speed-local" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "speed-flash",
+    "messages": [
+      {"role": "user", "content": "Respond with exactly: SPEED_FLASH_ONLINE"}
+    ],
+    "max_tokens": 20
+  }' | jq '.choices[0].message.content'
+```
+**Expected Response:**
+`"SPEED_FLASH_ONLINE"`
+
+---
+
+### Check 4: Anthropic Messages API Test
+Test the Anthropic-compatible endpoint with the Frontier reasoning model:
+```bash
+curl -s http://127.0.0.1:8999/v1/messages \
+  -H "x-api-key: agw-frontier-local" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "frontier-5.1",
+    "max_tokens": 30,
+    "messages": [
+      {"role": "user", "content": "Respond with: FRONTIER_REASONING_READY"}
+    ]
+  }' | jq '.content[0].text'
+```
+**Expected Response:**
+`"FRONTIER_REASONING_READY"`
+
+---
+
+### Check 5: Claude Code CLI Live Test
+Test Claude Code directly from your terminal:
+```bash
+claude -p "Respond in one word: ONLINE"
+```
+**Expected Behavior:** Claude Code connects immediately without prompt authentication errors and outputs confirmation.
+
+---
+
+### Check 6: OpenCode CLI Live Test
+Test OpenCode execution:
+```bash
+opencode run "echo 'Gateway integration verified'"
+```
+**Expected Behavior:** OpenCode resolves through `http://127.0.0.1:8999/v1` and completes execution cleanly.
+
+---
+
+### Check 7: Web Dashboard Inspection
+Open [http://127.0.0.1:8999/admin/dashboard](http://127.0.0.1:8999/admin/dashboard) in your browser:
+1. Verify that your accounts appear in the **Authorized Accounts Pool** with active status badges.
+2. Click **"Probe All Accounts"** to trigger round-trip latency checks.
+3. Check the **Connected Applications Tracker Table** to confirm that Claude Code CLI, Claude Desktop GUI, and OpenCode show active green connection badges.
+
+---
+
+## 🛠️ Troubleshooting & FAQ
+
+### Q1: `Error: Address already in use (port 8999)`
+**Cause**: An existing instance of the gateway is already running.  
+**Fix**: Find and terminate the previous process:
+```bash
+lsof -i :8999
+kill -9 $(lsof -t -i :8999)
+PYTHONPATH=src python3 -m agw.main
+```
+
+### Q2: Claude Code returns `401 Unauthorized`
+**Cause**: The API key or base URL in your environment is incorrect.  
+**Fix**: Ensure your environment variables match `config.yaml`:
+```bash
+export ANTHROPIC_BASE_URL="http://127.0.0.1:8999"
+export ANTHROPIC_API_KEY="agw-frontier-local"
+```
+
+### Q3: `429 Resource Exhausted / Rate Limit` on a model
+**Cause**: The active Google account has temporarily hit its quota window.  
+**Fix**: The gateway handles this automatically by routing subsequent requests to another account in your pool. To increase throughput, connect 2 or more additional Google accounts in the dashboard.
+
+### Q4: How do I backup or transfer my accounts?
+**Fix**: Copy the encrypted vault files to your backup destination:
+```bash
+cp data/vault.enc data/vault.key backup/
+```
+To restore on a new machine, place both files into the `data/` directory before starting the gateway.
 
 ---
 
 ## 📜 License
 
-MIT License — see [LICENSE](LICENSE) for details.
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
