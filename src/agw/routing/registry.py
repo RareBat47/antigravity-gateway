@@ -55,6 +55,29 @@ MODEL_ALIASES: Dict[str, str] = {
     "claude-3-opus-20240229": "claude-opus-5.5",
     "claude-3.0-opus": "claude-opus-5.5",
     "claude-code": "claude-sonnet-5.5",
+
+    # Frontier 5.1 Aliases
+    "frontier-5.1": "claude-sonnet-5.5",
+    "frontier-5.1-sonnet": "claude-sonnet-5.5",
+    "frontier-5.1-opus": "claude-opus-5.5",
+    "frontier-5": "claude-sonnet-5.5",
+    "claude-frontier-5.1": "claude-sonnet-5.5",
+    "claude-frontier": "claude-sonnet-5.5",
+
+    # 1M Mega-Context Aliases
+    "1m-mega": "claude-sonnet-5[1m]",
+    "1m-mega-sonnet": "claude-sonnet-5[1m]",
+    "1m-mega-opus": "claude-opus-5[1m]",
+    "mega-1m": "claude-sonnet-5[1m]",
+    "claude-mega": "claude-sonnet-5[1m]",
+    "claude-1m": "claude-sonnet-5[1m]",
+
+    # Speed Flash & Agentic Pro
+    "speed-flash": "gemini-3.8-flash-high",
+    "gemini-speed": "gemini-3.8-flash-high",
+    "agentic-pro": "gemini-pro-agent",
+    "gemini-agentic": "gemini-pro-agent",
+
     # Gemini 3.8 / 3.7 / 3.6 Flash Aliases
     "gemini-flash": "gemini-3.8-flash-high",
     "gemini-3.8-flash": "gemini-3.8-flash-high",

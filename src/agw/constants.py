@@ -112,7 +112,7 @@ PROVIDER_DEFINITIONS = {
         "base_url": "http://127.0.0.1:8999/v1",
         "anthropic_url": "http://127.0.0.1:8999",
         "description": "Anthropic Claude 5.5 Sonnet & Opus flagship models for frontier reasoning, advanced coding, and architecture.",
-        "models": ["claude-sonnet-5.5", "claude-opus-5.5"],
+        "models": ["claude-sonnet-5.5", "claude-opus-5.5", "frontier-5.1", "frontier-5.1-sonnet", "frontier-5.1-opus"],
     },
     "mega-context-1m": {
         "id": "mega-context-1m",
@@ -123,7 +123,7 @@ PROVIDER_DEFINITIONS = {
         "base_url": "http://127.0.0.1:8999/v1",
         "anthropic_url": "http://127.0.0.1:8999",
         "description": "Ultra-massive 1,000,000 tokens long-context Claude 5 models for whole-repository audits and massive document ingestion.",
-        "models": ["claude-sonnet-5[1m]", "claude-opus-5[1m]"],
+        "models": ["claude-sonnet-5[1m]", "claude-opus-5[1m]", "1m-mega", "1m-mega-sonnet", "1m-mega-opus"],
     },
     "gemini-agentic-pro": {
         "id": "gemini-agentic-pro",
@@ -133,7 +133,7 @@ PROVIDER_DEFINITIONS = {
         "key": "agw-agentic-local",
         "base_url": "http://127.0.0.1:8999/v1",
         "description": "Specialized agentic workflow execution and deep Pro-tier reasoning with multi-step tool calling and complex logic.",
-        "models": ["gemini-pro-agent", "gemini-3.1-pro-low"],
+        "models": ["gemini-pro-agent", "gemini-3.1-pro-low", "agentic-pro"],
     },
     "gemini-speed-flash": {
         "id": "gemini-speed-flash",
@@ -143,7 +143,7 @@ PROVIDER_DEFINITIONS = {
         "key": "agw-speed-local",
         "base_url": "http://127.0.0.1:8999/v1",
         "description": "Tiered high-speed flash engine delivering sub-second interactive latency and high-throughput streaming.",
-        "models": ["gemini-3.8-flash-high"],
+        "models": ["gemini-3.8-flash-high", "speed-flash"],
     },
 }
 
@@ -231,5 +231,47 @@ DEFAULT_MODELS = {
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 128000,
         "description": "Claude Opus 5 (1,000,000 Token Extended Context Window)",
+    },
+
+    # Direct Named Aliases for User Integration
+    "frontier-5.1": {
+        "upstream_id": "claude-sonnet-4-6",
+        "family": FAMILY_CLAUDE,
+        "provider_id": "claude-frontier",
+        "provider_name": "Claude 5.5 Frontier Flagship",
+        "category": "Frontier Elite Reasoning",
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 128000,
+        "description": "Frontier 5.1 (Flagship Frontier 2026 Developer Brain)",
+    },
+    "1m-mega": {
+        "upstream_id": "claude-sonnet-4-6",
+        "family": FAMILY_CLAUDE,
+        "provider_id": "mega-context-1m",
+        "provider_name": "Claude 5 1M Mega-Context",
+        "category": "Mega-Context 1M Engine",
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 128000,
+        "description": "1M Mega Context (1,000,000 Token Massive Codebase Engine)",
+    },
+    "speed-flash": {
+        "upstream_id": "gemini-3.8-flash-tiered",
+        "family": FAMILY_GEMINI,
+        "provider_id": "gemini-speed-flash",
+        "provider_name": "Gemini 3.8 Ultra-Fast Intelligence",
+        "category": "High-Speed Intelligence & Throughput",
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 65536,
+        "description": "Speed Flash (Ultra-Fast Coding Workhorse)",
+    },
+    "agentic-pro": {
+        "upstream_id": "gemini-pro-agent",
+        "family": FAMILY_GEMINI,
+        "provider_id": "gemini-agentic-pro",
+        "provider_name": "Gemini 3 Agentic & Pro Workflows",
+        "category": "Autonomous Agent & Pro Workflows",
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 65535,
+        "description": "Agentic Pro (Autonomous Reasoning & Escalation)",
     },
 }
