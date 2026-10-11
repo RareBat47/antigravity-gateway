@@ -2162,6 +2162,25 @@
                     </div>
                 </div>
 
+                <div style="margin-bottom: 1.25rem; padding: 14px; border-radius: 10px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <div>
+                        <div style="font-weight: 600; color: #38bdf8; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            1-Click Auto-Detect Local Chrome
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                            Extracts active Gemini Web session cookies directly from your local Chrome profile without DevTools.
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="btn-detect-chrome" onclick="autoDetectChromeWebSession()" style="white-space: nowrap; padding: 7px 14px; font-size: 0.82rem;">
+                        ⚡ Auto-Detect Chrome
+                    </button>
+                </div>
+
+                <div style="text-align: center; margin: 0.5rem 0 1rem; color: var(--text-muted); font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 600;">
+                    ── OR ENTER MANUALLY ──
+                </div>
+
                 <form onsubmit="handleGenericAccountSubmit(event, 'gemini-web')">
                     <div class="form-group">
                         <label>Account Label *</label>
@@ -2367,25 +2386,51 @@
         async function handleGenericAccountSubmit(e, methodType) {
             e.preventDefault();
             let label = '', displayName = '', secret = '';
+            let endpoint = `${API_BASE}/admin/accounts`;
+            let reqBody = {};
 
             if (methodType === 'agy') {
                 label = document.getElementById('agy-label').value.trim();
                 displayName = document.getElementById('agy-display-name').value.trim();
                 secret = document.getElementById('agy-token').value.trim();
+                endpoint = `${API_BASE}/admin/accounts`;
+                reqBody = {
+                    label: label,
+                    display_name: displayName || label,
+                    refresh_token: secret
+                };
             } else if (methodType === 'gemini-web') {
                 label = document.getElementById('gweb-label').value.trim();
                 displayName = document.getElementById('gweb-email').value.trim();
                 secret = document.getElementById('gweb-cookies').value.trim();
+                endpoint = `${API_BASE}/admin/channels/geminiweb/add`;
+                reqBody = {
+                    label: label,
+                    display_name: displayName || label,
+                    cookies: secret
+                };
             } else if (methodType === 'aistudio') {
                 label = document.getElementById('aistudio-label').value.trim();
                 displayName = label;
                 secret = document.getElementById('aistudio-key').value.trim();
+                endpoint = `${API_BASE}/admin/channels/aistudio/add`;
+                reqBody = {
+                    label: label,
+                    display_name: displayName || label,
+                    api_key: secret
+                };
             } else if (methodType === 'gemini-cli') {
                 label = document.getElementById('gcli-label').value.trim();
                 const cid = document.getElementById('gcli-client-id').value.trim();
                 const csec = document.getElementById('gcli-client-secret').value.trim();
                 displayName = label;
                 secret = JSON.stringify({ client_id: cid, client_secret: csec });
+                endpoint = `${API_BASE}/admin/accounts`;
+                reqBody = {
+                    label: label,
+                    display_name: displayName || label,
+                    refresh_token: secret
+                };
             }
 
             if (!label || !secret) {
@@ -2394,14 +2439,10 @@
             }
 
             try {
-                const res = await fetch(`${API_BASE}/admin/accounts`, {
+                const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: getAdminHeaders(),
-                    body: JSON.stringify({
-                        label: label,
-                        display_name: displayName || label,
-                        refresh_token: secret
-                    })
+                    body: JSON.stringify(reqBody)
                 });
 
                 const data = await res.json();
@@ -2409,12 +2450,32 @@
                     throw new Error(data.detail || 'Failed to connect account');
                 }
 
-                showToast(`Account "${label}" connected successfully!`, 'success');
+                showToast(`Channel "${label}" connected successfully!`, 'success');
                 closeAddModal();
                 fetchAccounts();
             } catch (err) {
                 console.error('Failed to add account:', err);
                 showToast(err.message, 'error');
+            }
+        }
+
+        async function autoDetectChromeWebSession() {
+            const btn = document.getElementById('btn-detect-chrome');
+            if (btn) { btn.disabled = true; btn.textContent = 'Scanning Chrome...'; }
+            try {
+                const res = await fetch(`${API_BASE}/admin/channels/geminiweb/detect-chrome`, {
+                    method: 'POST',
+                    headers: getAdminHeaders(),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Failed to detect Chrome session');
+                showToast('Chrome Gemini Web session successfully connected!', 'success');
+                closeAddModal();
+                fetchAccounts();
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Detect & Link Chrome Gemini Session'; }
             }
         }
 

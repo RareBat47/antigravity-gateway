@@ -18,11 +18,10 @@ async def test_client_profiles_all_expose_complete_catalog():
     transport = ASGITransport(app=app)
     expected_models = {
         "gemini-3.8-flash-high",
-        "gemini-3.6-flash-medium",
         "gemini-3.1-pro-low",
-        "claude-opus-5-5-medium",
-        "claude-sonnet-5-5-high",
-        "claude-sonnet-5-5-medium",
+        "gemini-pro-agent",
+        "claude-opus-5.5",
+        "claude-sonnet-5.5",
         "gpt-oss-120b-medium",
     }
     async with AsyncClient(transport=transport, base_url="http://test") as client:

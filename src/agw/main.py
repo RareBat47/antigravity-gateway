@@ -17,6 +17,8 @@ from agw.api.routes_v1 import create_v1_router
 from agw.auth.crypto import TokenEncryption
 from agw.auth.vault import CredentialVault
 from agw.cloudcode.client import CloudCodeClient
+from agw.aistudio.client import AIStudioClient
+from agw.geminiweb.client import GeminiWebClient
 from agw.config import AppConfig, load_config
 from agw.dashboard import get_dashboard_html
 from agw.db.repository import DatabaseRepository
@@ -56,6 +58,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     vault = CredentialVault(crypto=crypto)
     repo = DatabaseRepository(db_path=cfg.storage.database_path)
     client = CloudCodeClient(timeout=float(cfg.scheduler.upstream_timeout_seconds))
+    aistudio_client = AIStudioClient()
+    geminiweb_client = GeminiWebClient()
     account_mgr = AccountManager(cfg, repo, vault, client)
 
     cooldown_mgr = CooldownManager(
@@ -139,6 +143,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             scheduler=scheduler,
             cooldown_mgr=cooldown_mgr,
             health_tracker=health_tracker,
+            aistudio_client=aistudio_client,
+            geminiweb_client=geminiweb_client,
         )
     )
     app.include_router(
@@ -150,6 +156,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             cooldown_mgr=cooldown_mgr,
             health_tracker=health_tracker,
             dashboard_html_content=get_dashboard_html(),
+            aistudio_client=aistudio_client,
+            geminiweb_client=geminiweb_client,
         )
     )
 
@@ -163,6 +171,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             scheduler=scheduler,
             cooldown_mgr=cooldown_mgr,
             health_tracker=health_tracker,
+            aistudio_client=aistudio_client,
+            geminiweb_client=geminiweb_client,
         )
     )
 

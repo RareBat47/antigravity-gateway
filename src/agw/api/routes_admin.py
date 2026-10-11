@@ -27,6 +27,18 @@ class AddAccountRequest(BaseModel):
     display_name: Optional[str] = None
 
 
+class AddAIStudioRequest(BaseModel):
+    api_key: str
+    label: str = "Google AI Studio Key"
+    display_name: Optional[str] = None
+
+
+class AddGeminiWebRequest(BaseModel):
+    cookies: str
+    label: str = "Gemini Web Session"
+    display_name: Optional[str] = None
+
+
 def create_admin_router(
     config: AppConfig,
     repo: DatabaseRepository,
@@ -35,7 +47,14 @@ def create_admin_router(
     cooldown_mgr: CooldownManager,
     health_tracker: AccountHealthTracker,
     dashboard_html_content: str,
+    aistudio_client: Optional[Any] = None,
+    geminiweb_client: Optional[Any] = None,
 ) -> APIRouter:
+    from agw.aistudio.client import AIStudioClient
+    from agw.geminiweb.client import GeminiWebClient
+
+    aistudio_client = aistudio_client or AIStudioClient()
+    geminiweb_client = geminiweb_client or GeminiWebClient()
     verify_admin = get_admin_key_auth(config)
     router = APIRouter(prefix="/admin", tags=["Admin API"])
 
@@ -116,48 +135,82 @@ def create_admin_router(
             s["window_5h"] = await repo.get_account_window_usage(aid, hours=5)
             s["window_7d"] = await repo.get_account_window_usage(aid, days=7)
 
-            # OmniRoute 4-way Connection Health Matrix
+            # Real 4-way Connection Health Matrix
             is_active = bool(s.get("enabled", True))
             has_cd = bool(s.get("active_cooldowns"))
             lat = health_tracker.get_avg_latency(aid) or 115
-            s["connections_status"] = {
-                "antigravity": {
-                    "name": "Antigravity OAuth",
-                    "code": "agy",
-                    "working": is_active and not has_cd,
-                    "status": "healthy" if (is_active and not has_cd) else ("cooldown" if has_cd else "disabled"),
-                    "latency_ms": round(lat),
-                    "detail": "OAuth Token Valid • Cloud Code Engine Active",
-                    "models": ["Claude 5 Series", "Claude 4.6", "Gemini 3 Series"]
-                },
-                "gemini_web": {
-                    "name": "Gemini Web",
-                    "code": "gweb",
-                    "working": is_active,
-                    "status": "healthy" if is_active else "disabled",
-                    "latency_ms": round(lat + 24),
-                    "detail": "Pro Family Session Sync • SNlM0e Active",
-                    "models": ["Gemini 2.5 Pro (Web)"]
-                },
-                "aistudio": {
-                    "name": "Google AI Studio",
-                    "code": "aistudio",
-                    "working": is_active,
-                    "status": "healthy" if is_active else "disabled",
-                    "latency_ms": round(max(50, lat - 25)),
-                    "detail": "Developer Channel Active",
-                    "models": ["Gemini 2.5 Pro", "Gemini 2.5 Flash"]
-                },
-                "gemini_cli": {
-                    "name": "Gemini CLI OAuth",
-                    "code": "gcli",
-                    "working": is_active,
-                    "status": "healthy" if is_active else "disabled",
-                    "latency_ms": round(lat - 10),
-                    "detail": "CLI Protocol Channel Active",
-                    "models": ["Gemini Code Assist"]
+            acc_tier = s.get("tier", "pro")
+
+            if acc_tier == "studio":
+                s["connections_status"] = {
+                    "aistudio": {
+                        "name": "Google AI Studio",
+                        "code": "aistudio",
+                        "working": is_active,
+                        "status": "healthy" if is_active else "disabled",
+                        "latency_ms": round(lat),
+                        "detail": "Developer Channel Active (API Key Verified)",
+                        "models": ["Gemini 2.5 Pro", "Gemini 2.5 Flash", "Gemini 2.0 Flash"],
+                    },
+                    "antigravity": {"name": "Antigravity OAuth", "code": "agy", "working": False, "status": "unconfigured", "latency_ms": 0, "detail": "N/A (AI Studio Key)", "models": []},
+                    "gemini_web": {"name": "Gemini Web", "code": "gweb", "working": False, "status": "unconfigured", "latency_ms": 0, "detail": "N/A (AI Studio Key)", "models": []},
+                    "gemini_cli": {"name": "Gemini CLI OAuth", "code": "gcli", "working": False, "status": "unconfigured", "latency_ms": 0, "detail": "N/A (AI Studio Key)", "models": []},
                 }
-            }
+            elif acc_tier == "gweb":
+                s["connections_status"] = {
+                    "gemini_web": {
+                        "name": "Gemini Web",
+                        "code": "gweb",
+                        "working": is_active,
+                        "status": "healthy" if is_active else "disabled",
+                        "latency_ms": round(lat),
+                        "detail": "Consumer Web Session Active (Cookies & SNlM0e)",
+                        "models": ["Gemini Advanced Web Models"],
+                    },
+                    "antigravity": {"name": "Antigravity OAuth", "code": "agy", "working": False, "status": "unconfigured", "latency_ms": 0, "detail": "N/A (Web Session)", "models": []},
+                    "aistudio": {"name": "Google AI Studio", "code": "aistudio", "working": False, "status": "unconfigured", "latency_ms": 0, "detail": "N/A (Web Session)", "models": []},
+                    "gemini_cli": {"name": "Gemini CLI OAuth", "code": "gcli", "working": False, "status": "unconfigured", "latency_ms": 0, "detail": "N/A (Web Session)", "models": []},
+                }
+            else:
+                # Standard Google OAuth account (agy)
+                s["connections_status"] = {
+                    "antigravity": {
+                        "name": "Antigravity OAuth",
+                        "code": "agy",
+                        "working": is_active and not has_cd,
+                        "status": "healthy" if (is_active and not has_cd) else ("cooldown" if has_cd else "disabled"),
+                        "latency_ms": round(lat),
+                        "detail": "OAuth Token Valid • Cloud Code Engine Active",
+                        "models": ["Claude 5 Series", "Claude 4.6", "Gemini 3 Series"],
+                    },
+                    "gemini_web": {
+                        "name": "Gemini Web",
+                        "code": "gweb",
+                        "working": False,
+                        "status": "unconfigured",
+                        "latency_ms": 0,
+                        "detail": "Web cookies not bound for this account.",
+                        "models": ["Gemini Web Consumer"],
+                    },
+                    "aistudio": {
+                        "name": "Google AI Studio",
+                        "code": "aistudio",
+                        "working": False,
+                        "status": "unconfigured",
+                        "latency_ms": 0,
+                        "detail": "No AI Studio key bound for this account.",
+                        "models": ["Gemini 2.5 Pro", "Gemini 2.5 Flash"],
+                    },
+                    "gemini_cli": {
+                        "name": "Gemini CLI OAuth",
+                        "code": "gcli",
+                        "working": is_active and not has_cd,
+                        "status": "healthy" if (is_active and not has_cd) else ("cooldown" if has_cd else "disabled"),
+                        "latency_ms": round(lat),
+                        "detail": "CLI Protocol Channel Active (Shares Cloud Code Quota)",
+                        "models": ["Gemini Code Assist"],
+                    },
+                }
         return summaries
 
     @router.post("/accounts/{account_id}/probe-all", dependencies=[Depends(verify_admin)])
@@ -178,62 +231,83 @@ def create_admin_router(
         studio_ok, studio_lat, studio_err = False, 0, None
         gcli_ok, gcli_lat, gcli_err = False, 0, None
 
-        # 1. Antigravity OAuth: test token validity + live ping to Google userinfo
-        try:
-            t0 = time.time()
-            tok = await account_mgr.get_access_token(account_id)
-            if not tok:
-                agy_err = "No valid access token available"
+        acc_tier = acc.get("tier", "pro")
+
+        if acc_tier == "studio":
+            raw_key = account_mgr.get_token_raw(account_id)
+            if raw_key:
+                t0 = time.time()
+                valid, msg, models = await aistudio_client.validate_key(raw_key)
+                studio_lat = round((time.time() - t0) * 1000)
+                if valid:
+                    studio_ok = True
+                    health_tracker.record(account_id, True, studio_lat)
+                else:
+                    studio_err = msg
             else:
-                async with httpx.AsyncClient(timeout=6.0) as client:
-                    resp = await client.get(
-                        "https://www.googleapis.com/oauth2/v3/userinfo",
-                        headers={"Authorization": f"Bearer {tok}"}
-                    )
-                    agy_lat = round((time.time() - t0) * 1000)
-                    if resp.status_code == 200:
-                        agy_ok = True
-                        health_tracker.record(account_id, True, agy_lat)
+                studio_err = "No API key found in vault"
+        elif acc_tier == "gweb":
+            raw_val = account_mgr.get_token_raw(account_id)
+            if raw_val:
+                try:
+                    parsed_val = json.loads(raw_val)
+                    cookies = parsed_val.get("cookies", {})
+                    t1 = time.time()
+                    valid, msg, _ = await geminiweb_client.validate_session(cookies)
+                    gweb_lat = round((time.time() - t1) * 1000)
+                    if valid:
+                        gweb_ok = True
+                        health_tracker.record(account_id, True, gweb_lat)
                     else:
-                        agy_err = f"Google returned HTTP {resp.status_code}"
-        except Exception as e:
-            agy_err = str(e)
-            agy_lat = 0
+                        gweb_err = msg
+                except Exception as e:
+                    gweb_err = str(e)
+            else:
+                gweb_err = "No cookies found in vault"
+        else:
+            # 1. Antigravity OAuth: test token validity + live ping to Google userinfo
+            try:
+                t0 = time.time()
+                tok = await account_mgr.get_access_token(account_id)
+                if not tok:
+                    agy_err = "No valid access token available"
+                else:
+                    async with httpx.AsyncClient(timeout=6.0) as client:
+                        resp = await client.get(
+                            "https://www.googleapis.com/oauth2/v3/userinfo",
+                            headers={"Authorization": f"Bearer {tok}"}
+                        )
+                        agy_lat = round((time.time() - t0) * 1000)
+                        if resp.status_code == 200:
+                            agy_ok = True
+                            gcli_ok = True
+                            gcli_lat = agy_lat
+                            health_tracker.record(account_id, True, agy_lat)
+                        else:
+                            agy_err = f"Google returned HTTP {resp.status_code}"
+            except Exception as e:
+                agy_err = str(e)
+                agy_lat = 0
 
-        # 2. Gemini Web Session: live ping to gemini.google.com
-        try:
-            t1 = time.time()
-            async with httpx.AsyncClient(timeout=6.0) as client:
-                resp = await client.get("https://gemini.google.com", follow_redirects=True)
-                gweb_lat = round((time.time() - t1) * 1000)
-                gweb_ok = resp.status_code < 400
-        except Exception as e:
-            gweb_err = str(e)
-            gweb_lat = 0
+            # 2. Check if local Chrome session is available
+            try:
+                ok_chrome, c_cookies, _ = geminiweb_client.extract_from_local_chrome()
+                if ok_chrome:
+                    t1 = time.time()
+                    v_ok, v_msg, _ = await geminiweb_client.validate_session(c_cookies)
+                    gweb_lat = round((time.time() - t1) * 1000)
+                    if v_ok:
+                        gweb_ok = True
+                    else:
+                        gweb_err = "Chrome cookies found but session expired on gemini.google.com"
+                else:
+                    gweb_err = "No Gemini Web session cookies found. Log into gemini.google.com to link."
+            except Exception as e:
+                gweb_err = str(e)
 
-        # 3. Google AI Studio: live ping to generativelanguage.googleapis.com
-        try:
-            t2 = time.time()
-            async with httpx.AsyncClient(timeout=6.0) as client:
-                resp = await client.get("https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta")
-                studio_lat = round((time.time() - t2) * 1000)
-                studio_ok = resp.status_code < 500
-        except Exception as e:
-            studio_err = str(e)
-            studio_lat = 0
+            studio_err = "No AI Studio API Key enrolled for this account. Add key in modal to connect."
 
-        # 4. Gemini CLI: live ping to Cloud Code companion endpoint
-        try:
-            t3 = time.time()
-            async with httpx.AsyncClient(timeout=6.0) as client:
-                resp = await client.get("https://cloudaicompanion.googleapis.com/$discovery/rest?version=v1")
-                gcli_lat = round((time.time() - t3) * 1000)
-                gcli_ok = resp.status_code < 500
-        except Exception as e:
-            gcli_err = str(e)
-            gcli_lat = 0
-
-        all_ok = agy_ok and gweb_ok and studio_ok and gcli_ok
+        all_ok = agy_ok or gweb_ok or studio_ok or gcli_ok
         now_ts = int(time.time())
 
         return {
@@ -250,7 +324,7 @@ def create_admin_router(
                     "name": "Antigravity OAuth (agy)",
                     "code": "agy",
                     "working": agy_ok,
-                    "status": "healthy" if agy_ok else "error",
+                    "status": "healthy" if agy_ok else ("unconfigured" if acc_tier != "pro" else "error"),
                     "error": agy_err,
                     "latency_ms": agy_lat,
                     "models": ["Claude Sonnet 5.5", "Claude Opus 5.5", "Gemini 3.1 Pro High"],
@@ -259,16 +333,16 @@ def create_admin_router(
                     "name": "Gemini Web (gemini-web)",
                     "code": "gweb",
                     "working": gweb_ok,
-                    "status": "healthy" if gweb_ok else "error",
+                    "status": "healthy" if gweb_ok else "unconfigured",
                     "error": gweb_err,
                     "latency_ms": gweb_lat,
-                    "models": ["Gemini 2.5 Pro (Family Web Quota)"],
+                    "models": ["Gemini 2.5 Pro (Web Advanced)"],
                 },
                 "aistudio": {
                     "name": "Google AI Studio",
                     "code": "aistudio",
                     "working": studio_ok,
-                    "status": "healthy" if studio_ok else "error",
+                    "status": "healthy" if studio_ok else "unconfigured",
                     "error": studio_err,
                     "latency_ms": studio_lat,
                     "models": ["Gemini 2.5 Pro", "Gemini 2.5 Flash"],
@@ -277,10 +351,10 @@ def create_admin_router(
                     "name": "Gemini CLI OAuth",
                     "code": "gcli",
                     "working": gcli_ok,
-                    "status": "healthy" if gcli_ok else "error",
+                    "status": "healthy" if gcli_ok else ("unconfigured" if acc_tier != "pro" else "error"),
                     "error": gcli_err,
                     "latency_ms": gcli_lat,
-                    "models": ["Gemini CLI Protocol"],
+                    "models": ["Gemini Code Assist"],
                 },
             }
         }
@@ -294,6 +368,62 @@ def create_admin_router(
             res = await probe_all_connections(acc["id"])
             results.append(res)
         return {"status": "success", "results": results, "checked_at": int(time.time())}
+
+    @router.post("/channels/aistudio/add", dependencies=[Depends(verify_admin)])
+    async def add_aistudio_channel(req: AddAIStudioRequest):
+        """Add and validate a real Google AI Studio API key."""
+        try:
+            info = await account_mgr.add_aistudio_account(
+                api_key=req.api_key,
+                label=req.label,
+                display_name=req.display_name,
+            )
+            return {"status": "success", "account": info}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    @router.post("/channels/geminiweb/add", dependencies=[Depends(verify_admin)])
+    async def add_geminiweb_channel(req: AddGeminiWebRequest):
+        """Add and validate consumer Gemini Web session cookies."""
+        try:
+            cookie_dict = {}
+            raw = req.cookies.strip()
+            if raw.startswith("{") and raw.endswith("}"):
+                try:
+                    cookie_dict = json.loads(raw)
+                except Exception:
+                    cookie_dict = {}
+            if not cookie_dict:
+                for item in raw.split(";"):
+                    if "=" in item:
+                        k, v = item.strip().split("=", 1)
+                        cookie_dict[k.strip()] = v.strip()
+
+            info = await account_mgr.add_gemini_web_account(
+                cookies=cookie_dict,
+                label=req.label,
+                display_name=req.display_name,
+            )
+            return {"status": "success", "account": info}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    @router.post("/channels/geminiweb/detect-chrome", dependencies=[Depends(verify_admin)])
+    async def detect_chrome_geminiweb():
+        """Auto-detect and link Gemini Web cookies from local Chrome."""
+        from agw.geminiweb.client import GeminiWebClient
+        ok, cookies, msg = GeminiWebClient.extract_from_local_chrome()
+        if not ok:
+            raise HTTPException(status_code=400, detail=f"Chrome extraction failed: {msg}")
+        try:
+            info = await account_mgr.add_gemini_web_account(
+                cookies=cookies,
+                label="Chrome Gemini Web Session",
+                display_name="Auto-Detected Chrome Session",
+            )
+            return {"status": "success", "account": info}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     @router.get("/accounts/{account_id}", dependencies=[Depends(verify_admin)])
     async def get_account(account_id: str):

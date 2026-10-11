@@ -12,16 +12,15 @@ def test_model_registry_resolution():
     assert family == "gemini"
     assert max_toks >= 32768
 
-    # Retired Claude 4.6 compatibility ID routes to Claude 5.5 Sonnet
+    # Claude 4.6 compatibility ID
     c_id, c_family, c_toks = registry.resolve_upstream("claude-sonnet-4-6")
-    assert c_id == "claude-sonnet-5-5-medium"
+    assert c_id == "claude-sonnet-4-6"
     assert c_family == "claude"
     assert c_toks == 128000
 
-
     # Claude 5.5 Opus
-    op_id, op_family, op_toks = registry.resolve_upstream("claude-opus-5-5-medium")
-    assert op_id == "claude-opus-5-5-medium"
+    op_id, op_family, op_toks = registry.resolve_upstream("claude-opus-5.5")
+    assert op_id == "claude-opus-4-6-thinking"
     assert op_family == "claude"
     assert op_toks == 128000
 
@@ -32,13 +31,10 @@ def test_list_models_openai():
     ids = [m["id"] for m in models]
     expected_core = [
         "gemini-3.8-flash-high",
-        "gemini-3.6-flash-high",
-        "gemini-3.6-flash-medium",
         "gemini-3.1-pro-low",
         "gemini-pro-agent",
-        "claude-opus-5-5-medium",
-        "claude-sonnet-5-5-high",
-        "claude-sonnet-5-5-medium",
+        "claude-opus-5.5",
+        "claude-sonnet-5.5",
         "gpt-oss-120b-medium",
     ]
     for mid in expected_core:

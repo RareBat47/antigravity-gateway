@@ -267,3 +267,81 @@ class AccountManager:
                 "last_used_at": acc.get("last_used_at"),
             })
         return summaries
+
+    async def add_aistudio_account(
+        self,
+        api_key: str,
+        label: str = "Google AI Studio",
+        display_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Enroll Google AI Studio API key."""
+        from agw.aistudio.client import AIStudioClient
+        client = AIStudioClient()
+        valid, msg, models = await client.validate_key(api_key)
+        if not valid:
+            raise ValueError(f"AI Studio API key validation failed: {msg}")
+
+        clean_key = api_key.strip()
+        account_id = f"acc-studio-{hashlib.sha256(clean_key.encode()).hexdigest()[:8]}"
+        name = display_name or label
+        safe_email = f"studio-{clean_key[:6]}@aistudio.google"
+
+        self.vault.store_token(account_id, clean_key)
+        await self.repo.upsert_account(
+            account_id=account_id,
+            email_safe=safe_email,
+            display_name=name,
+            project_id="generativelanguage",
+            tier="studio",
+            status="active",
+            enabled=True,
+        )
+        return {
+            "account_id": account_id,
+            "email_safe": safe_email,
+            "display_name": name,
+            "tier": "studio",
+            "models": models,
+        }
+
+    async def add_gemini_web_account(
+        self,
+        cookies: Dict[str, str],
+        label: str = "Gemini Web",
+        display_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Enroll consumer Gemini Web Session."""
+        import json
+        from agw.geminiweb.client import GeminiWebClient
+        client = GeminiWebClient()
+        valid, msg, snlm0e = await client.validate_session(cookies)
+        if not valid:
+            raise ValueError(f"Gemini Web session validation failed: {msg}")
+
+        psid = cookies.get("__Secure-1PSID", "")
+        account_id = f"acc-web-{hashlib.sha256(psid.encode()).hexdigest()[:8]}"
+        name = display_name or label
+        safe_email = f"web-{psid[:6]}@gemini.web"
+
+        stored_data = json.dumps({"cookies": cookies, "snlm0e": snlm0e})
+        self.vault.store_token(account_id, stored_data)
+        await self.repo.upsert_account(
+            account_id=account_id,
+            email_safe=safe_email,
+            display_name=name,
+            project_id="gemini-web",
+            tier="gweb",
+            status="active",
+            enabled=True,
+        )
+        return {
+            "account_id": account_id,
+            "email_safe": safe_email,
+            "display_name": name,
+            "tier": "gweb",
+        }
+
+    def get_token_raw(self, account_id: str) -> Optional[str]:
+        """Get the raw credential string from vault for this account."""
+        return self.vault.get_token(account_id)
+

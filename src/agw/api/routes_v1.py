@@ -8,6 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
 
 from agw.accounts.manager import AccountManager
+from agw.aistudio.client import AIStudioClient
+from agw.geminiweb.client import GeminiWebClient
 from agw.api.middleware import get_api_key_auth
 from agw.cloudcode.client import CloudCodeClient
 from agw.cloudcode.envelope import build_rpc_envelope
@@ -34,6 +36,27 @@ from agw.routing.scheduler import AccountScheduler
 logger = logging.getLogger("agw.v1")
 
 
+def _extract_messages_text(messages: List[Dict[str, Any]]) -> str:
+    """Flatten conversation messages into readable multi-turn prompt for web endpoints."""
+    lines = []
+    for m in messages:
+        c = m.get("content", "")
+        role = m.get("role", "user")
+        if isinstance(c, list):
+            text_parts = [p.get("text", "") for p in c if isinstance(p, dict) and p.get("type") == "text"]
+            text = " ".join(text_parts)
+        else:
+            text = str(c)
+        if text.strip():
+            if role == "system":
+                lines.append(f"System: {text}")
+            elif role == "assistant":
+                lines.append(f"Assistant: {text}")
+            else:
+                lines.append(f"User: {text}")
+    return "\n\n".join(lines) if lines else "Hello"
+
+
 def create_v1_router(
     config: AppConfig,
     repo: DatabaseRepository,
@@ -43,6 +66,8 @@ def create_v1_router(
     scheduler: AccountScheduler,
     cooldown_mgr: CooldownManager,
     health_tracker: AccountHealthTracker,
+    aistudio_client: Optional[AIStudioClient] = None,
+    geminiweb_client: Optional[GeminiWebClient] = None,
 ) -> APIRouter:
     verify_key = get_api_key_auth(config)
     router = APIRouter(prefix="/v1", tags=["OpenAI Compatible API"], dependencies=[Depends(verify_key)])
@@ -303,18 +328,61 @@ def create_v1_router(
             )
             logger.info(f"CloudCode envelope for {model_id}: {json.dumps(envelope)}")
 
-            try:
-                access_tok = await account_mgr.get_access_token(acc_id)
-            except Exception as e:
-                logger.warning(f"Failed to get token for account {acc_id}: {e}")
-                await repo.record_health_event(acc_id, "auth_error", str(e))
-                continue
+            acc_tier = selected_account.get("tier", "pro")
+            access_tok = None
+            raw_cred = None
+
+            if acc_tier == "studio":
+                raw_cred = account_mgr.get_token_raw(acc_id)
+                if not raw_cred:
+                    logger.warning(f"No API key found in vault for studio account {acc_id}")
+                    continue
+            elif acc_tier == "gweb":
+                raw_cred = account_mgr.get_token_raw(acc_id)
+                if not raw_cred:
+                    logger.warning(f"No session cookies found in vault for gweb account {acc_id}")
+                    continue
+            else:
+                try:
+                    access_tok = await account_mgr.get_access_token(acc_id)
+                except Exception as e:
+                    logger.warning(f"Failed to get token for account {acc_id}: {e}")
+                    await repo.record_health_event(acc_id, "auth_error", str(e))
+                    continue
 
             start_t = time.time()
 
             # Handle Streaming Request
             if is_streaming:
-                stream_iter = cloudcode_client.stream_generate_content(access_tok, envelope)
+                if acc_tier == "studio":
+                    if not aistudio_client:
+                        logger.warning("AIStudioClient not configured")
+                        continue
+                    stream_iter = aistudio_client.stream_generate_content(raw_cred, envelope)
+                elif acc_tier == "gweb":
+                    if not geminiweb_client:
+                        logger.warning("GeminiWebClient not configured")
+                        continue
+                    try:
+                        parsed_cred = json.loads(raw_cred)
+                        web_cookies = parsed_cred.get("cookies", {})
+                        web_snlm0e = parsed_cred.get("snlm0e", "")
+                    except Exception as e:
+                        logger.warning(f"Failed to parse gweb credentials for {acc_id}: {e}")
+                        continue
+                    prompt_txt = _extract_messages_text(messages)
+                    gweb_status, gweb_payload, gweb_raw = await geminiweb_client.generate_content(
+                        web_cookies, web_snlm0e, prompt_txt
+                    )
+                    async def _gweb_stream(st=gweb_status, pl=gweb_payload, rw=gweb_raw):
+                        if st == 200:
+                            yield 200, f"data: {json.dumps(pl)}\n\n"
+                            yield 200, "data: [DONE]\n\n"
+                        else:
+                            yield st, rw
+                    stream_iter = _gweb_stream()
+                else:
+                    stream_iter = cloudcode_client.stream_generate_content(access_tok, envelope)
 
                 # Check first item from stream to verify status
                 first_status, first_line = await anext(stream_iter, (500, "Empty stream"))
@@ -426,7 +494,26 @@ def create_v1_router(
                 continue
 
             # Handle Non-Streaming Request
-            status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
+            if acc_tier == "studio":
+                if not aistudio_client:
+                    continue
+                status_code, payload, raw_text = await aistudio_client.generate_content(raw_cred, envelope)
+            elif acc_tier == "gweb":
+                if not geminiweb_client:
+                    continue
+                try:
+                    parsed_cred = json.loads(raw_cred)
+                    web_cookies = parsed_cred.get("cookies", {})
+                    web_snlm0e = parsed_cred.get("snlm0e", "")
+                except Exception as e:
+                    logger.warning(f"Failed to parse gweb credentials for {acc_id}: {e}")
+                    continue
+                prompt_txt = _extract_messages_text(messages)
+                status_code, payload, raw_text = await geminiweb_client.generate_content(
+                    web_cookies, web_snlm0e, prompt_txt
+                )
+            else:
+                status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
             latency_ms = (time.time() - start_t) * 1000.0
 
             if status_code == 200:
