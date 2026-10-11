@@ -159,20 +159,31 @@ Ensure your system meets the following requirements before installation:
 
 The gateway supports multiple ways to link Google accounts into its local encrypted vault:
 
-#### Method A: Auto-Detect Local CLI Session (Fastest)
+#### Method A: 🤖 1-Click Autonomous 4-Way Setup Agent (Recommended)
+Instead of manually extracting keys or session cookies, the gateway features an integrated **Autonomous Provisioning Agent** that links all 4 pathways automatically from your single Google authentication:
+1. Open the Admin Dashboard: [http://127.0.0.1:8999/admin/dashboard](http://127.0.0.1:8999/admin/dashboard).
+2. Click **"🤖 Autonomous 4-Way Setup Agent"** (or **"1-Click Google Sign-In"**).
+3. The agent executes an automated 4-channel pipeline:
+   - **`agy`**: Verifies and links Google Cloud Code OAuth tokens.
+   - **`gcli`**: Automatically pairs the Gemini CLI Companion protocol under the same quota.
+   - **`gweb`**: Auto-harvests Chrome session cookies (`__Secure-1PSID`, `__Secure-1PSIDTS`) and validates `SNlM0e`.
+   - **`studio`**: Auto-discovers local AI Studio keys on disk/env or opens the free key generator with 1-click clipboard capture.
+4. Watch the real-time live terminal in the dashboard verify all 4 channels into the pool.
+
+#### Method B: Auto-Detect Local CLI Session
 If you already use Google Antigravity CLI (`agy`) or Cloud Code locally:
 ```bash
 python3 -m agw.cli.main accounts detect-local
 ```
 This imports your active session token directly from `~/.gemini/antigravity-cli`.
 
-#### Method B: Browser PKCE OAuth Sign-In
+#### Method C: Browser PKCE OAuth Sign-In
 1. Start the gateway (Step 4 below).
 2. Open the Admin Dashboard: [http://127.0.0.1:8999/admin/dashboard](http://127.0.0.1:8999/admin/dashboard).
 3. Click **"Add Account"** $\to$ **"Sign In with Google"**.
 4. Complete Google authentication in your browser. The authorization code exchanges automatically and saves into your local AES-256 vault.
 
-#### Method C: Manual Token Import via CLI
+#### Method D: Manual Token Import via CLI
 ```bash
 python3 -m agw.cli.main accounts add \
   --label "Personal-Google-1" \

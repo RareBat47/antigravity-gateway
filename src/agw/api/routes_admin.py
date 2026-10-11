@@ -4,8 +4,8 @@ import logging
 import secrets
 import time
 from typing import Any, Dict, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, StreamingResponse
 import httpx
 from pydantic import BaseModel
 
@@ -49,12 +49,21 @@ def create_admin_router(
     dashboard_html_content: str,
     aistudio_client: Optional[Any] = None,
     geminiweb_client: Optional[Any] = None,
+    provisioning_agent: Optional[Any] = None,
 ) -> APIRouter:
     from agw.aistudio.client import AIStudioClient
     from agw.geminiweb.client import GeminiWebClient
+    from agw.agent.provisioner import AutonomousProvisioningAgent
 
     aistudio_client = aistudio_client or AIStudioClient()
     geminiweb_client = geminiweb_client or GeminiWebClient()
+    agent = provisioning_agent or AutonomousProvisioningAgent(
+        config=config,
+        repo=repo,
+        account_mgr=account_mgr,
+        aistudio_client=aistudio_client,
+        geminiweb_client=geminiweb_client,
+    )
     verify_admin = get_admin_key_auth(config)
     router = APIRouter(prefix="/admin", tags=["Admin API"])
 
@@ -602,5 +611,33 @@ def create_admin_router(
         from agw.integrations.setup_pc import run_full_pc_setup
         result = run_full_pc_setup()
         return {"status": "success", "details": result}
+
+    @router.get("/agent/provision", dependencies=[Depends(verify_admin)])
+    async def run_agent_provision(account_id: Optional[str] = Query(None)):
+        """Stream real-time autonomous provisioning agent pipeline progress via SSE."""
+        import json
+
+        async def event_generator():
+            async for ev in agent.run_pipeline(account_id):
+                yield f"data: {json.dumps(ev)}\n\n"
+
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
+
+    class LaunchUrlRequest(BaseModel):
+        url: str
+
+    @router.post("/agent/launch-url", dependencies=[Depends(verify_admin)])
+    async def agent_launch_url(req: LaunchUrlRequest):
+        """Allow the agent to open helper URLs in the host's desktop browser."""
+        ok = AutonomousProvisioningAgent.launch_browser_url(req.url)
+        return {"status": "success" if ok else "failed", "url": req.url}
 
     return router

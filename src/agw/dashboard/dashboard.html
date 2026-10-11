@@ -1498,6 +1498,10 @@
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
                         1-Click Google Sign-In
                     </button>
+                    <button class="btn btn-primary" onclick="openAgentProvisionModal()" id="btn-run-agent" title="Run Autonomous 4-Way Provisioning Agent" style="background: linear-gradient(135deg, #0284c7, #8b5cf6); color: #fff; font-weight: 700; border: none; box-shadow: 0 0 16px rgba(139, 92, 246, 0.4); display: flex; align-items: center; gap: 6px;">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M10 17h4"/></svg>
+                        🤖 Autonomous 4-Way Setup Agent
+                    </button>
                     <button class="btn btn-secondary" onclick="openAddModal()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                         More Methods
@@ -2281,6 +2285,70 @@
         </div>
     </div>
 
+    <!-- Autonomous Provisioning Agent Modal -->
+    <div class="modal-overlay" id="agent-modal" onclick="handleAgentOverlayClick(event)">
+        <div class="modal-card" style="max-width: 680px; border: 1px solid rgba(56, 189, 248, 0.4); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);">
+            <div class="modal-header">
+                <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px; color: #38bdf8; margin: 0;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M10 17h4"/></svg>
+                        Autonomous 4-Way Setup Agent
+                    </h3>
+                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 3px;">
+                        1-Click Auto-Discovery across agy, gcli, gweb, and studio from single Google authorization
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeAgentModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem;">
+                <!-- Progress Bar -->
+                <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 8px; padding: 3px; margin-bottom: 1rem;">
+                    <div id="agent-progress-bar" style="height: 6px; width: 5%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 6px; transition: width 0.4s ease;"></div>
+                </div>
+
+                <!-- 4 Channel Status Grid -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1rem;">
+                    <div class="diag-card" id="agent-card-agy" style="padding: 8px 10px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">1. AGY</div>
+                        <div id="agent-status-agy" style="font-size: 0.76rem; font-weight: 600; color: #94a3b8; margin-top: 2px;">Pending</div>
+                    </div>
+                    <div class="diag-card" id="agent-card-gcli" style="padding: 8px 10px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">2. GCLI</div>
+                        <div id="agent-status-gcli" style="font-size: 0.76rem; font-weight: 600; color: #94a3b8; margin-top: 2px;">Pending</div>
+                    </div>
+                    <div class="diag-card" id="agent-card-gweb" style="padding: 8px 10px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">3. GWEB</div>
+                        <div id="agent-status-gweb" style="font-size: 0.76rem; font-weight: 600; color: #94a3b8; margin-top: 2px;">Pending</div>
+                    </div>
+                    <div class="diag-card" id="agent-card-studio" style="padding: 8px 10px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">4. STUDIO</div>
+                        <div id="agent-status-studio" style="font-size: 0.76rem; font-weight: 600; color: #94a3b8; margin-top: 2px;">Pending</div>
+                    </div>
+                </div>
+
+                <!-- Live Agent Monospace Log Terminal -->
+                <div id="agent-terminal" style="background: #020617; border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: #38bdf8; height: 160px; overflow-y: auto; line-height: 1.5; white-space: pre-wrap; box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);">
+[AGENT] Initializing autonomous pipeline...
+                </div>
+
+                <!-- Contextual Action Bar for Steps that need User Push -->
+                <div id="agent-actions-box" style="margin-top: 1rem; display: none; padding: 10px 14px; border-radius: 8px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); align-items: center; justify-content: space-between;">
+                    <div id="agent-action-text" style="font-size: 0.8rem; color: #f1f5f9;">Action Needed</div>
+                    <div style="display: flex; gap: 8px;" id="agent-action-buttons">
+                        <!-- Dynamically populated buttons -->
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 1.25rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAgentModal()">Close</button>
+                    <button type="button" class="btn btn-primary" id="btn-agent-rerun" onclick="startAgentProvisioning()" style="background: linear-gradient(135deg, #38bdf8, #818cf8); color: #0f172a; font-weight: 700;">
+                        ⚡ Run Setup Agent
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div class="toast-container" id="toast-container"></div>
 
@@ -2476,6 +2544,209 @@
                 showToast(err.message, 'error');
             } finally {
                 if (btn) { btn.disabled = false; btn.textContent = 'Detect & Link Chrome Gemini Session'; }
+            }
+        }
+
+        // ================= Autonomous 4-Way Provisioning Agent =================
+        let agentReader = null;
+
+        function openAgentProvisionModal() {
+            document.getElementById('agent-modal').classList.add('active');
+            startAgentProvisioning();
+        }
+
+        function closeAgentModal() {
+            if (agentReader) {
+                try { agentReader.cancel(); } catch (e) {}
+                agentReader = null;
+            }
+            document.getElementById('agent-modal').classList.remove('active');
+            fetchAccounts();
+        }
+
+        function handleAgentOverlayClick(e) {
+            if (e.target.id === 'agent-modal') closeAgentModal();
+        }
+
+        function appendAgentLog(msg, color = '#38bdf8') {
+            const term = document.getElementById('agent-terminal');
+            if (!term) return;
+            const line = document.createElement('div');
+            line.style.color = color;
+            line.style.marginBottom = '2px';
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            term.appendChild(line);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        async function startAgentProvisioning() {
+            const term = document.getElementById('agent-terminal');
+            if (term) term.innerHTML = '';
+            appendAgentLog('🤖 Autonomous Provisioning Agent Initialized.', '#38bdf8');
+            appendAgentLog('Targeting 4-Way Connections: agy • gcli • gweb • studio', '#94a3b8');
+
+            document.getElementById('agent-progress-bar').style.width = '10%';
+            document.getElementById('agent-actions-box').style.display = 'none';
+
+            // Reset badges
+            ['agy', 'gcli', 'gweb', 'studio'].forEach(ch => {
+                const badge = document.getElementById(`agent-status-${ch}`);
+                const card = document.getElementById(`agent-card-${ch}`);
+                if (badge) { badge.textContent = 'Scanning...'; badge.style.color = '#f59e0b'; }
+                if (card) { card.style.borderColor = 'var(--border)'; card.style.background = 'rgba(15, 23, 42, 0.7)'; }
+            });
+
+            if (agentReader) {
+                try { await agentReader.cancel(); } catch (e) {}
+                agentReader = null;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/agent/provision`, {
+                    headers: getAdminHeaders()
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}: Failed to reach agent`);
+
+                agentReader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await agentReader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        if (trimmed.startsWith('data:')) {
+                            try {
+                                const ev = JSON.parse(trimmed.slice(5).trim());
+                                handleAgentEvent(ev);
+                            } catch (e) {}
+                        }
+                    }
+                }
+            } catch (err) {
+                appendAgentLog(`❌ Agent error: ${err.message}`, '#ef4444');
+            }
+        }
+
+        function handleAgentEvent(ev) {
+            if (ev.progress) {
+                document.getElementById('agent-progress-bar').style.width = `${ev.progress}%`;
+            }
+
+            const phase = ev.phase;
+            const badge = document.getElementById(`agent-status-${phase}`);
+            const card = document.getElementById(`agent-card-${phase}`);
+
+            if (ev.status === 'success') {
+                if (badge) { badge.textContent = '🟢 Active'; badge.style.color = '#10b981'; }
+                if (card) { card.style.borderColor = 'rgba(16, 185, 129, 0.4)'; card.style.background = 'rgba(16, 185, 129, 0.05)'; }
+                appendAgentLog(`✓ ${ev.message}`, '#10b981');
+            } else if (ev.status === 'running') {
+                appendAgentLog(`→ ${ev.message}`, '#38bdf8');
+            } else if (ev.status === 'needs_handshake' || ev.status === 'needs_key' || ev.status === 'needs_login') {
+                if (badge) { badge.textContent = 'Action Needed'; badge.style.color = '#f59e0b'; }
+                if (card) { card.style.borderColor = 'rgba(245, 158, 11, 0.4)'; }
+                appendAgentLog(`⚠️ ${ev.message}`, '#f59e0b');
+                showAgentActionPrompt(ev);
+            } else if (ev.status === 'error' || ev.status === 'not_found') {
+                if (badge) { badge.textContent = '🔴 Offline'; badge.style.color = '#ef4444'; }
+                if (card) { card.style.borderColor = 'rgba(239, 68, 68, 0.4)'; }
+                appendAgentLog(`✗ ${ev.message}`, '#ef4444');
+            }
+
+            if (phase === 'complete') {
+                document.getElementById('agent-progress-bar').style.width = '100%';
+                appendAgentLog('🎉 Pipeline Complete! All verified channels pooled.', '#a855f7');
+                fetchAccounts();
+            }
+        }
+
+        function showAgentActionPrompt(ev) {
+            const box = document.getElementById('agent-actions-box');
+            const txt = document.getElementById('agent-action-text');
+            const btns = document.getElementById('agent-action-buttons');
+            if (!box || !txt || !btns) return;
+
+            box.style.display = 'flex';
+            txt.textContent = ev.message;
+            btns.innerHTML = '';
+
+            if (ev.phase === 'gweb') {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-primary';
+                btn.style.fontSize = '0.78rem';
+                btn.style.padding = '6px 12px';
+                btn.textContent = '⚡ Touch Gemini Web';
+                btn.onclick = async () => {
+                    await fetch(`${API_BASE}/admin/agent/launch-url`, {
+                        method: 'POST',
+                        headers: getAdminHeaders(),
+                        body: JSON.stringify({ url: 'https://gemini.google.com' })
+                    });
+                    appendAgentLog('Opened gemini.google.com in Chrome. Waiting for cookies...', '#38bdf8');
+                    setTimeout(() => startAgentProvisioning(), 4000);
+                };
+                btns.appendChild(btn);
+            } else if (ev.phase === 'studio') {
+                const openBtn = document.createElement('button');
+                openBtn.className = 'btn btn-secondary';
+                openBtn.style.fontSize = '0.78rem';
+                openBtn.style.padding = '6px 12px';
+                openBtn.textContent = '🔑 Open AI Studio';
+                openBtn.onclick = async () => {
+                    await fetch(`${API_BASE}/admin/agent/launch-url`, {
+                        method: 'POST',
+                        headers: getAdminHeaders(),
+                        body: JSON.stringify({ url: 'https://aistudio.google.com/app/apikey' })
+                    });
+                    appendAgentLog('Opened aistudio.google.com/app/apikey in Chrome. Copy key once created.', '#38bdf8');
+                };
+                btns.appendChild(openBtn);
+
+                const pasteBtn = document.createElement('button');
+                pasteBtn.className = 'btn btn-primary';
+                pasteBtn.style.fontSize = '0.78rem';
+                pasteBtn.style.padding = '6px 12px';
+                pasteBtn.textContent = '📋 Paste Key from Clipboard';
+                pasteBtn.onclick = async () => {
+                    try {
+                        const clipText = await navigator.clipboard.readText();
+                        if (clipText && clipText.trim().startsWith('AIza')) {
+                            appendAgentLog(`Found AI Studio key in clipboard: ${clipText.trim().slice(0, 8)}... Validating with Google...`, '#38bdf8');
+                            const res = await fetch(`${API_BASE}/admin/channels/aistudio/add`, {
+                                method: 'POST',
+                                headers: getAdminHeaders(),
+                                body: JSON.stringify({ label: 'Studio-Key-01', api_key: clipText.trim() })
+                            });
+                            if (res.ok) {
+                                appendAgentLog('✓ Google AI Studio key successfully validated and enrolled!', '#10b981');
+                                box.style.display = 'none';
+                                startAgentProvisioning();
+                            } else {
+                                const d = await res.json();
+                                appendAgentLog(`Validation failed: ${d.detail}`, '#ef4444');
+                            }
+                        } else {
+                            showToast('No AIza... key found in clipboard. Please copy it first.', 'error');
+                        }
+                    } catch (e) {
+                        showToast(`Clipboard read error: ${e.message}`, 'error');
+                    }
+                };
+                btns.appendChild(pasteBtn);
+            } else if (ev.phase === 'agy') {
+                const oauthBtn = document.createElement('button');
+                oauthBtn.className = 'btn btn-primary';
+                oauthBtn.style.fontSize = '0.78rem';
+                oauthBtn.style.padding = '6px 12px';
+                oauthBtn.textContent = '1-Click Google OAuth';
+                oauthBtn.onclick = () => initiateOAuthFlow();
+                btns.appendChild(oauthBtn);
             }
         }
 

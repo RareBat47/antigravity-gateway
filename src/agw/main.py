@@ -61,6 +61,14 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     aistudio_client = AIStudioClient()
     geminiweb_client = GeminiWebClient()
     account_mgr = AccountManager(cfg, repo, vault, client)
+    from agw.agent.provisioner import AutonomousProvisioningAgent
+    provisioning_agent = AutonomousProvisioningAgent(
+        config=cfg,
+        repo=repo,
+        account_mgr=account_mgr,
+        aistudio_client=aistudio_client,
+        geminiweb_client=geminiweb_client,
+    )
 
     cooldown_mgr = CooldownManager(
         repo=repo,
@@ -158,6 +166,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             dashboard_html_content=get_dashboard_html(),
             aistudio_client=aistudio_client,
             geminiweb_client=geminiweb_client,
+            provisioning_agent=provisioning_agent,
         )
     )
 
