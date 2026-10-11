@@ -1554,6 +1554,52 @@
                         <span>Failover: <strong style="color:var(--primary);">Active</strong></span>
                     </div>
                 </div>
+
+                <!-- 4. Combined 4-Way Usage Limits Table Box -->
+                <div class="metric-card" style="min-width: 310px;">
+                    <div class="metric-header">
+                        <span class="metric-title">4-Way Usage Limits</span>
+                        <span class="metric-badge" style="color:var(--success); background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3);">All Probed</span>
+                    </div>
+                    <div style="margin-top: 4px;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.73rem;">
+                            <thead>
+                                <tr style="color:var(--text-muted); border-bottom:1px solid var(--border); text-align:left;">
+                                    <th style="padding:2px 4px;">Way</th>
+                                    <th style="padding:2px 4px;">Limit Used</th>
+                                    <th style="padding:2px 4px;">Remaining</th>
+                                    <th style="padding:2px 4px; text-align:right;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                                    <td style="padding:3px 4px;"><span class="method-badge method-agy">agy</span></td>
+                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-agy">37%</td>
+                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-agy">63% Free</td>
+                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--success);">● Active</span></td>
+                                </tr>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                                    <td style="padding:3px 4px;"><span class="method-badge method-gweb">gweb</span></td>
+                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-gweb">12%</td>
+                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-gweb">88% Free</td>
+                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--success);">● Active</span></td>
+                                </tr>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                                    <td style="padding:3px 4px;"><span class="method-badge" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3);">studio</span></td>
+                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-studio">5%</td>
+                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-studio">95% Free</td>
+                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--success);">● Active</span></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:3px 4px;"><span class="method-badge method-gcli">gcli</span></td>
+                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-gcli">4%</td>
+                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-gcli">96% Free</td>
+                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--success);">● Active</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <!-- Table Container -->
@@ -1590,6 +1636,125 @@
                                     </div>
                                 </div>
                             </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section: Connected Applications & Client Integrations Tracker Table -->
+        <section class="panel-card" id="connected-apps-panel" style="margin-bottom: 2rem;">
+            <div class="panel-header">
+                <div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <h2 class="panel-title">📱 Connected Applications & Client Integrations Tracker</h2>
+                        <span class="count-badge" style="background:rgba(16,185,129,0.15); color:#10b981;">5 Local Workstations Bound</span>
+                    </div>
+                    <p class="panel-desc">Live audit of software environments, CLI developer tools, and GUI applications connected to this Antigravity Gateway.</p>
+                </div>
+                <div class="header-actions">
+                    <span class="badge badge-success">● Gateway Port 8999 Active</span>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="connected-apps-table">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 200px;">Connected Application</th>
+                            <th style="min-width: 150px;">Role & Mission</th>
+                            <th style="min-width: 170px;">Bound Provider Channel</th>
+                            <th style="min-width: 180px;">Active Primary Model</th>
+                            <th style="min-width: 170px;">API Key in Use</th>
+                            <th style="min-width: 230px;">Local Config File / Launcher</th>
+                            <th style="width: 110px; text-align: right;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:1.1rem;">💻</span>
+                                    <div>
+                                        <strong style="color:var(--text-main);">Claude Code CLI</strong>
+                                        <div style="font-size:0.7rem; color:var(--text-muted);">v2.1.197 (@anthropic-ai/claude-code)</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge" style="background:rgba(56,189,248,0.15); color:#38bdf8;">🧠 Developer Brain</span></td>
+                            <td><span class="provider-badge prov-frontier">claude-frontier</span></td>
+                            <td><code>frontier-5.1</code> (Sonnet 5.5)</td>
+                            <td><code>agw-frontier-local</code></td>
+                            <td><span style="font-family:'JetBrains Mono', monospace; font-size:0.75rem;">~/.claude/CLAUDE.md</span></td>
+                            <td style="text-align:right;"><span class="badge badge-success">● Connected</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:1.1rem;">🖥️</span>
+                                    <div>
+                                        <strong style="color:var(--text-main);">Claude Desktop GUI</strong>
+                                        <div style="font-size:0.7rem; color:var(--text-muted);">v2.31226.1 (Linux Native)</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge" style="background:rgba(168,85,247,0.15); color:#c084fc;">🎨 Desktop Workspace</span></td>
+                            <td><span class="provider-badge prov-frontier">claude-frontier</span></td>
+                            <td><code>frontier-5.1</code> (Sonnet 5.5)</td>
+                            <td><code>agw-frontier-local</code></td>
+                            <td><span style="font-family:'JetBrains Mono', monospace; font-size:0.75rem;">claude_desktop_config.json</span></td>
+                            <td style="text-align:right;"><span class="badge badge-success">● Connected</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:1.1rem;">⚡</span>
+                                    <div>
+                                        <strong style="color:var(--text-main);">OpenCode CLI</strong>
+                                        <div style="font-size:0.7rem; color:var(--text-muted);">v1.19.0 (opencode)</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge" style="background:rgba(245,158,11,0.15); color:#fbbf24;">⚡ Pure Coding Only</span></td>
+                            <td><span class="provider-badge prov-speed">gemini-speed-flash</span></td>
+                            <td><code>speed-flash</code> (Flash High)</td>
+                            <td><code>agw-speed-local</code></td>
+                            <td><span style="font-family:'JetBrains Mono', monospace; font-size:0.75rem;">~/.config/opencode/opencode.json</span></td>
+                            <td style="text-align:right;"><span class="badge badge-success">● Connected</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:1.1rem;">📚</span>
+                                    <div>
+                                        <strong style="color:var(--text-main);">Claude 1M Mass Auditor</strong>
+                                        <div style="font-size:0.7rem; color:var(--text-muted);">Long-Context Codebase Auditor</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge" style="background:rgba(168,85,247,0.15); color:#c084fc;">🔍 Mass Codebase Audit</span></td>
+                            <td><span class="provider-badge prov-megacontext">mega-context-1m</span></td>
+                            <td><code>1m-mega</code> (1,000,000 tokens)</td>
+                            <td><code>agw-megacontext-local</code></td>
+                            <td><span style="font-family:'JetBrains Mono', monospace; font-size:0.75rem;">~/.local/bin/1m-mega</span></td>
+                            <td style="text-align:right;"><span class="badge badge-success">● Connected</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:1.1rem;">🛠️</span>
+                                    <div>
+                                        <strong style="color:var(--text-main);">Agentic Pro Escalation</strong>
+                                        <div style="font-size:0.7rem; color:var(--text-muted);">Autonomous Architecture Skill</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge" style="background:rgba(239,68,68,0.15); color:#f87171;">🛠️ Reasoning Escalation</span></td>
+                            <td><span class="provider-badge prov-agentic">gemini-agentic-pro</span></td>
+                            <td><code>agentic-pro</code> (Pro Agent)</td>
+                            <td><code>agw-agentic-local</code></td>
+                            <td><span style="font-family:'JetBrains Mono', monospace; font-size:0.75rem;">~/.agents/skills/agentic-pro-escalation/</span></td>
+                            <td style="text-align:right;"><span class="badge badge-success">● Connected</span></td>
                         </tr>
                     </tbody>
                 </table>
