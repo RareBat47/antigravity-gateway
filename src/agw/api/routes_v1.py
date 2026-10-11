@@ -96,15 +96,15 @@ def create_v1_router(
         allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
         allowed_models = key_info.get("allowed_models", [])
 
+        if key_info.get("advertise_all_models", False) or "all" in allowed_fams:
+            return {"object": "list", "data": all_models}
+
         if allowed_models:
             filtered = [
                 m for m in all_models
                 if m["id"] in allowed_models or normalize_model_id(m["id"]) in allowed_models
             ]
             return {"object": "list", "data": filtered}
-
-        if "all" in allowed_fams:
-            return {"object": "list", "data": all_models}
 
         filtered = []
         for m in all_models:
@@ -218,9 +218,10 @@ def create_v1_router(
         if key_info:
             allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
             allowed_models = key_info.get("allowed_models", [])
+            advertise_all = key_info.get("advertise_all_models", False)
             normalized_mid = normalize_model_id(model_id)
 
-            if allowed_models:
+            if not advertise_all and allowed_models:
                 if model_id not in allowed_models and normalized_mid not in allowed_models:
                     raise HTTPException(
                         status_code=403,
@@ -231,7 +232,7 @@ def create_v1_router(
                             }
                         },
                     )
-            elif (
+            elif not advertise_all and (
                 "all" not in allowed_fams
                 and family.lower() not in allowed_fams
             ):

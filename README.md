@@ -147,17 +147,21 @@ flowchart TD
 
 ---
 
-## 🔑 The 4 Categorized Provider APIs & Proper Usage Guide
+## 🔑 4-Way Connections (agy • gweb • studio • gcli) & Provider APIs
 
-The gateway organizes its curated 7-model catalog into **4 dedicated Provider Groups**. Each group has its own dedicated API key, base URL, and strict rate-limit boundary:
+The gateway aggregates whatever can be accessed for free from Google into **4 primary connection channels**, plus dedicated dual-agent developer profiles:
 
-| Provider Name | API Key | Base URL | Curated Models | Primary Role & Best For |
+| Channel / Provider | Virtual API Key | Base URL | Primary Upstream Source | Curated Models Available Free |
 |---|---|---|---|---|
-| **`claude-frontier`** | `agw-frontier-local` | `http://127.0.0.1:8999/v1` | `claude-sonnet-5.5`<br>`claude-opus-5.5` | **Frontier Flagship Reasoning**: Deep logic, systems architecture, comprehensive design docs, Claude Code developer brain. |
-| **`mega-context-1m`** | `agw-megacontext-local` | `http://127.0.0.1:8999/v1` | `claude-sonnet-5[1m]`<br>`claude-opus-5[1m]` | **1M Token Mega-Context**: Ingesting entire code repositories, massive terminal log audits, multi-thousand page documents. |
-| **`gemini-speed-flash`** | `agw-speed-local` | `http://127.0.0.1:8999/v1` | `gemini-3.8-flash-high` | **High-Speed Pure Coding**: Sub-second interactive latency, high-throughput edits, test generation, OpenCode default engine. |
-| **`gemini-agentic-pro`** | `agw-agentic-local` | `http://127.0.0.1:8999/v1` | `gemini-pro-agent`<br>`gemini-3.1-pro-low` | **Autonomous Agentic & Pro Workflows**: Difficult bugs, multi-file refactoring, step-by-step diagnostic reasoning. |
-| **`Master Gateway`** | `agw-local-dE9X...` | `http://127.0.0.1:8999/v1` | *All 7 Models* | **Unrestricted Administrative Access**: For management scripts and universal dashboard tools. |
+| **`agy` (Antigravity OAuth)** | `agw-agy-local` | `http://127.0.0.1:8999/v1` | Google Antigravity Cloud Code Assist | `claude-sonnet-5.5`, `claude-opus-5.5`, `claude-sonnet-5[1m]`, `claude-opus-5[1m]`, `claude-fable-5`, `claude-sonnet-5`, `claude-opus-5`, `gemini-3.8-flash-high`, `gemini-3.7-flash-high`, `gemini-pro-agent`, `gemini-3.1-pro-low`, `gpt-oss-120b-medium` |
+| **`gweb` (Gemini Web Sessions)** | `agw-gweb-local` | `http://127.0.0.1:8999/v1` | Consumer Gemini Web Session (`__Secure-1PSID` / `SNlM0e`) | `gemini-2.5-pro` (Web Advanced), `gemini-2.5-flash`, `gemini-2.0-flash-thinking-exp`, `gemini-advanced` |
+| **`studio` (Google AI Studio)** | `agw-studio-local` | `http://127.0.0.1:8999/v1` | Google AI Studio Free Developer API Keys (`AIza...`) | `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.0-flash`, `gemini-2.0-flash-thinking-exp`, `gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-1.5-flash-8b` |
+| **`gcli` (Gemini CLI Protocol)** | `agw-gcli-local` | `http://127.0.0.1:8999/v1` | Google Cloud CLI / Cloud Code gcli OAuth | `gemini-code-assist`, `gemini-1.5-pro` |
+| **`claude-frontier`** | `agw-frontier-local` | `http://127.0.0.1:8999/v1` | Claude Code Developer Brain Profile | `frontier-5.1` / `claude-sonnet-5.5`, `claude-opus-5.5` + Unlocked Free Google Catalog |
+| **`mega-context-1m`** | `agw-megacontext-local` | `http://127.0.0.1:8999/v1` | Mass Repository Audit Profile | `1m-mega` / `claude-sonnet-5[1m]`, `claude-opus-5[1m]` + Unlocked Free Google Catalog |
+| **`gemini-speed-flash`** | `agw-speed-local` | `http://127.0.0.1:8999/v1` | OpenCode Pure Coding Profile | `speed-flash` / `gemini-3.8-flash-high`, `gemini-2.5-flash` + Unlocked Free Google Catalog |
+| **`gemini-agentic-pro`** | `agw-agentic-local` | `http://127.0.0.1:8999/v1` | OpenCode Escalation Profile | `agentic-pro` / `gemini-pro-agent`, `gemini-3.1-pro-low`, `gemini-2.5-pro` + Unlocked Free Google Catalog |
+| **`Master Gateway`** | `agw-local-dE9X...` | `http://127.0.0.1:8999/v1` | Universal Master Key | *All Free Models Across All 4 Channels* |
 
 ---
 
@@ -165,28 +169,39 @@ The gateway organizes its curated 7-model catalog into **4 dedicated Provider Gr
 
 To ensure optimal performance and avoid burning through account limits:
 
-* ⚡ **Keep OpenCode strictly on `gemini-speed-flash`**:
-  * Gemini 3.8 Flash High provides near-instantaneous streaming and handles 95% of all code authoring, typing, and refactoring with zero rate-limit anxiety.
-* 🧠 **Reserve `mega-context-1m` for Whole-Repo Audits Only**:
-  * 1,000,000 tokens consume quota significantly faster. Use `claude-mega` when you need to ingest an entire multi-folder codebase or analyze massive log traces. For day-to-day coding, stick to `claude-frontier`.
+* ⚡ **Keep OpenCode strictly on `gemini-speed-flash` (`speed-flash`)**:
+  * Gemini 3.8 Flash High & Gemini 2.5 Flash provide near-instantaneous streaming and handle 95% of all code authoring, typing, and refactoring with zero rate-limit anxiety.
+* 🧠 **Reserve `1m-mega` for Whole-Repo Audits Only**:
+  * 1,000,000 tokens consume quota significantly faster. Use `claude-mega` or `1m-mega` when you need to ingest an entire multi-folder codebase or analyze massive log traces. For day-to-day coding, stick to `frontier-5.1`.
 * 🛠️ **Use `gemini-agentic-pro` via the Escalation Protocol**:
-  * When OpenCode encounters a tricky bug that fails after two attempts, escalate to `agentic-pro/gemini-pro-agent` to formulate a solution blueprint, then immediately revert to `speed-flash` to write the code.
-* 🔒 **Client Isolation**:
-  * Because each provider key is isolated by model family, if Claude experiences a temporary quota backoff, **OpenCode continues running on Gemini at full speed with zero interruption.**
+  * When OpenCode encounters a tricky bug that fails after two attempts, escalate to `agentic-pro` to formulate a solution blueprint, then immediately revert to `speed-flash` to write the code.
+* 🔒 **4-Way Cross-Channel Redundancy**:
+  * Because the gateway manages Antigravity OAuth (`agy`), Gemini Web (`gweb`), AI Studio (`studio`), and Gemini CLI (`gcli`), if any single channel encounters an upstream cooldown, **requests transparently fail over to the next healthy free connection with zero disruption.**
 
 ---
 
-## 🧩 Curated 7-Model Catalog Reference
+## 🧩 Comprehensive Free Google AI Model Reference
 
-| # | Model Identifier | Provider Group | Context Window | Max Output | Features |
-|---|---|---|---|---|---|
-| **#1** | `gemini-3.8-flash-high` | `gemini-speed-flash` | 1,048,576 | 65,536 | Sub-second latency, streaming, tool calling |
-| **#5** | `gemini-3.1-pro-low` | `gemini-agentic-pro` | 1,048,576 | 65,536 | Pro reasoning, structural planning, tool calling |
-| **#6** | `gemini-pro-agent` | `gemini-agentic-pro` | 1,048,576 | 65,536 | Autonomous multi-turn agent execution, tools |
-| **#8** | `claude-sonnet-5.5` | `claude-frontier` | 200,000 | 16,384 | Flagship coding & reasoning, thinking tokens |
-| **#9** | `claude-opus-5.5` | `claude-frontier` | 200,000 | 16,384 | Deep architectural synthesis, thinking tokens |
-| **#13** | `claude-sonnet-5[1m]` | `mega-context-1m` | 1,000,000 | 16,384 | 1M mega-context, whole-codebase audits |
-| **#14** | `claude-opus-5[1m]` | `mega-context-1m` | 1,000,000 | 16,384 | 1M mega-context, deep long-context reasoning |
+| Model Identifier | Primary 4-Way Channel | Context Window | Max Output | Features & Strengths |
+|---|---|---|---|---|
+| `frontier-5.1` / `claude-sonnet-5.5` | `agy` (Antigravity) | 200,000 | 16,384 | Flagship coding & reasoning, thinking tokens |
+| `claude-opus-5.5` | `agy` (Antigravity) | 200,000 | 16,384 | Deep architectural synthesis, thinking tokens |
+| `1m-mega` / `claude-sonnet-5[1m]` | `agy` (Antigravity) | 1,000,000 | 16,384 | 1M mega-context, whole-codebase audits |
+| `claude-opus-5[1m]` | `agy` (Antigravity) | 1,000,000 | 16,384 | 1M mega-context, deep long-context reasoning |
+| `claude-fable-5` | `agy` (Antigravity) | 200,000 | 16,384 | Experimental fast frontier coding |
+| `speed-flash` / `gemini-3.8-flash-high` | `agy` (Antigravity) | 1,048,576 | 65,536 | Sub-second latency, high-throughput streaming, tool calling |
+| `gemini-3.7-flash-high` | `agy` (Antigravity) | 1,048,576 | 65,536 | Hybrid thinking & fast streaming |
+| `agentic-pro` / `gemini-pro-agent` | `agy` (Antigravity) | 1,048,576 | 65,536 | Autonomous multi-turn agent execution, tools |
+| `gemini-3.1-pro-low` | `agy` (Antigravity) | 1,048,576 | 65,536 | Pro reasoning, structural planning, tool calling |
+| `gemini-2.5-pro` | `studio` / `gweb` | 2,097,152 | 65,536 | 2M context flagship reasoning free tier |
+| `gemini-2.5-flash` | `studio` / `gweb` | 1,048,576 | 65,536 | High-throughput ultra-fast free tier |
+| `gemini-2.5-flash-lite` | `studio` | 1,048,576 | 65,536 | Sub-100ms ultra-low latency free tier |
+| `gemini-2.0-flash` | `studio` | 1,048,576 | 65,536 | Multimodal free tier inference |
+| `gemini-2.0-flash-thinking-exp` | `studio` / `gweb` | 1,048,576 | 65,536 | Experimental deep reasoning free tier |
+| `gemini-1.5-pro` | `studio` | 2,097,152 | 65,536 | 2M context developer free tier |
+| `gemini-1.5-flash` | `studio` | 1,048,576 | 65,536 | Lightweight developer free tier |
+| `gemini-code-assist` | `gcli` (Gemini CLI) | 1,048,576 | 65,536 | Google Cloud CLI developer completions |
+| `gpt-oss-120b-medium` | `agy` (Antigravity) | 131,072 | 32,768 | Open-weights 120B parameter model via Google infra |
 
 ---
 

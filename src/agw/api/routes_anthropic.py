@@ -62,11 +62,15 @@ def create_anthropic_router(
         raw_model = anthropic_body.get("model", "claude-sonnet-5.5")
         is_streaming = bool(body.get("stream", False))
 
+        m_def = model_registry.get_model(raw_model, fallback_to_default=True)
+        upstream_id, family, max_tokens = model_registry.resolve_upstream(raw_model, strict=False)
+
         # Enforce API Key permissions & smart key adaptation
         key_info = getattr(request.state, "api_key_info", None)
         if key_info:
             allowed_fams = [f.lower() for f in key_info.get("allowed_families", ["all"])]
             allowed_models = key_info.get("allowed_models", [])
+            advertise_all = key_info.get("advertise_all_models", False)
             normalized_mid = normalize_model_id(raw_model)
 
             # If key is scoped specifically to mega-context (1M) and client sent default sonnet/opus
@@ -76,21 +80,19 @@ def create_anthropic_router(
                 else:
                     raw_model = "claude-sonnet-5[1m]"
                 normalized_mid = raw_model
+                upstream_id, family, max_tokens = model_registry.resolve_upstream(raw_model, strict=False)
 
-            if allowed_models:
+            if not advertise_all and allowed_models:
                 if normalized_mid not in allowed_models and raw_model not in allowed_models:
                     raise HTTPException(
                         status_code=403,
                         detail={"error": {"type": "permission_error", "message": f"Model '{raw_model}' is not permitted for this API key. Allowed: {allowed_models}"}},
                     )
-            elif "all" not in allowed_fams and family.lower() not in allowed_fams:
+            elif not advertise_all and "all" not in allowed_fams and family.lower() not in allowed_fams:
                 raise HTTPException(
                     status_code=403,
                     detail={"error": {"type": "permission_error", "message": f"Model family '{family}' is not permitted for this API key."}},
                 )
-
-        m_def = model_registry.get_model(raw_model, fallback_to_default=True)
-        upstream_id, family, max_tokens = model_registry.resolve_upstream(raw_model, strict=False)
 
         messages = body.get("messages", [])
         if not messages:

@@ -13,48 +13,71 @@ security:
   rate_limit_per_minute: 120
   cors_origins: []
   api_keys:
-    # Provider 1: Frontier Elite Reasoning (Claude 5.5)
-    - key: "agw-frontier-local"
-      name: "Claude 5.5 Frontier Flagship"
-      description: "Claude 5.5 Sonnet & Opus Frontier Reasoning Models"
-      allowed_families: ["claude"]
-      allowed_models:
-        - "claude-sonnet-5.5"
-        - "claude-opus-5.5"
-      profile: "claude-code"
-      advertise_all_models: false
+    # === 4-WAY CONNECTIONS (agy • gweb • studio • gcli) ===
+    - key: "agw-agy-local"
+      name: "Antigravity OAuth Engine (agy)"
+      description: "Google Antigravity Cloud Code channel (Claude 5, Gemini 3, GPT-OSS)"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "agy"
+      advertise_all_models: true
 
-    # Provider 2: 1M Mega Context Deep Research
+    - key: "agw-gweb-local"
+      name: "Gemini Web Free Sessions (gweb)"
+      description: "Consumer Gemini Advanced Web Session Extractor (Gemini 2.5 Pro via cookies)"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "gweb"
+      advertise_all_models: true
+
+    - key: "agw-studio-local"
+      name: "Google AI Studio Free Tier (studio)"
+      description: "Google AI Studio Developer API Channel (Gemini 2.5 Pro, Flash, 2.0 Flash)"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "studio"
+      advertise_all_models: true
+
+    - key: "agw-gcli-local"
+      name: "Gemini CLI OAuth (gcli)"
+      description: "Google Cloud CLI / gcli protocol channel (Gemini Code Assist)"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "gcli"
+      advertise_all_models: true
+
+    # === WORKSTATION CLIENT KEYS (Fully Unlocked to All Free Models) ===
+    - key: "agw-frontier-local"
+      name: "Frontier 5.1 & Claude 5.5 Flagship"
+      description: "Frontier 5.1 Sonnet & Opus Reasoning Models + All Free Google Models"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "claude-code"
+      advertise_all_models: true
+
     - key: "agw-megacontext-local"
       name: "Mega Context 1M Deep Research"
-      description: "Claude 1M Token Context Engine for Mass Codebases"
-      allowed_families: ["claude"]
-      allowed_models:
-        - "claude-sonnet-5[1m]"
-        - "claude-opus-5[1m]"
+      description: "Claude 1M Token Context Engine for Mass Codebases + All Free Models"
+      allowed_families: ["all"]
+      allowed_models: []
       profile: "claude-code"
-      advertise_all_models: false
+      advertise_all_models: true
 
-    # Provider 3: Speed Flash High Throughput
     - key: "agw-speed-local"
       name: "Gemini Speed Flash (Coding Workhorse)"
-      description: "Ultra-fast execution model for pure coding"
-      allowed_families: ["gemini"]
-      allowed_models:
-        - "gemini-3.8-flash-high"
+      description: "Ultra-fast execution model for pure coding in OpenCode"
+      allowed_families: ["all"]
+      allowed_models: []
       profile: "opencode"
-      advertise_all_models: false
+      advertise_all_models: true
 
-    # Provider 4: Agentic Pro Reasoning Escalation
     - key: "agw-agentic-local"
       name: "Agentic Pro Reasoning Escalation"
       description: "Autonomous reasoning and architecture models"
-      allowed_families: ["gemini"]
-      allowed_models:
-        - "gemini-pro-agent"
-        - "gemini-3.1-pro-low"
+      allowed_families: ["all"]
+      allowed_models: []
       profile: "opencode"
-      advertise_all_models: false
+      advertise_all_models: true
 
 storage:
   database_path: "data/gateway.db"
