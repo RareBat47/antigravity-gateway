@@ -188,6 +188,14 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     # Root redirect / welcome
     from fastapi.responses import RedirectResponse
 
+    @app.get("/dashboard", tags=["Root"])
+    async def dashboard_alias():
+        return RedirectResponse(url="/admin/dashboard")
+
+    @app.get("/healthz", tags=["Root"])
+    async def healthz():
+        return {"status": "ok"}
+
     @app.get("/", tags=["Root"])
     async def root(request: Request):
         accept = request.headers.get("accept", "")
