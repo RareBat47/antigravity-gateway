@@ -1,0 +1,139 @@
+server:
+  host: "127.0.0.1"
+  port: 8999
+  debug: false
+  public_base_url: ""
+
+security:
+  gateway_api_key: ""
+  admin_api_key: ""
+  local_trust: false
+  dashboard_local_access: true
+  encryption_key: ""
+  rate_limit_per_minute: 120
+  cors_origins: []
+  api_keys:
+    # Provider 1: Frontier Elite Reasoning (Claude 5.5)
+    - key: "agw-frontier-local"
+      name: "Claude 5.5 Frontier Flagship"
+      description: "Claude 5.5 Sonnet & Opus Frontier Reasoning Models"
+      allowed_families: ["claude"]
+      allowed_models:
+        - "claude-sonnet-5.5"
+        - "claude-opus-5.5"
+      profile: "claude-code"
+      advertise_all_models: false
+
+    # Provider 2: 1M Mega Context Deep Research
+    - key: "agw-megacontext-local"
+      name: "Mega Context 1M Deep Research"
+      description: "Claude 1M Token Context Engine for Mass Codebases"
+      allowed_families: ["claude"]
+      allowed_models:
+        - "claude-sonnet-5[1m]"
+        - "claude-opus-5[1m]"
+      profile: "claude-code"
+      advertise_all_models: false
+
+    # Provider 3: Speed Flash High Throughput
+    - key: "agw-speed-local"
+      name: "Gemini Speed Flash (Coding Workhorse)"
+      description: "Ultra-fast execution model for pure coding"
+      allowed_families: ["gemini"]
+      allowed_models:
+        - "gemini-3.8-flash-high"
+      profile: "opencode"
+      advertise_all_models: false
+
+    # Provider 4: Agentic Pro Reasoning Escalation
+    - key: "agw-agentic-local"
+      name: "Agentic Pro Reasoning Escalation"
+      description: "Autonomous reasoning and architecture models"
+      allowed_families: ["gemini"]
+      allowed_models:
+        - "gemini-pro-agent"
+        - "gemini-3.1-pro-low"
+      profile: "opencode"
+      advertise_all_models: false
+
+storage:
+  database_path: "data/gateway.db"
+  vault_key_path: "data/vault.key"
+  quota_state_path: "data/quota-state.json"
+  status_report_path: "docs/account-status.md"
+
+scheduler:
+  strategy: "hybrid"
+  weights:
+    health: 2.0
+    tokens: 5.0
+    quota: 3.0
+    lru: 0.1
+  global_quota_threshold: 0.05
+  max_account_retries: 3
+  default_cooldown_seconds: 60
+  upstream_timeout_seconds: 300
+  cooldown_tiers_seconds:
+    - 60
+    - 300
+    - 1800
+    - 7200
+
+quota_monitor:
+  enabled: true
+  interval_seconds: 300
+  stale_threshold_seconds: 600
+
+models:
+  # 1. Tiered Flash Backbone
+  gemini-3.8-flash-high:
+    upstream_id: "gemini-3.8-flash-tiered"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 65536
+  # 2. Gemini 3.6 (Antigravity Agent Default)
+  gemini-3.6-flash-high:
+    upstream_id: "gemini-3.6-flash-high"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 65536
+  gemini-3.6-flash-medium:
+    upstream_id: "gemini-3.6-flash-medium"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 65536
+  # 3. Pro Reasoning
+  gemini-3.1-pro-low:
+    upstream_id: "gemini-3.1-pro-low"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 8192
+  gemini-pro-agent:
+    upstream_id: "gemini-pro-agent"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 65535
+  # 4. Claude 5.5 Generation (1M Context / 128k Output)
+  claude-opus-5-5-medium:
+    upstream_id: "claude-opus-5-5-medium"
+    family: "claude"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 128000
+  claude-sonnet-5-5-high:
+    upstream_id: "claude-sonnet-5-5-high"
+    family: "claude"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 128000
+  claude-sonnet-5-5-medium:
+    upstream_id: "claude-sonnet-5-5-medium"
+    family: "claude"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 128000
+  # 5. Claude 4.6 Generation
+  # 6. GPT Fallback
+  gpt-oss-120b-medium:
+    upstream_id: "gpt-oss-120b-medium"
+    family: "gpt"
+    capabilities: ["tools", "streaming"]
+    max_output_tokens: 16384
+
