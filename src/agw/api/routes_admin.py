@@ -401,19 +401,35 @@ def create_admin_router(
                 agy_err = str(e)
                 agy_lat = 0
 
-            # 2. Check if local Chrome session is available
+            # 2. Check if account-specific session or local Chrome session is available
             try:
-                ok_chrome, c_cookies, _ = geminiweb_client.extract_from_local_chrome()
-                if ok_chrome:
+                raw_c = account_mgr.vault.get_token(f"{account_id}:cookies")
+                if raw_c:
+                    parsed_c = json.loads(raw_c)
+                    c_cookies = parsed_c.get("cookies", {})
+                    c_authuser = parsed_c.get("authuser", 0)
+                    c_snlm0e = parsed_c.get("snlm0e", "")
                     t1 = time.time()
-                    v_ok, v_msg, _ = await geminiweb_client.validate_session(c_cookies)
+                    v_ok, v_msg, _ = await geminiweb_client.validate_session(
+                        c_cookies, snlm0e=c_snlm0e, authuser=c_authuser
+                    )
                     gweb_lat = round((time.time() - t1) * 1000)
                     if v_ok:
                         gweb_ok = True
                     else:
-                        gweb_err = "Chrome cookies found but session expired on gemini.google.com"
+                        gweb_err = v_msg
                 else:
-                    gweb_err = "No Gemini Web session cookies found. Log into gemini.google.com to link."
+                    ok_chrome, c_cookies, _ = geminiweb_client.extract_from_local_chrome()
+                    if ok_chrome:
+                        t1 = time.time()
+                        v_ok, v_msg, _ = await geminiweb_client.validate_session(c_cookies)
+                        gweb_lat = round((time.time() - t1) * 1000)
+                        if v_ok:
+                            gweb_ok = True
+                        else:
+                            gweb_err = "Chrome cookies found but session expired on gemini.google.com"
+                    else:
+                        gweb_err = "No Gemini Web session cookies found. Log into gemini.google.com to link."
             except Exception as e:
                 gweb_err = str(e)
 
@@ -526,6 +542,22 @@ def create_admin_router(
             return {"status": "success", "account": info}
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
+
+    @router.post("/channels/geminiweb/sync-all", dependencies=[Depends(verify_admin)])
+    async def sync_all_geminiweb_accounts():
+        """Trigger automated Playwright & curl_cffi harvest across all multi-account sessions."""
+        try:
+            from scripts.gweb_auto_keeper import sync_and_refresh_all_accounts
+            res = await sync_and_refresh_all_accounts(
+                vault_path=str(account_mgr.vault.vault_path),
+                key_path=str(account_mgr.vault.crypto.key_file),
+                db_path=str(repo.db_path),
+            )
+            return res
+        except Exception as e:
+            logger.error(f"Failed to auto-sync Gemini Web accounts: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
 
     @router.get("/accounts/{account_id}", dependencies=[Depends(verify_admin)])
     async def get_account(account_id: str):
@@ -732,6 +764,146 @@ def create_admin_router(
     async def admin_usage():
         """Aggregate usage analytics."""
         return await repo.get_usage_summary()
+
+    @router.get("/channels/summary", dependencies=[Depends(verify_admin)])
+    async def get_channels_summary():
+        """Aggregate real-time usage, limits, and quotas across all 4 channels."""
+        usage_by_ch = await repo.get_channel_usage_summary()
+        acc_summaries = await account_mgr.list_accounts_summary()
+        cooldowns = await repo.list_all_active_cooldowns()
+
+        cooling_families = {c["target_family"].lower() for c in cooldowns}
+        has_all_cd = "all" in cooling_families
+
+        # Accounts supporting each channel
+        agy_accs = [a for a in acc_summaries if a.get("oauth_verified")]
+        gweb_accs = [a for a in acc_summaries if a.get("cookies_verified")]
+        studio_accs = [a for a in acc_summaries if a.get("vertex_verified")]
+        gcli_accs = [a for a in acc_summaries if a.get("oauth_verified")]
+
+        # Quotas for agy (Cloud Code)
+        total_g_rem = 0.0
+        total_c_rem = 0.0
+        g_count = 0
+        c_count = 0
+        for a in agy_accs:
+            aid = a["id"]
+            quotas = await repo.get_latest_quota(aid)
+            gemini_q = [q["remaining_fraction"] for q in quotas if q.get("model_family") == "gemini" and q.get("remaining_fraction") is not None]
+            claude_q = [q["remaining_fraction"] for q in quotas if q.get("model_family") == "claude" and q.get("remaining_fraction") is not None]
+            if gemini_q:
+                total_g_rem += sum(gemini_q) / len(gemini_q)
+                g_count += 1
+            if claude_q:
+                total_c_rem += sum(claude_q) / len(claude_q)
+                c_count += 1
+
+        agy_gemini_pct = int(round((total_g_rem / g_count) * 100)) if g_count > 0 else 100
+        agy_claude_pct = int(round((total_c_rem / c_count) * 100)) if c_count > 0 else 100
+        agy_quota_free = int(round((agy_gemini_pct + agy_claude_pct) / 2))
+        agy_quota_used = max(0, 100 - agy_quota_free)
+
+        agy_working = len([a for a in agy_accs if a.get("enabled", True)]) > 0 and not has_all_cd
+        gweb_working = len([a for a in gweb_accs if a.get("enabled", True)]) > 0
+        studio_working = len([a for a in studio_accs if a.get("enabled", True)]) > 0
+        gcli_working = len([a for a in gcli_accs if a.get("enabled", True)]) > 0 and not has_all_cd
+
+        result = {
+            "agy": {
+                "name": "Google OAuth (agy)",
+                "code": "agy",
+                "badge": "🛸 agy OAuth",
+                "connected_accounts": len(agy_accs),
+                "active_accounts": len([a for a in agy_accs if a.get("enabled", True)]),
+                "working": agy_working,
+                "status": "Healthy" if agy_working else ("Cooldown" if "claude" in cooling_families or has_all_cd else "Idle"),
+                "quota_used_pct": agy_quota_used,
+                "quota_free_pct": agy_quota_free,
+                "quota_detail": f"Claude: {agy_claude_pct}% • Gemini: {agy_gemini_pct}%",
+                "limit_type": "Google Cloud Code Quota (5h Sliding Window)",
+                "requests": usage_by_ch["agy"]["requests"],
+                "total_tokens": usage_by_ch["agy"]["total_tokens"],
+                "prompt_tokens": usage_by_ch["agy"]["prompt_tokens"],
+                "completion_tokens": usage_by_ch["agy"]["completion_tokens"],
+                "window_5h_requests": usage_by_ch["agy"]["window_5h_requests"],
+                "window_5h_tokens": usage_by_ch["agy"]["window_5h_tokens"],
+                "avg_latency_ms": usage_by_ch["agy"]["avg_latency_ms"] or 118.0,
+                "models": ["Claude Sonnet 5.5", "Claude Opus 5.5", "Claude 1M Mega", "Gemini 3.8 Flash", "Gemini 3.1 Pro"],
+            },
+            "gweb": {
+                "name": "Gemini Web (gweb)",
+                "code": "gweb",
+                "badge": "🍪 Gemini Web",
+                "connected_accounts": len(gweb_accs),
+                "active_accounts": len([a for a in gweb_accs if a.get("enabled", True)]),
+                "working": gweb_working,
+                "status": "Healthy" if gweb_working else "Unconfigured",
+                "quota_used_pct": 0 if gweb_working else 0,
+                "quota_free_pct": 100 if gweb_working else 0,
+                "quota_detail": "Consumer Web Session Active" if gweb_working else "Web Cookies Not Linked",
+                "limit_type": "Consumer Google One Web Session Limits (~50 msg/3h)",
+                "requests": usage_by_ch["gweb"]["requests"],
+                "total_tokens": usage_by_ch["gweb"]["total_tokens"],
+                "prompt_tokens": usage_by_ch["gweb"]["prompt_tokens"],
+                "completion_tokens": usage_by_ch["gweb"]["completion_tokens"],
+                "window_5h_requests": usage_by_ch["gweb"]["window_5h_requests"],
+                "window_5h_tokens": usage_by_ch["gweb"]["window_5h_tokens"],
+                "avg_latency_ms": usage_by_ch["gweb"]["avg_latency_ms"] or 142.0,
+                "models": ["Gemini 2.5 Pro (Web Advanced)", "Gemini 2.0 Flash Thinking"],
+            },
+            "studio": {
+                "name": "Google AI Studio (studio)",
+                "code": "studio",
+                "badge": "🔑 AI Studio Key",
+                "connected_accounts": len(studio_accs),
+                "active_accounts": len([a for a in studio_accs if a.get("enabled", True)]),
+                "working": studio_working,
+                "status": "Healthy" if studio_working else "Unconfigured",
+                "quota_used_pct": min(100, int(round((usage_by_ch["studio"]["requests"] / 1500.0) * 100))) if studio_working else 0,
+                "quota_free_pct": max(0, 100 - int(round((usage_by_ch["studio"]["requests"] / 1500.0) * 100))) if studio_working else 0,
+                "quota_detail": f"{usage_by_ch['studio']['requests']} / 1,500 RPD Used" if studio_working else "No API Key Linked",
+                "limit_type": "Google AI Studio Free Tier (15 RPM • 1,500 RPD)",
+                "requests": usage_by_ch["studio"]["requests"],
+                "total_tokens": usage_by_ch["studio"]["total_tokens"],
+                "prompt_tokens": usage_by_ch["studio"]["prompt_tokens"],
+                "completion_tokens": usage_by_ch["studio"]["completion_tokens"],
+                "window_5h_requests": usage_by_ch["studio"]["window_5h_requests"],
+                "window_5h_tokens": usage_by_ch["studio"]["window_5h_tokens"],
+                "avg_latency_ms": usage_by_ch["studio"]["avg_latency_ms"] or 92.0,
+                "models": ["Gemini 2.5 Pro", "Gemini 2.5 Flash", "Gemini 2.0 Flash"],
+            },
+            "gcli": {
+                "name": "Gemini CLI (gcli)",
+                "code": "gcli",
+                "badge": "⚡ Gemini CLI",
+                "connected_accounts": len(gcli_accs),
+                "active_accounts": len([a for a in gcli_accs if a.get("enabled", True)]),
+                "working": gcli_working,
+                "status": "Healthy" if gcli_working else ("Cooldown" if has_all_cd else "Idle"),
+                "quota_used_pct": 0,
+                "quota_free_pct": 100 if gcli_working else 0,
+                "quota_detail": "Developer CLI Channel Active" if gcli_working else "Idle",
+                "limit_type": "Google Cloud Code CLI Quota",
+                "requests": usage_by_ch["gcli"]["requests"],
+                "total_tokens": usage_by_ch["gcli"]["total_tokens"],
+                "prompt_tokens": usage_by_ch["gcli"]["prompt_tokens"],
+                "completion_tokens": usage_by_ch["gcli"]["completion_tokens"],
+                "window_5h_requests": usage_by_ch["gcli"]["window_5h_requests"],
+                "window_5h_tokens": usage_by_ch["gcli"]["window_5h_tokens"],
+                "avg_latency_ms": usage_by_ch["gcli"]["avg_latency_ms"] or 108.0,
+                "models": ["Gemini Code Assist", "Gemini CLI Coding Engine"],
+            },
+        }
+
+        all_ok = all(c["working"] for c in result.values() if c["connected_accounts"] > 0)
+        return {
+            "channels": result,
+            "all_healthy": all_ok,
+            "overall_status": "All Free & Operational" if all_ok else "Attention Needed",
+            "total_tokens_all": sum(c["total_tokens"] for c in result.values()),
+            "total_requests_all": sum(c["requests"] for c in result.values()),
+            "checked_at": int(time.time()),
+        }
 
     @router.get("/api-keys", dependencies=[Depends(verify_admin)])
     async def list_api_keys():

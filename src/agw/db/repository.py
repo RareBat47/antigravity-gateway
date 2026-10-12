@@ -471,3 +471,99 @@ class DatabaseRepository:
                 "total_tokens": res.get("total_tokens") or 0,
             }
 
+    async def get_channel_usage_summary(self) -> Dict[str, Any]:
+        """Aggregate usage events and tokens partitioned across the 4 channels."""
+        from agw.constants import PROVIDER_DEFINITIONS
+        canonical_channels = {"agy", "gweb", "studio", "gcli"}
+        model_to_channel = {}
+        for ch_key in ("agy", "gweb", "studio", "gcli"):
+            prov = PROVIDER_DEFINITIONS.get(ch_key, {})
+            for m in prov.get("models", []):
+                model_to_channel[m.lower()] = ch_key
+
+        def resolve_channel(mid: str) -> str:
+            m = (mid or "").lower().strip()
+            if m in canonical_channels:
+                return m
+            if m in model_to_channel:
+                return model_to_channel[m]
+            if "web" in m or "advanced" in m:
+                return "gweb"
+            if "studio" in m or "vertex" in m:
+                return "studio"
+            if "cli" in m or "code-assist" in m:
+                return "gcli"
+            return "agy"
+
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                """
+                SELECT
+                    model_id,
+                    COUNT(*) as requests,
+                    SUM(prompt_tokens) as prompt_tokens,
+                    SUM(completion_tokens) as completion_tokens,
+                    SUM(total_tokens) as total_tokens,
+                    AVG(latency_ms) as avg_latency_ms
+                FROM usage_events
+                GROUP BY model_id
+                """
+            )
+            rows = await cursor.fetchall()
+
+            cursor_5h = await db.execute(
+                """
+                SELECT
+                    model_id,
+                    COUNT(*) as requests,
+                    SUM(total_tokens) as total_tokens
+                FROM usage_events
+                WHERE created_at >= datetime('now', '-5 hours')
+                GROUP BY model_id
+                """
+            )
+            rows_5h = await cursor_5h.fetchall()
+            window_5h_map = {r["model_id"].lower(): dict(r) for r in rows_5h}
+
+        summary = {
+            "agy": {"requests": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "window_5h_requests": 0, "window_5h_tokens": 0, "avg_latency_ms": 0.0},
+            "gweb": {"requests": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "window_5h_requests": 0, "window_5h_tokens": 0, "avg_latency_ms": 0.0},
+            "studio": {"requests": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "window_5h_requests": 0, "window_5h_tokens": 0, "avg_latency_ms": 0.0},
+            "gcli": {"requests": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "window_5h_requests": 0, "window_5h_tokens": 0, "avg_latency_ms": 0.0},
+        }
+
+        latencies = {
+            "agy": {"total": 0.0, "count": 0},
+            "gweb": {"total": 0.0, "count": 0},
+            "studio": {"total": 0.0, "count": 0},
+            "gcli": {"total": 0.0, "count": 0},
+        }
+
+        for r in rows:
+            mid = (r["model_id"] or "").lower()
+            ch = resolve_channel(mid)
+            target = summary.get(ch, summary["agy"])
+            reqs = r["requests"] or 0
+            target["requests"] += reqs
+            target["prompt_tokens"] += r["prompt_tokens"] or 0
+            target["completion_tokens"] += r["completion_tokens"] or 0
+            target["total_tokens"] += r["total_tokens"] or 0
+            if r["avg_latency_ms"] and reqs > 0:
+                lat_target = latencies.get(ch, latencies["agy"])
+                lat_target["total"] += (r["avg_latency_ms"] * reqs)
+                lat_target["count"] += reqs
+
+        for ch, ldata in latencies.items():
+            if ldata["count"] > 0:
+                summary[ch]["avg_latency_ms"] = round(ldata["total"] / ldata["count"], 1)
+
+        for mid, w in window_5h_map.items():
+            ch = resolve_channel(mid)
+            target = summary.get(ch, summary["agy"])
+            target["window_5h_requests"] += w.get("requests", 0)
+            target["window_5h_tokens"] += w.get("total_tokens", 0)
+
+        return summary
+
+

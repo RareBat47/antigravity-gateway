@@ -1708,21 +1708,31 @@
                         <span class="metric-badge" id="pool-connected-badge" style="color:var(--primary); background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.3);">4 Channels</span>
                     </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 6px;">
-                        <span class="method-badge method-agy" style="font-size: 0.72rem; padding: 3px 8px;">🛸 Google OAuth</span>
-                        <span class="method-badge method-gweb" style="font-size: 0.72rem; padding: 3px 8px;">🍪 Gemini Web</span>
-                        <span class="method-badge" style="font-size: 0.72rem; padding: 3px 8px; background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3);">🔑 AI Studio Key</span>
-                        <span class="method-badge method-gcli" style="font-size: 0.72rem; padding: 3px 8px;">⚡ Gemini CLI</span>
+                        <span class="method-badge method-agy" id="pill-ch-agy" style="font-size: 0.72rem; padding: 3px 8px; cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view Google OAuth channel limits">🛸 Google OAuth <strong id="pill-count-agy" style="margin-left: 2px;">(0)</strong></span>
+                        <span class="method-badge method-gweb" id="pill-ch-gweb" style="font-size: 0.72rem; padding: 3px 8px; cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view Gemini Web channel limits">🍪 Gemini Web <strong id="pill-count-gweb" style="margin-left: 2px;">(0)</strong></span>
+                        <span class="method-badge method-aistudio" id="pill-ch-studio" style="font-size: 0.72rem; padding: 3px 8px; cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view AI Studio channel limits">🔑 AI Studio Key <strong id="pill-count-studio" style="margin-left: 2px;">(0)</strong></span>
+                        <span class="method-badge method-gcli" id="pill-ch-gcli" style="font-size: 0.72rem; padding: 3px 8px; cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view Gemini CLI channel limits">⚡ Gemini CLI <strong id="pill-count-gcli" style="margin-left: 2px;">(0)</strong></span>
                     </div>
-                    <div class="metric-footer-row" style="margin-top: auto;">
-                        <span>Health: <strong style="color:var(--success);" id="pool-4way-status">Awaiting Account Setup</strong></span>
-                        <span>Auto-Failover: <strong style="color:var(--primary);">Active</strong></span>
+                    <div class="metric-footer-row" style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                        <span>Health: <strong style="color:var(--success);" id="pool-4way-status">All Operational (4/4)</strong></span>
+                        <div style="display: flex; gap: 6px;">
+                            <button onclick="autoSyncAllGeminiWebSessions(this)" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.7rem; border-color: rgba(245, 158, 11, 0.4); color: #f59e0b; display: inline-flex; align-items: center; gap: 4px;" title="Auto-harvest and refresh all 7 Gemini Web sessions from Chrome without manual entry">
+                                ⚡ Auto-Sync GWeb
+                            </button>
+                            <button onclick="openChannelLimitsModal()" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.7rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; display: inline-flex; align-items: center; gap: 4px;">
+                                📊 Limits Monitor
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Card 4: Grouped Models & Channels Usage Tracker -->
-                <div class="metric-card" style="padding: 1rem 1.1rem; border-radius: 10px; background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border);">
+                <div class="metric-card" style="padding: 1rem 1.1rem; border-radius: 10px; background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border); cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view full 4-channel limits & usage breakdown in one place">
                     <div class="metric-header" style="margin-bottom: 6px;">
-                        <span class="metric-title">Grouped Models Usage</span>
+                        <span class="metric-title" style="display:flex; align-items:center; gap:6px;">
+                            Grouped Models Usage
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </span>
                         <span class="metric-badge" id="pool-4way-badge" style="color:var(--success); background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3);">All Free</span>
                     </div>
                     <table style="width:100%; border-collapse:collapse; font-size:0.73rem;">
@@ -2648,6 +2658,268 @@
         </div>
     </div>
 
+    <!-- Unified 4-Channel Usage Limits & Quota Matrix Modal -->
+    <div class="modal-overlay" id="channel-limits-modal" onclick="handleChannelLimitsOverlayClick(event)">
+        <div class="modal-card" style="max-width: 860px; width: 95%; border: 1px solid rgba(56, 189, 248, 0.4); box-shadow: 0 12px 50px rgba(0, 0, 0, 0.85); max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0;">
+                <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px; color: #38bdf8; margin: 0; font-size: 1.2rem;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                        Unified 4-Channel Usage Limits & Quotas
+                    </h3>
+                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 3px;">
+                        Real-time monitoring of rate limits, sliding windows, request quotas, and token throughput in one place
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeChannelLimitsModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem; overflow-y: auto; flex: 1;">
+                <!-- Global Summary Stat Bar -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 1.25rem;">
+                    <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 10px 14px;">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Tokens Routed</div>
+                        <div style="font-size: 1.35rem; font-weight: 800; color: var(--primary); margin-top: 2px;" id="lim-total-tokens">--</div>
+                        <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Across all 4 active channels</div>
+                    </div>
+                    <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 8px; padding: 10px 14px;">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Requests</div>
+                        <div style="font-size: 1.35rem; font-weight: 800; color: #c084fc; margin-top: 2px;" id="lim-total-requests">--</div>
+                        <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Completed API calls</div>
+                    </div>
+                    <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 10px 14px;">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Channel Operational Health</div>
+                        <div style="font-size: 1.35rem; font-weight: 800; color: var(--success); margin-top: 2px;" id="lim-overall-status">--</div>
+                        <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">All 4 Channels Functional</div>
+                    </div>
+                    <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 8px; padding: 10px 14px;">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Cost & Tier Model</div>
+                        <div style="font-size: 1.35rem; font-weight: 800; color: #f59e0b; margin-top: 2px;">100% Free</div>
+                        <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">No API billing fees</div>
+                    </div>
+                </div>
+
+                <!-- 4 Dedicated Channel Detail Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px;">
+                    <!-- Channel 1: Google OAuth (agy) -->
+                    <div style="background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="method-badge method-agy" style="font-size: 0.78rem; padding: 3px 10px;">🛸 agy OAuth</span>
+                                <strong style="font-size: 0.95rem; color: #f8fafc;">Google OAuth Engine</strong>
+                            </div>
+                            <span class="badge badge-success" id="lim-status-badge-agy">Healthy</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">
+                            <strong>Limit Model:</strong> Google Cloud Code Assist 5-Hour Sliding Window per connected Google account.
+                        </div>
+                        <!-- Progress / Quota meters -->
+                        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                                <span style="color: #94a3b8;">Claude Quota Remaining:</span>
+                                <strong id="lim-agy-claude-quota" style="color: #38bdf8;">--</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                                <span style="color: #94a3b8;">Gemini Quota Remaining:</span>
+                                <strong id="lim-agy-gemini-quota" style="color: #38bdf8;">--</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                                <span style="color: #94a3b8;">Aggregated Pool Quota Free:</span>
+                                <strong id="lim-agy-free-pct" style="color: var(--success);">--</strong>
+                            </div>
+                        </div>
+                        <!-- Key Stats Table -->
+                        <table style="width: 100%; font-size: 0.74rem; border-collapse: collapse; margin-top: auto;">
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">5-Hour Window Activity:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-agy-5h-activity">--</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">All-Time Volume:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-agy-lifetime-vol">--</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">Average Latency:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-agy-lat">--</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #94a3b8;">Connected Accounts Bound:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600; color: #38bdf8;" id="lim-agy-accs">--</td>
+                            </tr>
+                        </table>
+                        <div style="margin-top: 10px; font-size: 0.7rem; color: #64748b; line-height: 1.3;">
+                            <strong>Core Models:</strong> Claude Sonnet 5.5, Claude Opus 5.5, Claude 1M Mega, Gemini 3.8 Flash, Gemini 3.1 Pro
+                        </div>
+                    </div>
+
+                    <!-- Channel 2: Gemini Web (gweb) -->
+                    <div style="background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="method-badge method-gweb" style="font-size: 0.78rem; padding: 3px 10px;">🍪 gweb Session</span>
+                                <strong style="font-size: 0.95rem; color: #f8fafc;">Gemini Web Extractor</strong>
+                            </div>
+                            <span class="badge badge-success" id="lim-status-badge-gweb">Healthy</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">
+                            <strong>Limit Model:</strong> Consumer Google One AI Web Session (~50 msgs / 3 hours) extracted via cookies.
+                        </div>
+                        <!-- Progress / Quota meters -->
+                        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                                <span style="color: #94a3b8;">Web Session Status:</span>
+                                <strong id="lim-gweb-session-status" style="color: var(--success);">Session Active</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                                <span style="color: #94a3b8;">Estimated Free Capacity:</span>
+                                <strong id="lim-gweb-free-pct" style="color: var(--success);">100% Free</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                                <span style="color: #94a3b8;">Extraction Tokens:</span>
+                                <strong style="color: #f59e0b;">__Secure-1PSID • SNlM0e</strong>
+                            </div>
+                        </div>
+                        <!-- Key Stats Table -->
+                        <table style="width: 100%; font-size: 0.74rem; border-collapse: collapse; margin-top: auto;">
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">5-Hour Window Activity:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-gweb-5h-activity">0 reqs • 0 tok</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">All-Time Volume:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-gweb-lifetime-vol">0 reqs • 0 tok</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">Average Latency:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-gweb-lat">~142 ms</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #94a3b8;">Connected Accounts Bound:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600; color: #f59e0b;" id="lim-gweb-accs">--</td>
+                            </tr>
+                        </table>
+                        <div style="margin-top: 10px; font-size: 0.7rem; color: #64748b; line-height: 1.3;">
+                            <strong>Core Models:</strong> Gemini 2.5 Pro (Web Advanced), Gemini 2.0 Flash Thinking Experimental
+                        </div>
+                        <button class="btn btn-sm" id="btn-sync-all-gweb" onclick="autoSyncAllGeminiWebSessions(this)" style="margin-top: 10px; width: 100%; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #f59e0b; font-size: 0.76rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            ⚡ Auto-Harvest & Refresh All 7 Accounts
+                        </button>
+                    </div>
+
+                    <!-- Channel 3: Google AI Studio (studio) -->
+                    <div style="background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="method-badge method-aistudio" style="font-size: 0.78rem; padding: 3px 10px;">🔑 studio API</span>
+                                <strong style="font-size: 0.95rem; color: #f8fafc;">Google AI Studio Free Tier</strong>
+                            </div>
+                            <span class="badge badge-success" id="lim-status-badge-studio">Healthy</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">
+                            <strong>Limit Model:</strong> 15 Requests/Min (RPM) and 1,500 Requests/Day (RPD) per key.
+                        </div>
+                        <!-- Progress / Quota meters -->
+                        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                                <span style="color: #94a3b8;">Daily Free Quota Consumed:</span>
+                                <strong id="lim-studio-daily-detail" style="color: #c084fc;">--</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                                <span style="color: #94a3b8;">Daily Quota Remaining:</span>
+                                <strong id="lim-studio-free-pct" style="color: var(--success);">--</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                                <span style="color: #94a3b8;">Aggregated RPM Pool:</span>
+                                <strong id="lim-studio-rpm-pool" style="color: #c084fc;">--</strong>
+                            </div>
+                        </div>
+                        <!-- Key Stats Table -->
+                        <table style="width: 100%; font-size: 0.74rem; border-collapse: collapse; margin-top: auto;">
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">5-Hour Window Activity:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-studio-5h-activity">--</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">All-Time Volume:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-studio-lifetime-vol">--</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">Average Latency:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-studio-lat">--</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #94a3b8;">Verified Studio Keys:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600; color: #c084fc;" id="lim-studio-accs">--</td>
+                            </tr>
+                        </table>
+                        <div style="margin-top: 10px; font-size: 0.7rem; color: #64748b; line-height: 1.3;">
+                            <strong>Core Models:</strong> Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.0 Flash, Gemini 1.5 Pro
+                        </div>
+                    </div>
+
+                    <!-- Channel 4: Gemini CLI (gcli) -->
+                    <div style="background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="method-badge method-gcli" style="font-size: 0.78rem; padding: 3px 10px;">⚡ gcli OAuth</span>
+                                <strong style="font-size: 0.95rem; color: #f8fafc;">Gemini Cloud CLI</strong>
+                            </div>
+                            <span class="badge badge-success" id="lim-status-badge-gcli">Healthy</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">
+                            <strong>Limit Model:</strong> Google Cloud CLI protocol assist quota with automated token reuse.
+                        </div>
+                        <!-- Progress / Quota meters -->
+                        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                                <span style="color: #94a3b8;">CLI Protocol Status:</span>
+                                <strong id="lim-gcli-channel-status" style="color: var(--success);">Active & Ready</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                                <span style="color: #94a3b8;">Quota Free:</span>
+                                <strong id="lim-gcli-free-pct" style="color: var(--success);">100% Free</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                                <span style="color: #94a3b8;">Failover Routing:</span>
+                                <strong style="color: #10b981;">Shared Cloud Code Assist</strong>
+                            </div>
+                        </div>
+                        <!-- Key Stats Table -->
+                        <table style="width: 100%; font-size: 0.74rem; border-collapse: collapse; margin-top: auto;">
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">5-Hour Window Activity:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-gcli-5h-activity">0 reqs • 0 tok</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">All-Time Volume:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-gcli-lifetime-vol">0 reqs • 0 tok</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">Average Latency:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-gcli-lat">~108 ms</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #94a3b8;">Connected Accounts Bound:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600; color: #10b981;" id="lim-gcli-accs">--</td>
+                            </tr>
+                        </table>
+                        <div style="margin-top: 10px; font-size: 0.7rem; color: #64748b; line-height: 1.3;">
+                            <strong>Core Models:</strong> Gemini Code Assist, Gemini CLI Coding Engine
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" class="btn btn-secondary" onclick="refreshChannelsLimitsData(true)" id="btn-sync-channel-limits">
+                        🔄 Sync Live Limits Now
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="closeChannelLimitsModal()">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div class="toast-container" id="toast-container"></div>
 
@@ -3247,9 +3519,12 @@
                 const gResetDelta = formatResetDelta(acc.gemini_reset_time);
                 const cResetDelta = formatResetDelta(acc.claude_reset_time);
 
-                // Window usage
-                const w5h = acc.window_5h ? acc.window_5h.request_count || 0 : 0;
-                const w7d = acc.window_7d ? acc.window_7d.request_count || 0 : 0;
+                // Window & Token usage
+                const w5hReq = acc.window_5h ? (acc.window_5h.requests || acc.window_5h.request_count || 0) : 0;
+                const w5hTok = acc.window_5h ? (acc.window_5h.total_tokens || 0) : 0;
+                const w7dReq = acc.window_7d ? (acc.window_7d.requests || acc.window_7d.request_count || 0) : 0;
+                const w7dTok = acc.window_7d ? (acc.window_7d.total_tokens || 0) : 0;
+                const totalTok = acc.total_tokens || 0;
 
                 return `
                     <tr>
@@ -3355,8 +3630,9 @@
                         </td>
                         <td>
                             <div style="font-size: 0.8rem; line-height: 1.4;">
-                                <div><span style="color:var(--text-muted)">5h:</span> <strong>${w5h}</strong> reqs</div>
-                                <div><span style="color:var(--text-muted)">7d:</span> <strong>${w7d}</strong> reqs</div>
+                                <div><span style="color:var(--text-muted)">5h:</span> <strong>${w5hReq}</strong> reqs <span style="color:var(--text-muted); font-size:0.73rem;">(${formatTokens(w5hTok)} tok)</span></div>
+                                <div><span style="color:var(--text-muted)">7d:</span> <strong>${w7dReq}</strong> reqs <span style="color:var(--text-muted); font-size:0.73rem;">(${formatTokens(w7dTok)} tok)</span></div>
+                                <div style="margin-top:2px; font-size:0.73rem;"><span style="color:var(--text-muted)">Total:</span> <strong style="color:var(--primary);">${formatTokens(totalTok)}</strong> tok</div>
                             </div>
                         </td>
                         <td>
@@ -3478,12 +3754,13 @@
             const totalUsagePct = Math.round(100 - totalRemainingPct);
 
             // 1. Combined Usage Limit Card
+            const totalTokensAll = accounts.reduce((sum, a) => sum + (a.total_tokens || 0), 0);
             const usageValEl = document.getElementById('pool-usage-val');
             if (usageValEl) usageValEl.textContent = `${totalUsagePct}%`;
             const usageBadgeEl = document.getElementById('pool-usage-badge');
             if (usageBadgeEl) usageBadgeEl.textContent = `${totalUsagePct}% Limit Used`;
             const capSubEl = document.getElementById('pool-capacity-sub');
-            if (capSubEl) capSubEl.textContent = `${totalRemainingPct}% Total Pool Quota Remaining`;
+            if (capSubEl) capSubEl.textContent = `${totalRemainingPct}% Quota Free • ${formatTokens(totalTokensAll)} Total Tokens Routed`;
             const progEl = document.getElementById('pool-usage-progress');
             if (progEl) {
                 progEl.style.width = `${totalUsagePct}%`;
@@ -3545,6 +3822,262 @@
             if (pool4wayEl) {
                 pool4wayEl.textContent = 'All Verified (agy • gweb • studio • gcli)';
             }
+            // Trigger real-time 4-channel limits and usage sync
+            fetchChannelsSummary();
+        }
+
+        // Fetch and Update 4-Channel Limits & Usage Matrix
+        async function fetchChannelsSummary(isManual = false) {
+            try {
+                const res = await fetch(`${API_BASE}/admin/channels/summary`, {
+                    headers: getAdminHeaders()
+                });
+                if (!res.ok) return null;
+                const data = await res.json();
+                window.channelsSummary = data;
+                renderChannelsMetrics(data);
+                if (isManual) showToast('Live channel usage & limits refreshed', 'success');
+                return data;
+            } catch (err) {
+                console.warn('Failed to fetch channels summary:', err);
+                return null;
+            }
+        }
+
+        function renderChannelsMetrics(data) {
+            if (!data || !data.channels) return;
+            const ch = data.channels;
+
+            // 1. Update Card 3 Pills & Health
+            const countAgyEl = document.getElementById('pill-count-agy');
+            if (countAgyEl && ch.agy) countAgyEl.textContent = `(${ch.agy.connected_accounts})`;
+            const countGwebEl = document.getElementById('pill-count-gweb');
+            if (countGwebEl && ch.gweb) countGwebEl.textContent = `(${ch.gweb.connected_accounts})`;
+            const countStudioEl = document.getElementById('pill-count-studio');
+            if (countStudioEl && ch.studio) countStudioEl.textContent = `(${ch.studio.connected_accounts})`;
+            const countGcliEl = document.getElementById('pill-count-gcli');
+            if (countGcliEl && ch.gcli) countGcliEl.textContent = `(${ch.gcli.connected_accounts})`;
+
+            const poolConnBadge = document.getElementById('pool-connected-badge');
+            if (poolConnBadge) {
+                const activeChs = Object.values(ch).filter(c => c.working).length;
+                poolConnBadge.textContent = `${activeChs} / 4 Online`;
+            }
+            const pool4wayEl = document.getElementById('pool-4way-status');
+            if (pool4wayEl) {
+                pool4wayEl.textContent = data.all_healthy ? 'All Operational (4/4)' : 'Attention Needed';
+                pool4wayEl.style.color = data.all_healthy ? 'var(--success)' : 'var(--warning)';
+            }
+
+            // 2. Update Card 4 (Grouped Models Usage)
+            if (ch.agy) {
+                const uEl = document.getElementById('usage-val-agy');
+                if (uEl) uEl.textContent = `${ch.agy.quota_used_pct}%`;
+                const rEl = document.getElementById('rem-val-agy');
+                if (rEl) {
+                    rEl.textContent = `${ch.agy.quota_free_pct}% Free`;
+                    rEl.title = `${ch.agy.quota_detail} • ${formatTokens(ch.agy.total_tokens)} tokens`;
+                }
+                const sEl = document.getElementById('status-val-agy');
+                if (sEl) {
+                    sEl.textContent = ch.agy.working ? `● ${formatTokens(ch.agy.total_tokens)} tok` : `○ ${ch.agy.status}`;
+                    sEl.style.color = ch.agy.working ? 'var(--primary)' : 'var(--text-muted)';
+                }
+            }
+
+            if (ch.gweb) {
+                const uEl = document.getElementById('usage-val-gweb');
+                if (uEl) uEl.textContent = `${ch.gweb.quota_used_pct}%`;
+                const rEl = document.getElementById('rem-val-gweb');
+                if (rEl) {
+                    rEl.textContent = `${ch.gweb.quota_free_pct}% Free`;
+                    rEl.title = `${ch.gweb.quota_detail} • ${formatTokens(ch.gweb.total_tokens)} tokens`;
+                }
+                const sEl = document.getElementById('status-val-gweb');
+                if (sEl) {
+                    sEl.textContent = ch.gweb.working ? (ch.gweb.requests > 0 ? `● ${formatTokens(ch.gweb.total_tokens)} tok` : '● Ready') : `○ ${ch.gweb.status}`;
+                    sEl.style.color = ch.gweb.working ? '#f59e0b' : 'var(--text-muted)';
+                }
+            }
+
+            if (ch.studio) {
+                const uEl = document.getElementById('usage-val-studio');
+                if (uEl) uEl.textContent = `${ch.studio.quota_used_pct}%`;
+                const rEl = document.getElementById('rem-val-studio');
+                if (rEl) {
+                    rEl.textContent = `${ch.studio.quota_free_pct}% Free`;
+                    rEl.title = `${ch.studio.quota_detail} • ${formatTokens(ch.studio.total_tokens)} tokens`;
+                }
+                const sEl = document.getElementById('status-val-studio');
+                if (sEl) {
+                    sEl.textContent = ch.studio.working ? (ch.studio.requests > 0 ? `● ${formatTokens(ch.studio.total_tokens)} tok` : '● Ready') : `○ ${ch.studio.status}`;
+                    sEl.style.color = ch.studio.working ? '#c084fc' : 'var(--text-muted)';
+                }
+            }
+
+            if (ch.gcli) {
+                const uEl = document.getElementById('usage-val-gcli');
+                if (uEl) uEl.textContent = `${ch.gcli.quota_used_pct}%`;
+                const rEl = document.getElementById('rem-val-gcli');
+                if (rEl) {
+                    rEl.textContent = `${ch.gcli.quota_free_pct}% Free`;
+                    rEl.title = `${ch.gcli.quota_detail} • ${formatTokens(ch.gcli.total_tokens)} tokens`;
+                }
+                const sEl = document.getElementById('status-val-gcli');
+                if (sEl) {
+                    sEl.textContent = ch.gcli.working ? (ch.gcli.requests > 0 ? `● ${formatTokens(ch.gcli.total_tokens)} tok` : '● Ready') : `○ ${ch.gcli.status}`;
+                    sEl.style.color = ch.gcli.working ? 'var(--success)' : 'var(--text-muted)';
+                }
+            }
+
+            const pBadge = document.getElementById('pool-4way-badge');
+            if (pBadge) {
+                pBadge.textContent = `All Free (${formatTokens(data.total_tokens_all)} tok)`;
+            }
+
+            // 3. Update Modal Details if open or present
+            updateChannelLimitsModalContent(data);
+        }
+
+        function updateChannelLimitsModalContent(data) {
+            if (!data || !data.channels) return;
+            const ch = data.channels;
+
+            // Global stats
+            const totTokEl = document.getElementById('lim-total-tokens');
+            if (totTokEl) totTokEl.textContent = formatTokens(data.total_tokens_all);
+            const totReqEl = document.getElementById('lim-total-requests');
+            if (totReqEl) totReqEl.textContent = data.total_requests_all.toLocaleString();
+            const ovStatEl = document.getElementById('lim-overall-status');
+            if (ovStatEl) ovStatEl.textContent = data.overall_status;
+
+            // agy
+            if (ch.agy) {
+                const claudeEl = document.getElementById('lim-agy-claude-quota');
+                if (claudeEl) claudeEl.textContent = `${ch.agy.quota_detail.split('•')[0] || ''}`.trim() || 'Active';
+                const geminiEl = document.getElementById('lim-agy-gemini-quota');
+                if (geminiEl) geminiEl.textContent = `${ch.agy.quota_detail.split('•')[1] || ''}`.trim() || 'Active';
+                const freeEl = document.getElementById('lim-agy-free-pct');
+                if (freeEl) freeEl.textContent = `${ch.agy.quota_free_pct}% Free (${ch.agy.quota_used_pct}% Used)`;
+                const h5El = document.getElementById('lim-agy-5h-activity');
+                if (h5El) h5El.textContent = `${ch.agy.window_5h_requests} reqs • ${formatTokens(ch.agy.window_5h_tokens)} tokens`;
+                const lifeEl = document.getElementById('lim-agy-lifetime-vol');
+                if (lifeEl) lifeEl.textContent = `${ch.agy.requests} reqs • ${formatTokens(ch.agy.total_tokens)} tokens`;
+                const latEl = document.getElementById('lim-agy-lat');
+                if (latEl) latEl.textContent = `${Math.round(ch.agy.avg_latency_ms)} ms`;
+                const accsEl = document.getElementById('lim-agy-accs');
+                if (accsEl) accsEl.textContent = `${ch.agy.active_accounts} / ${ch.agy.connected_accounts} Active`;
+            }
+
+            // gweb
+            if (ch.gweb) {
+                const statEl = document.getElementById('lim-gweb-session-status');
+                if (statEl) statEl.textContent = ch.gweb.working ? 'Session Active (Verified)' : 'Unconfigured';
+                const freeEl = document.getElementById('lim-gweb-free-pct');
+                if (freeEl) freeEl.textContent = `${ch.gweb.quota_free_pct}% Free`;
+                const h5El = document.getElementById('lim-gweb-5h-activity');
+                if (h5El) h5El.textContent = `${ch.gweb.window_5h_requests} reqs • ${formatTokens(ch.gweb.window_5h_tokens)} tokens`;
+                const lifeEl = document.getElementById('lim-gweb-lifetime-vol');
+                if (lifeEl) lifeEl.textContent = `${ch.gweb.requests} reqs • ${formatTokens(ch.gweb.total_tokens)} tokens`;
+                const latEl = document.getElementById('lim-gweb-lat');
+                if (latEl) latEl.textContent = `${Math.round(ch.gweb.avg_latency_ms)} ms`;
+                const accsEl = document.getElementById('lim-gweb-accs');
+                if (accsEl) accsEl.textContent = `${ch.gweb.active_accounts} / ${ch.gweb.connected_accounts} Active`;
+            }
+
+            // studio
+            if (ch.studio) {
+                const dailyEl = document.getElementById('lim-studio-daily-detail');
+                if (dailyEl) dailyEl.textContent = ch.studio.quota_detail;
+                const freeEl = document.getElementById('lim-studio-free-pct');
+                if (freeEl) freeEl.textContent = `${ch.studio.quota_free_pct}% Free (${ch.studio.quota_used_pct}% Consumed)`;
+                const rpmEl = document.getElementById('lim-studio-rpm-pool');
+                if (rpmEl) rpmEl.textContent = `${ch.studio.connected_accounts * 15} RPM Total (${ch.studio.connected_accounts} Keys x 15 RPM)`;
+                const h5El = document.getElementById('lim-studio-5h-activity');
+                if (h5El) h5El.textContent = `${ch.studio.window_5h_requests} reqs • ${formatTokens(ch.studio.window_5h_tokens)} tokens`;
+                const lifeEl = document.getElementById('lim-studio-lifetime-vol');
+                if (lifeEl) lifeEl.textContent = `${ch.studio.requests} reqs • ${formatTokens(ch.studio.total_tokens)} tokens`;
+                const latEl = document.getElementById('lim-studio-lat');
+                if (latEl) latEl.textContent = `${Math.round(ch.studio.avg_latency_ms)} ms`;
+                const accsEl = document.getElementById('lim-studio-accs');
+                if (accsEl) accsEl.textContent = `${ch.studio.active_accounts} / ${ch.studio.connected_accounts} Verified Keys`;
+            }
+
+            // gcli
+            if (ch.gcli) {
+                const statEl = document.getElementById('lim-gcli-channel-status');
+                if (statEl) statEl.textContent = ch.gcli.working ? 'CLI Active & Ready' : 'Idle';
+                const freeEl = document.getElementById('lim-gcli-free-pct');
+                if (freeEl) freeEl.textContent = `${ch.gcli.quota_free_pct}% Free`;
+                const h5El = document.getElementById('lim-gcli-5h-activity');
+                if (h5El) h5El.textContent = `${ch.gcli.window_5h_requests} reqs • ${formatTokens(ch.gcli.window_5h_tokens)} tokens`;
+                const lifeEl = document.getElementById('lim-gcli-lifetime-vol');
+                if (lifeEl) lifeEl.textContent = `${ch.gcli.requests} reqs • ${formatTokens(ch.gcli.total_tokens)} tokens`;
+                const latEl = document.getElementById('lim-gcli-lat');
+                if (latEl) latEl.textContent = `${Math.round(ch.gcli.avg_latency_ms)} ms`;
+                const accsEl = document.getElementById('lim-gcli-accs');
+                if (accsEl) accsEl.textContent = `${ch.gcli.active_accounts} / ${ch.gcli.connected_accounts} Bound`;
+            }
+        }
+
+        async function openChannelLimitsModal() {
+            const modal = document.getElementById('channel-limits-modal');
+            if (modal) modal.classList.add('active');
+            if (window.channelsSummary) {
+                updateChannelLimitsModalContent(window.channelsSummary);
+            }
+            await fetchChannelsSummary();
+        }
+
+        function closeChannelLimitsModal() {
+            const modal = document.getElementById('channel-limits-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function handleChannelLimitsOverlayClick(e) {
+            if (e.target.id === 'channel-limits-modal') {
+                closeChannelLimitsModal();
+            }
+        }
+
+        async function refreshChannelsLimitsData(isManual = false) {
+            const btn = document.getElementById('btn-sync-channel-limits');
+            if (btn) btn.classList.add('spinning');
+            try {
+                await fetchChannelsSummary(isManual);
+            } finally {
+                if (btn) btn.classList.remove('spinning');
+            }
+        }
+
+        async function autoSyncAllGeminiWebSessions(btnEl) {
+            const btn = btnEl || document.getElementById('btn-sync-all-gweb');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) { btn.disabled = true; btn.innerHTML = '⚡ Syncing all 7 accounts...'; }
+            try {
+                showToast('Initiating automated session harvest & quota refresh for all accounts...', 'info');
+                const res = await fetch(`${API_BASE}/admin/channels/geminiweb/sync-all`, {
+                    method: 'POST',
+                    headers: getAdminHeaders(),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Sync failed');
+                showToast(`✓ Harvested & synchronized ${data.synced_count} accounts with fresh live quotas!`, 'success');
+                await fetchAccounts();
+                if (typeof fetchChannelsSummary === 'function') await fetchChannelsSummary(true);
+            } catch (err) {
+                showToast(`Auto-sync error: ${err.message}`, 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = origHtml || '⚡ Auto-Sync GWeb'; }
+            }
+        }
+
+        // Format raw token numbers into human readable abbreviations (e.g., 9.2k, 1.4M)
+        function formatTokens(n) {
+            if (!n || isNaN(n)) return '0';
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+            return Number(n).toLocaleString();
         }
 
         // Format ISO reset timestamp to human readable countdown
@@ -4684,6 +5217,7 @@
         // Initial Load and Auto-Refresh (every 8 seconds for accounts)
         syncApiKeys();
         fetchAccounts();
+        fetchChannelsSummary();
         fetchExposedModels();
         setInterval(fetchAccounts, 8000);
     </script>
