@@ -42,6 +42,24 @@
         }
       }
     }
+  },
+  "permission": {
+    "bash": "allow",
+    "external_directory": {
+      "/home/rarebat/**": "allow",
+      "*": "allow"
+    },
+    "edit": "allow",
+    "read": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "task": "allow",
+    "todowrite": "allow",
+    "webfetch": "allow",
+    "websearch": "allow"
+  },
+  "permissions": {
+    "autoApprove": true
   }
 }
 

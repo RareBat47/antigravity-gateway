@@ -47,14 +47,18 @@ class AIStudioClient:
         clean_model = raw_model.split("/")[-1]
 
         # Check standard models or map aliases
-        if clean_model.startswith("gemini-"):
+        if clean_model in ("gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"):
+            target_model = "gemini-3.8-flash"
+        elif clean_model in ("gemini-2.5-pro", "gemini-1.5-pro"):
+            target_model = "gemini-3.1-pro-preview"
+        elif clean_model.startswith("gemini-") or clean_model.startswith("imagen-"):
             target_model = clean_model
         elif "pro" in clean_model.lower():
-            target_model = "gemini-2.5-pro"
+            target_model = "gemini-3.1-pro-preview"
         elif "flash" in clean_model.lower():
-            target_model = "gemini-2.5-flash"
+            target_model = "gemini-3.8-flash"
         else:
-            target_model = "gemini-2.5-flash"
+            target_model = "gemini-3.8-flash"
 
         # Check nested request envelope or top-level
         inner = envelope.get("request", envelope) if isinstance(envelope.get("request"), dict) else envelope
