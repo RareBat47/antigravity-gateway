@@ -1,5 +1,6 @@
 """OpenAI-compatible v1 endpoints for Hermes and LLM clients."""
 
+import datetime
 import json
 import logging
 import time
@@ -19,6 +20,7 @@ from agw.cloudcode.error_classifier import (
 )
 from agw.config import AppConfig
 from agw.db.repository import DatabaseRepository
+from agw.quota.monitor import QuotaMonitor
 from agw.protocol.mapper import (
     build_generation_config,
     gemini_response_to_openai,
@@ -68,6 +70,7 @@ def create_v1_router(
     health_tracker: AccountHealthTracker,
     aistudio_client: Optional[AIStudioClient] = None,
     geminiweb_client: Optional[GeminiWebClient] = None,
+    quota_monitor: Optional[QuotaMonitor] = None,
 ) -> APIRouter:
     verify_key = get_api_key_auth(config)
     router = APIRouter(prefix="/v1", tags=["OpenAI Compatible API"], dependencies=[Depends(verify_key)])
@@ -307,6 +310,7 @@ def create_v1_router(
             selected_account = await scheduler.select_account(
                 model_family=family,
                 exclude_account_ids=attempted_accounts,
+                requested_model_id=upstream_id,
             )
 
             if not selected_account:
@@ -469,6 +473,20 @@ def create_v1_router(
                 if action == UpstreamErrorClassification.ACTION_COOLDOWN_AND_FAILOVER:
                     dur = await cooldown_mgr.record_rate_limit(acc_id, family, cooldown_sec)
                     logger.info(f"Cooling down account {acc_id} for family '{family}' for {dur}s")
+                    reset_iso = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=cooldown_sec)).isoformat()
+                    try:
+                        await repo.record_quota_snapshot(
+                            account_id=acc_id,
+                            model_id=upstream_id,
+                            model_family=family,
+                            remaining_fraction=0.0,
+                            reset_time=reset_iso,
+                            source="upstream_429",
+                        )
+                        if quota_monitor:
+                            quota_monitor.record_reactive_exhaustion(acc_id, upstream_id, family, reset_iso)
+                    except Exception as q_err:
+                        logger.warning(f"Failed to record reactive quota snapshot: {q_err}")
                 elif action == UpstreamErrorClassification.ACTION_DISABLE_ACCOUNT:
                     # Bug #8: Actually disable the account when the classifier says to
                     logger.warning(f"Disabling account {acc_id} due to: {err_category}")
@@ -552,6 +570,20 @@ def create_v1_router(
             if action == UpstreamErrorClassification.ACTION_COOLDOWN_AND_FAILOVER:
                 dur = await cooldown_mgr.record_rate_limit(acc_id, family, cooldown_sec)
                 logger.info(f"Account {acc_id} cooled down for '{family}' for {dur}s")
+                reset_iso = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=cooldown_sec)).isoformat()
+                try:
+                    await repo.record_quota_snapshot(
+                        account_id=acc_id,
+                        model_id=upstream_id,
+                        model_family=family,
+                        remaining_fraction=0.0,
+                        reset_time=reset_iso,
+                        source="upstream_429",
+                    )
+                    if quota_monitor:
+                        quota_monitor.record_reactive_exhaustion(acc_id, upstream_id, family, reset_iso)
+                except Exception as q_err:
+                    logger.warning(f"Failed to record reactive quota snapshot: {q_err}")
             elif action == UpstreamErrorClassification.ACTION_REFRESH_TOKEN:
                 try:
                     await account_mgr.refresh_account_token(acc_id)

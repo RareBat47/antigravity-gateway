@@ -1,5 +1,6 @@
 """Hybrid Account Scheduler with quota awareness, health weighting, and failover."""
 
+import datetime
 import logging
 import time
 from typing import Any, Dict, List, Optional, Tuple
@@ -84,15 +85,17 @@ class AccountScheduler:
         self,
         model_family: str,
         exclude_account_ids: Optional[List[str]] = None,
+        requested_model_id: Optional[str] = None,
     ) -> List[Tuple[Dict[str, Any], float]]:
         """
-        Filter and rank candidate accounts for the requested model family.
+        Filter and rank candidate accounts for the requested model family and specific model.
         Returns ranked list of (account_dict, score).
         """
         all_accounts = await self.repo.list_accounts()
         excluded = set(exclude_account_ids or [])
         candidates = []
         exhausted_candidates = []
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
 
         for acc in all_accounts:
             acc_id = acc["id"]
@@ -113,13 +116,48 @@ class AccountScheduler:
 
             # Check latest quota
             quotas = await self.repo.get_latest_quota(acc_id)
-            family_quotas = [q for q in quotas if q.get("model_family") == model_family]
-            quota_record = family_quotas[0] if family_quotas else None
+            quota_record = None
+
+            # 1. Match specific model if requested
+            if requested_model_id:
+                for q in quotas:
+                    if q.get("model_id") == requested_model_id:
+                        quota_record = q
+                        break
+
+            # 2. Otherwise match developer-facing models of that family (skip chat_ / tab_ previews)
+            if not quota_record:
+                dev_quotas = [
+                    q for q in quotas
+                    if q.get("model_family") == model_family
+                    and not str(q.get("model_id", "")).lower().startswith(("chat_", "tab_", "inline_", "completion_"))
+                    and q.get("remaining_fraction") is not None
+                ]
+                if dev_quotas:
+                    # Sort so the lowest remaining fraction of the family represents the quota record (conservative)
+                    dev_quotas.sort(key=lambda x: x["remaining_fraction"])
+                    quota_record = dev_quotas[0]
+                else:
+                    family_quotas = [q for q in quotas if q.get("model_family") == model_family]
+                    quota_record = family_quotas[0] if family_quotas else None
 
             is_exhausted = False
             # Check if critically exhausted (< threshold)
             if quota_record and quota_record.get("remaining_fraction") is not None:
                 rem = quota_record["remaining_fraction"]
+                reset_t = quota_record.get("reset_time")
+                # Check if reset time has already elapsed
+                if rem < self.settings.global_quota_threshold and reset_t:
+                    try:
+                        r_dt = datetime.datetime.fromisoformat(reset_t.replace("Z", "+00:00"))
+                        if now_utc >= r_dt:
+                            # Quota window has rolled over
+                            rem = 0.8
+                            quota_record = dict(quota_record)
+                            quota_record["remaining_fraction"] = 0.8
+                    except Exception:
+                        pass
+
                 if rem < self.settings.global_quota_threshold:
                     is_exhausted = True
 
@@ -139,9 +177,14 @@ class AccountScheduler:
         self,
         model_family: str,
         exclude_account_ids: Optional[List[str]] = None,
+        requested_model_id: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """Select the single best account for a request."""
-        candidates = await self.get_candidate_accounts(model_family, exclude_account_ids)
+        candidates = await self.get_candidate_accounts(
+            model_family=model_family,
+            exclude_account_ids=exclude_account_ids,
+            requested_model_id=requested_model_id,
+        )
         if not candidates:
             return None
 

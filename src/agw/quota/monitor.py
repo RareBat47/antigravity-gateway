@@ -14,6 +14,22 @@ from agw.quota.reporter import generate_markdown_report, save_quota_state_json
 logger = logging.getLogger("agw.quota")
 
 
+def is_developer_facing_model(model_id: str) -> bool:
+    """Filter out internal preview IDs that pollute quota calculations."""
+    mid = model_id.lower()
+    return not mid.startswith(("chat_", "tab_", "inline_", "completion_"))
+
+
+def classify_model_family(model_id: str) -> str:
+    """Accurately classify upstream model family."""
+    mid = model_id.lower()
+    if "claude" in mid:
+        return FAMILY_CLAUDE
+    if "gpt" in mid:
+        return "gpt"
+    return FAMILY_GEMINI
+
+
 class QuotaMonitor:
     """Monitors account quota and writes status reports."""
 
@@ -56,14 +72,80 @@ class QuotaMonitor:
             self._task = None
         logger.info("Quota monitor stopped")
 
+    def _recalculate_snapshot_fractions(self, snapshot: AccountQuotaSnapshot) -> None:
+        """Recalculate weighted fractions using developer-facing models."""
+        gemini_dev = []
+        gemini_pro = []
+        gemini_flash = []
+        claude_dev = []
+        gemini_resets = []
+        claude_resets = []
+
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
+
+        for mid, m in snapshot.models.items():
+            fam = m.model_family
+            rem = m.remaining_fraction
+            reset_t = m.reset_time
+
+            # Check if reset time has already passed
+            if rem is not None and rem < 0.05 and reset_t:
+                try:
+                    r_dt = datetime.datetime.fromisoformat(reset_t.replace("Z", "+00:00"))
+                    if now_utc >= r_dt:
+                        # Reset has occurred
+                        rem = 0.8
+                        m.remaining_fraction = 0.8
+                except Exception:
+                    pass
+
+            if is_developer_facing_model(mid):
+                if fam == FAMILY_CLAUDE and rem is not None:
+                    claude_dev.append(rem)
+                    if reset_t and rem < 0.95:
+                        claude_resets.append(reset_t)
+                elif fam == FAMILY_GEMINI and rem is not None:
+                    gemini_dev.append(rem)
+                    if "pro" in mid.lower():
+                        gemini_pro.append(rem)
+                    if "flash" in mid.lower():
+                        gemini_flash.append(rem)
+                    if reset_t and rem < 0.95:
+                        gemini_resets.append(reset_t)
+
+        snapshot.gemini_average_fraction = sum(gemini_dev) / len(gemini_dev) if gemini_dev else None
+        snapshot.claude_average_fraction = sum(claude_dev) / len(claude_dev) if claude_dev else None
+        snapshot.gemini_pro_fraction = sum(gemini_pro) / len(gemini_pro) if gemini_pro else snapshot.gemini_average_fraction
+        snapshot.gemini_flash_fraction = sum(gemini_flash) / len(gemini_flash) if gemini_flash else snapshot.gemini_average_fraction
+        snapshot.gemini_reset_time = sorted(gemini_resets)[0] if gemini_resets else None
+        snapshot.claude_reset_time = sorted(claude_resets)[0] if claude_resets else None
+
+    def record_reactive_exhaustion(
+        self, account_id: str, model_id: str, family: str, reset_time: str
+    ) -> None:
+        """Immediately update in-memory snapshot upon live upstream 429 rate limit."""
+        snap = self._latest_snapshots.get(account_id)
+        if snap:
+            info = snap.models.get(model_id) or ModelQuotaInfo(
+                model_id=model_id,
+                model_family=family,
+                remaining_fraction=0.0,
+                reset_time=reset_time,
+                source="reactive_429",
+            )
+            info.remaining_fraction = 0.0
+            info.reset_time = reset_time
+            info.last_checked = datetime.datetime.now(datetime.timezone.utc)
+            snap.models[model_id] = info
+            self._recalculate_snapshot_fractions(snap)
+
     async def refresh_account(self, account_id: str) -> Optional[AccountQuotaSnapshot]:
         """Poll and update quota for a single account."""
         acc = await self.repo.get_account(account_id)
         if not acc:
             return None
 
-        # Bug #19: Skip disabled accounts — calling get_access_token on them
-        # triggers a refresh attempt, which may fail noisily and is pointless.
+        # Skip disabled accounts
         if not acc.get("enabled", 1):
             return self._latest_snapshots.get(account_id)
 
@@ -74,23 +156,15 @@ class QuotaMonitor:
             models_data = data.get("models", {})
 
             model_quotas: Dict[str, ModelQuotaInfo] = {}
-            gemini_fractions = []
-            claude_fractions = []
 
             for model_id, mdata in models_data.items():
-                family = FAMILY_CLAUDE if "claude" in model_id.lower() else FAMILY_GEMINI
+                family = classify_model_family(model_id)
                 q_info = mdata.get("quotaInfo", {})
                 rem_frac = q_info.get("remainingFraction")
                 reset_t = q_info.get("resetTime")
 
                 if rem_frac is None and reset_t:
                     rem_frac = 0.0
-
-                if rem_frac is not None:
-                    if family == FAMILY_CLAUDE:
-                        claude_fractions.append(rem_frac)
-                    else:
-                        gemini_fractions.append(rem_frac)
 
                 info = ModelQuotaInfo(
                     model_id=model_id,
@@ -109,17 +183,13 @@ class QuotaMonitor:
                     reset_time=reset_t,
                 )
 
-            gemini_avg = sum(gemini_fractions) / len(gemini_fractions) if gemini_fractions else None
-            claude_avg = sum(claude_fractions) / len(claude_fractions) if claude_fractions else None
-
             snapshot = AccountQuotaSnapshot(
                 account_id=account_id,
                 email_safe=acc.get("email_safe", ""),
                 tier=acc.get("tier", "unknown"),
                 models=model_quotas,
-                gemini_average_fraction=gemini_avg,
-                claude_average_fraction=claude_avg,
             )
+            self._recalculate_snapshot_fractions(snapshot)
             self._latest_snapshots[account_id] = snapshot
             return snapshot
 

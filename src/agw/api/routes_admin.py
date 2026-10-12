@@ -16,7 +16,7 @@ from agw.api.middleware import get_admin_key_auth
 from agw.auth.oauth import build_auth_url, generate_pkce
 from agw.config import AppConfig
 from agw.db.repository import DatabaseRepository
-from agw.quota.monitor import QuotaMonitor
+from agw.quota.monitor import QuotaMonitor, is_developer_facing_model
 from agw.routing.cooldown import CooldownManager
 from agw.routing.health import AccountHealthTracker
 
@@ -187,11 +187,11 @@ def create_admin_router(
                 s["claude_fraction"] = snap.claude_average_fraction
                 s["gemini_pct"] = int(round(snap.gemini_average_fraction * 100)) if snap.gemini_average_fraction is not None else None
                 s["claude_pct"] = int(round(snap.claude_average_fraction * 100)) if snap.claude_average_fraction is not None else None
+                s["gemini_pro_pct"] = int(round(snap.gemini_pro_fraction * 100)) if getattr(snap, "gemini_pro_fraction", None) is not None else s["gemini_pct"]
+                s["gemini_flash_pct"] = int(round(snap.gemini_flash_fraction * 100)) if getattr(snap, "gemini_flash_fraction", None) is not None else s["gemini_pct"]
 
-                g_resets = [m.reset_time for m in snap.models.values() if m.model_family == "gemini" and m.reset_time]
-                c_resets = [m.reset_time for m in snap.models.values() if m.model_family == "claude" and m.reset_time]
-                s["gemini_reset_time"] = sorted(g_resets)[0] if g_resets else None
-                s["claude_reset_time"] = sorted(c_resets)[0] if c_resets else None
+                s["gemini_reset_time"] = snap.gemini_reset_time
+                s["claude_reset_time"] = snap.claude_reset_time
 
                 s["model_quotas"] = {
                     mid: {
@@ -200,12 +200,23 @@ def create_admin_router(
                         "remaining_fraction": m.remaining_fraction,
                         "percentage": m.percentage,
                         "reset_time": m.reset_time,
+                        "is_developer_facing": is_developer_facing_model(m.model_id),
                     }
                     for mid, m in snap.models.items()
                 }
             else:
-                gemini_q = [q for q in quotas if q.get("model_family") == "gemini" and q.get("remaining_fraction") is not None]
-                claude_q = [q for q in quotas if q.get("model_family") == "claude" and q.get("remaining_fraction") is not None]
+                gemini_q = [
+                    q for q in quotas
+                    if q.get("model_family") == "gemini"
+                    and is_developer_facing_model(q.get("model_id", ""))
+                    and q.get("remaining_fraction") is not None
+                ]
+                claude_q = [
+                    q for q in quotas
+                    if q.get("model_family") == "claude"
+                    and is_developer_facing_model(q.get("model_id", ""))
+                    and q.get("remaining_fraction") is not None
+                ]
 
                 g_avg = sum(q["remaining_fraction"] for q in gemini_q) / len(gemini_q) if gemini_q else None
                 c_avg = sum(q["remaining_fraction"] for q in claude_q) / len(claude_q) if claude_q else None
@@ -213,9 +224,11 @@ def create_admin_router(
                 s["claude_fraction"] = c_avg
                 s["gemini_pct"] = int(round(g_avg * 100)) if g_avg is not None else None
                 s["claude_pct"] = int(round(c_avg * 100)) if c_avg is not None else None
+                s["gemini_pro_pct"] = s["gemini_pct"]
+                s["gemini_flash_pct"] = s["gemini_pct"]
 
-                g_resets = [q["reset_time"] for q in gemini_q if q.get("reset_time")]
-                c_resets = [q["reset_time"] for q in claude_q if q.get("reset_time")]
+                g_resets = [q["reset_time"] for q in gemini_q if q.get("reset_time") and q.get("remaining_fraction", 1.0) < 0.95]
+                c_resets = [q["reset_time"] for q in claude_q if q.get("reset_time") and q.get("remaining_fraction", 1.0) < 0.95]
                 s["gemini_reset_time"] = sorted(g_resets)[0] if g_resets else None
                 s["claude_reset_time"] = sorted(c_resets)[0] if c_resets else None
 
@@ -226,6 +239,7 @@ def create_admin_router(
                         "remaining_fraction": q.get("remaining_fraction"),
                         "percentage": int(round(q["remaining_fraction"] * 100)) if q.get("remaining_fraction") is not None else None,
                         "reset_time": q.get("reset_time"),
+                        "is_developer_facing": is_developer_facing_model(q.get("model_id", "")),
                     }
                     for q in quotas
                 }
@@ -577,6 +591,15 @@ def create_admin_router(
             return {"status": "success", "refreshed": account_id}
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
+
+    @router.post("/accounts-refresh-all-quotas", dependencies=[Depends(verify_admin)])
+    async def refresh_all_quotas():
+        """Force live quota fetch across all accounts immediately."""
+        try:
+            await quota_monitor.refresh_all()
+            return {"status": "success", "message": "All account quotas refreshed from upstream"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
     @router.post("/accounts/{account_id}/reauth", dependencies=[Depends(verify_admin)])
     async def reauth_account(account_id: str, request: Request):

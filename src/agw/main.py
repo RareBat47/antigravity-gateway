@@ -153,6 +153,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             health_tracker=health_tracker,
             aistudio_client=aistudio_client,
             geminiweb_client=geminiweb_client,
+            quota_monitor=quota_monitor,
         )
     )
     app.include_router(
@@ -182,6 +183,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             health_tracker=health_tracker,
             aistudio_client=aistudio_client,
             geminiweb_client=geminiweb_client,
+            quota_monitor=quota_monitor,
         )
     )
 

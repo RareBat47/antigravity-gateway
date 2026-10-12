@@ -774,6 +774,76 @@
             min-width: 140px;
         }
 
+        .quota-meter-dual {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 175px;
+        }
+
+        .quota-meter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .quota-meter-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.72rem;
+        }
+
+        .quota-meter-name {
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .quota-meter-val {
+            font-weight: 700;
+            font-size: 0.74rem;
+        }
+
+        .quota-breakdown-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .quota-reset-pill {
+            font-size: 0.64rem;
+            color: #94a3b8;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            margin-top: 1px;
+        }
+
+        .quota-sync-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 1px 5px;
+            font-size: 0.64rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            transition: all 0.2s;
+        }
+
+        .quota-sync-btn:hover {
+            color: var(--text-main);
+            border-color: var(--primary);
+            background: rgba(56, 189, 248, 0.08);
+        }
+
         .quota-bar-wrapper {
             height: 6px;
             background: var(--surface);
@@ -1577,6 +1647,10 @@
                     </button>
                 </div>
                 <div class="header-actions" style="display:flex; align-items:center; gap:10px;">
+                    <button class="btn btn-secondary" onclick="refreshAllQuotas(true)" id="btn-refresh-all-quotas" title="Fetch real-time quota status from upstream Google API for all accounts" style="font-size: 0.82rem; padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                        Sync Quotas
+                    </button>
                     <button class="btn btn-secondary" onclick="checkAllAccountsNow()" id="btn-check-all-global" title="Actively probe and refresh all 4 connection pathways across all accounts" style="font-size: 0.82rem; padding: 8px 14px;">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                         Test All Connections
@@ -1691,7 +1765,7 @@
                             <th style="min-width: 250px;">4-Way Connections (agy • gweb • studio • gcli)</th>
                             <th style="width: 120px;">Status</th>
                             <th style="min-width: 170px;">Models Enabled</th>
-                            <th style="min-width: 160px;">Quota Remaining</th>
+                            <th style="min-width: 190px;">Quota Remaining (Live)</th>
                             <th style="width: 130px;">Window Usage</th>
                             <th style="min-width: 160px; text-align: right;">Actions</th>
                         </tr>
@@ -3168,8 +3242,15 @@
                 // Quota bar computation
                 const geminiPct = acc.gemini_pct !== null && acc.gemini_pct !== undefined ? acc.gemini_pct : 100;
                 const claudePct = acc.claude_pct !== null && acc.claude_pct !== undefined ? acc.claude_pct : 100;
-                const avgPct = Math.round((geminiPct + claudePct) / 2);
-                const barColor = avgPct > 40 ? 'var(--success)' : avgPct > 15 ? 'var(--warning)' : 'var(--danger)';
+                const geminiProPct = acc.gemini_pro_pct !== null && acc.gemini_pro_pct !== undefined ? acc.gemini_pro_pct : geminiPct;
+                const geminiFlashPct = acc.gemini_flash_pct !== null && acc.gemini_flash_pct !== undefined ? acc.gemini_flash_pct : geminiPct;
+
+                const getQuotaColor = (pct) => pct > 40 ? 'var(--success)' : pct > 15 ? 'var(--warning)' : 'var(--danger)';
+                const geminiColor = getQuotaColor(geminiPct);
+                const claudeColor = getQuotaColor(claudePct);
+
+                const gResetDelta = formatResetDelta(acc.gemini_reset_time);
+                const cResetDelta = formatResetDelta(acc.claude_reset_time);
 
                 // Window usage
                 const w5h = acc.window_5h ? acc.window_5h.request_count || 0 : 0;
@@ -3235,17 +3316,45 @@
                             </div>
                         </td>
                         <td>
-                            <div class="quota-group">
-                                <div class="quota-label-row">
-                                    <span>Remaining</span>
-                                    <span style="font-weight:600; color: ${barColor}">${avgPct}%</span>
+                            <div class="quota-meter-dual">
+                                <!-- Claude Meter -->
+                                <div class="quota-meter-section">
+                                    <div class="quota-meter-header">
+                                        <span class="quota-meter-name">
+                                            <span style="color:#f59e0b;">⚡</span> Claude
+                                        </span>
+                                        <span class="quota-meter-val" style="color: ${claudeColor};">${claudePct}%</span>
+                                    </div>
+                                    <div class="quota-bar-wrapper">
+                                        <div class="quota-bar-fill" style="width: ${claudePct}%; background: ${claudeColor};"></div>
+                                    </div>
+                                    ${cResetDelta ? `
+                                        <div class="quota-reset-pill">
+                                            <span style="color:${claudePct === 0 ? '#f87171' : '#94a3b8'}">${claudePct === 0 ? '🔴 Exhausted • ' : ''}⏳ Resets in ${cResetDelta}</span>
+                                        </div>
+                                    ` : ''}
                                 </div>
-                                <div class="quota-bar-wrapper">
-                                    <div class="quota-bar-fill" style="width: ${avgPct}%; background: ${barColor};"></div>
-                                </div>
-                                <div class="quota-label-row" style="font-size:0.68rem;">
-                                    <span>Gemini: ${geminiPct}%</span>
-                                    <span>Claude: ${claudePct}%</span>
+
+                                <!-- Gemini Meter -->
+                                <div class="quota-meter-section" style="margin-top: 5px;">
+                                    <div class="quota-meter-header">
+                                        <span class="quota-meter-name">
+                                            <span style="color:#38bdf8;">✨</span> Gemini
+                                        </span>
+                                        <span class="quota-meter-val" style="color: ${geminiColor};">${geminiPct}%</span>
+                                    </div>
+                                    <div class="quota-bar-wrapper">
+                                        <div class="quota-bar-fill" style="width: ${geminiPct}%; background: ${geminiColor};"></div>
+                                    </div>
+                                    <div class="quota-breakdown-row" style="justify-content: space-between; margin-top: 2px;">
+                                        <span>Pro: <strong style="color:${getQuotaColor(geminiProPct)}">${geminiProPct}%</strong> • Flash: <strong style="color:${getQuotaColor(geminiFlashPct)}">${geminiFlashPct}%</strong></span>
+                                        <button class="quota-sync-btn" onclick="refreshAccountQuota('${acc.id}', this)" title="Refresh quota from Google upstream">🔄</button>
+                                    </div>
+                                    ${gResetDelta ? `
+                                        <div class="quota-reset-pill">
+                                            <span style="color:${geminiPct === 0 ? '#f87171' : '#94a3b8'}">${geminiPct === 0 ? '🔴 Exhausted • ' : ''}⏳ Resets in ${gResetDelta}</span>
+                                        </div>
+                                    ` : ''}
                                 </div>
                             </div>
                         </td>
@@ -3440,6 +3549,68 @@
             const pool4wayEl = document.getElementById('pool-4way-status');
             if (pool4wayEl) {
                 pool4wayEl.textContent = 'All Verified (agy • gweb • studio • gcli)';
+            }
+        }
+
+        // Format ISO reset timestamp to human readable countdown
+        function formatResetDelta(isoString) {
+            if (!isoString) return '';
+            try {
+                const target = new Date(isoString).getTime();
+                const diffMs = target - Date.now();
+                if (diffMs <= 0) return 'now';
+                const diffSec = Math.floor(diffMs / 1000);
+                const hours = Math.floor(diffSec / 3600);
+                const minutes = Math.floor((diffSec % 3600) / 60);
+                if (hours >= 24) {
+                    const days = Math.floor(hours / 24);
+                    const remH = hours % 24;
+                    return `${days}d ${remH}h`;
+                }
+                if (hours > 0) {
+                    return `${hours}h ${minutes}m`;
+                }
+                return `${Math.max(1, minutes)}m`;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        // Live Quota Refresh for a single account
+        async function refreshAccountQuota(accId, btnEl) {
+            if (btnEl) btnEl.style.opacity = '0.4';
+            try {
+                showToast('Syncing real-time quota...', 'info');
+                const res = await fetch(`${API_BASE}/admin/accounts/${accId}/quota`, {
+                    headers: getAdminHeaders()
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                showToast('Quota updated successfully', 'success');
+                await fetchAccounts();
+            } catch (err) {
+                showToast(`Failed to sync quota: ${err.message}`, 'error');
+            } finally {
+                if (btnEl) btnEl.style.opacity = '1';
+            }
+        }
+
+        // Live Quota Refresh for all accounts
+        async function refreshAllQuotas(isManual = false) {
+            const btn = document.getElementById('btn-refresh-all-quotas');
+            if (btn) btn.classList.add('spinning');
+            try {
+                showToast('Syncing real-time quotas for all accounts...', 'info');
+                const res = await fetch(`${API_BASE}/admin/accounts-refresh-all-quotas`, {
+                    method: 'POST',
+                    headers: getAdminHeaders()
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                showToast('All account quotas refreshed from Google upstream', 'success');
+                await fetchAccounts();
+            } catch (err) {
+                showToast(`Failed to refresh all quotas: ${err.message}`, 'error');
+            } finally {
+                if (btn) btn.classList.remove('spinning');
             }
         }
 

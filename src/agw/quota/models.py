@@ -34,4 +34,8 @@ class AccountQuotaSnapshot(BaseModel):
     models: Dict[str, ModelQuotaInfo] = Field(default_factory=dict)
     gemini_average_fraction: Optional[float] = None
     claude_average_fraction: Optional[float] = None
+    gemini_pro_fraction: Optional[float] = None
+    gemini_flash_fraction: Optional[float] = None
+    gemini_reset_time: Optional[str] = None
+    claude_reset_time: Optional[str] = None
     last_checked: datetime.datetime = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc))

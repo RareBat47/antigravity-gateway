@@ -1,5 +1,6 @@
 """Anthropic-compatible /v1/messages and /messages endpoints for Claude Code CLI and modern IDEs."""
 
+import datetime
 import json
 import logging
 import secrets
@@ -17,6 +18,7 @@ from agw.cloudcode.envelope import build_rpc_envelope
 from agw.cloudcode.error_classifier import UpstreamErrorClassification, classify_upstream_error
 from agw.config import AppConfig
 from agw.db.repository import DatabaseRepository
+from agw.quota.monitor import QuotaMonitor
 from agw.protocol.anthropic_mapper import (
     anthropic_to_openai_request,
     openai_to_anthropic_response,
@@ -68,6 +70,7 @@ def create_anthropic_router(
     health_tracker: AccountHealthTracker,
     aistudio_client: Optional[AIStudioClient] = None,
     geminiweb_client: Optional[GeminiWebClient] = None,
+    quota_monitor: Optional[QuotaMonitor] = None,
 ) -> APIRouter:
     verify_key = get_api_key_auth(config)
     router = APIRouter(tags=["Anthropic Compatible API"], dependencies=[Depends(verify_key)])
@@ -146,6 +149,7 @@ def create_anthropic_router(
             selected_account = await scheduler.select_account(
                 model_family=family,
                 exclude_account_ids=attempted_accounts,
+                requested_model_id=upstream_id,
             )
             if not selected_account:
                 break
@@ -310,6 +314,20 @@ def create_anthropic_router(
                     health_tracker.record(acc_id, False, latency_ms)
                     if action == UpstreamErrorClassification.ACTION_COOLDOWN_AND_FAILOVER:
                         await cooldown_mgr.record_rate_limit(acc_id, family, cooldown_sec)
+                        reset_iso = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=cooldown_sec)).isoformat()
+                        try:
+                            await repo.record_quota_snapshot(
+                                account_id=acc_id,
+                                model_id=upstream_id,
+                                model_family=family,
+                                remaining_fraction=0.0,
+                                reset_time=reset_iso,
+                                source="upstream_429",
+                            )
+                            if quota_monitor:
+                                quota_monitor.record_reactive_exhaustion(acc_id, upstream_id, family, reset_iso)
+                        except Exception as q_err:
+                            logger.warning(f"Failed to record reactive quota snapshot: {q_err}")
                     elif action == UpstreamErrorClassification.ACTION_REFRESH_TOKEN:
                         try:
                             await account_mgr.refresh_account_token(acc_id)
