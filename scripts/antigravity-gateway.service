@@ -1,0 +1,23 @@
+[Unit]
+Description=Antigravity Multi-Account AI Gateway
+Documentation=https://github.com/RareBat47/antigravity-gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/rarebat/Projects_secured/Secured_google_AI_extractor_api-format/antigravity-gateway-src/antigravity-gateway-main
+Environment="PYTHONPATH=src"
+Environment="PYTHONUNBUFFERED=1"
+Environment="PATH=/home/rarebat/secure-agent-lab/bridge/venv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/home/rarebat/secure-agent-lab/bridge/venv/bin/python3 -m agw.main
+Restart=always
+RestartSec=3
+StartLimitIntervalSec=60
+StartLimitBurst=10
+LimitNOFILE=65536
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
