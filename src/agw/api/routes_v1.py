@@ -552,7 +552,18 @@ def create_v1_router(
                 continue
 
             # Handle Non-Streaming Request
-            if acc_tier == "studio":
+            if family == "handy" or acc_tier == "handy":
+                # Handy models are streaming-only media generators
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": {
+                            "message": f"Handy model '{model_id}' is a streaming-only media generator. Set 'stream: true' in your request.",
+                            "type": "invalid_request_error",
+                        }
+                    },
+                )
+            elif acc_tier == "studio":
                 if not aistudio_client:
                     continue
                 status_code, payload, raw_text = await aistudio_client.generate_content(raw_cred, envelope)

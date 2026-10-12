@@ -39,13 +39,14 @@ Extract every drop of intelligence and quota from your Google AI Pro accounts—
 
 ## 🌟 Key Features
 
-* **4-Way Extraction Engine**: Extract quotas simultaneously across all 4 pathways per Google account:
+* **5-Way Extraction Engine**: Extract quotas simultaneously across all 5 pathways per Google account:
   1. 🛸 **Google Cloud Code OAuth** (`agy`): Native Google Cloud Code token unlocking Claude 3.7 / 5.5 Sonnet, Claude Opus 5.5, and Gemini 3 Pro.
   2. 🍪 **Gemini Advanced Web Session** (`gweb`): Consumer `gemini.google.com` sessions extracted via Playwright & `curl_cffi` (Chrome TLS impersonation) with 2,400 credits/5h per account at zero cost.
   3. 🔑 **Google AI Studio Key** (`studio`): Independent developer RPM quotas (15 RPM / 1,500 RPD) with zero billing requirements.
   4. ⚡ **Gemini Cloud CLI** (`gcli`): Automated developer CLI code assist channel.
+  5. 🎨 **Handy Creative Media Suite** (`handy`): Google Labs & DeepMind creative models spanning **Veo** (video generation), **MusicFX** (Lyria music generation), **Project Genie** (world models), **Google Flow** (cinematic storyboarding), and **Playground** (WebGL game code generation) authenticated using existing Google account session cookies.
 * **Perpetual Auto-Keeper Daemon**: Headless Playwright automation navigates Google multi-account indices (`/u/0/` through `/u/7/`) to extract fresh `SNlM0e` tokens and rotated `__Secure-1PSIDTS` cookies automatically via systemd timer. **Sessions never expire—zero manual cookie copying.**
-* **Unified 4-Channel Quota & Limits Monitor**: Complete real-time dashboard modal (`#channel-limits-modal`) tracking rate limits, sliding windows, request quotas, and token throughput in one place.
+* **Unified 5-Channel Quota & Limits Monitor**: Complete real-time dashboard modal (`#channel-limits-modal`) tracking rate limits, sliding windows, request quotas, and token throughput across all 5 channels in one place.
 * **Hybrid Intelligent Load Balancer**: Combines health scoring, token capacity, remaining quota percentage, and LRU (Least Recently Used) idle weighting to distribute requests smoothly across multiple accounts.
 * **Seamless Rate-Limit (429) Failover**: Isolated cooldown managers prevent account lockouts and rotate upstream accounts instantly without dropping user requests.
 * **Zero-Leakage AES-256 Vault**: All OAuth tokens, refresh keys, and browser session cookies are encrypted on disk using AES-256-GCM (`chmod 600`).
@@ -140,6 +141,18 @@ The gateway exposes all models over OpenAI-compatible IDs (`/v1/models`):
 | **`gemini-advanced`** (`gemini-2.5-pro`) | 1,000,000 tokens | Gemini Advanced Pro reasoning (**2,400 credits / 5h per account**). |
 | **`gemini-flash-web`** (`gemini-2.5-flash`) | 1,000,000 tokens | Fast consumer web tier (**2,400 credits / 5h per account**). |
 | **`gemini-2.0-flash-thinking-exp`** | 1,000,000 tokens | Step-by-step transparent thinking scratchpad. |
+
+### 4. Handy Creative Media Suite (`handy` Channel • Streaming-Only)
+| Model ID | Engine / Platform | Extraction Target & Output |
+| :--- | :---: | :--- |
+| **`handy-veo-video`** | DeepMind Veo 2/3 | High-Definition Text-to-Video via `aisandbox-pa:runVideoFx` stream |
+| **`handy-flow-music`** | DeepMind Lyria | Text-to-Music Audio Synthesis via `aisandbox-pa:soundFx` |
+| **`handy-musicfx-dj`** | DeepMind Lyria Interactive | Real-time Web Audio mixing & persistent stem stream |
+| **`handy-project-genie`** | DeepMind Genie 1/2/3 | Generative World Models & Latent Action simulation |
+| **`handy-google-flow`** | Veo + Nano Banana | Multi-shot storyboarding & cinematic video rendering |
+| **`handy-google-playground`** | Gemini Spark + WebGL | No-code HTML5 / Canvas / Three.js game bundle generation |
+
+*Note: All Handy models are streaming-only generators. Pass `"stream": true` and authenticate using `agw-handy-local` or your dedicated `handy_api_key`.*
 
 ---
 
