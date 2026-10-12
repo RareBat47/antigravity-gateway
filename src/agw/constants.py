@@ -204,6 +204,25 @@ PROVIDER_DEFINITIONS = {
         "description": "Tiered high-speed flash engine delivering sub-second interactive latency and high-throughput streaming.",
         "models": ["gemini-3.8-flash-high", "speed-flash", "gemini-2.5-flash"],
     },
+
+    # === HANDY CREATIVE SUITE (Google Labs / DeepMind / Test Kitchen) ===
+    "handy": {
+        "id": "handy",
+        "name": "Handy Creative Media Suite",
+        "category": "Google Labs & Creative Suite Extractors",
+        "badge": "🎨 handy",
+        "key": "agw-handy-local",
+        "base_url": "http://127.0.0.1:8999/v1",
+        "description": "Reverse-engineered Google Labs creative extractors spanning Google Playground (WebGL game generation), Project Genie (world models), Google Flow & Veo (video generation), and MusicFX / MusicFX DJ (Lyria music generation). Authenticated via shared Google session cookies (__Secure-1PSID / __Secure-1PSIDTS).",
+        "models": [
+            "handy-google-playground",
+            "handy-project-genie",
+            "handy-google-flow",
+            "handy-veo-video",
+            "handy-flow-music",
+            "handy-musicfx-dj",
+        ],
+    },
 }
 
 # The Curated 7-Model System categorized across 4 Provider Groups
@@ -464,5 +483,67 @@ DEFAULT_MODELS = {
         "capabilities": ["tools", "streaming"],
         "max_output_tokens": 32768,
         "description": "GPT-OSS 120B Medium (Open-Weights Inference via Antigravity)",
+    },
+
+    # Handy Creative Suite Extractors (Google Labs / DeepMind / Test Kitchen)
+    "handy-google-playground": {
+        "upstream_id": "handy-google-playground",
+        "family": "handy",
+        "provider_id": "handy",
+        "provider_name": "Handy Creative Media Suite",
+        "category": "Google Labs Game Generation",
+        "capabilities": ["streaming", "code", "interactive"],
+        "max_output_tokens": 65536,
+        "description": "Google Playground - Gemini Code Gen & WebGL/HTML5 Game Generator via batchexecute / CDP",
+    },
+    "handy-project-genie": {
+        "upstream_id": "handy-project-genie",
+        "family": "handy",
+        "provider_id": "handy",
+        "provider_name": "Handy Creative Media Suite",
+        "category": "DeepMind World Models",
+        "capabilities": ["streaming", "video", "interactive"],
+        "max_output_tokens": 16384,
+        "description": "Project Genie - DeepMind Interactive Generative World Models & Latent Action Simulation",
+    },
+    "handy-google-flow": {
+        "upstream_id": "handy-google-flow",
+        "family": "handy",
+        "provider_id": "handy",
+        "provider_name": "Handy Creative Media Suite",
+        "category": "Google Flow Studio",
+        "capabilities": ["streaming", "image", "video"],
+        "max_output_tokens": 16384,
+        "description": "Google Flow & Flow Tools - Multi-shot Storyboarding & Cinematic Rendering Engine",
+    },
+    "handy-veo-video": {
+        "upstream_id": "handy-veo-video",
+        "family": "handy",
+        "provider_id": "handy",
+        "provider_name": "Handy Creative Media Suite",
+        "category": "Veo Video Engine",
+        "capabilities": ["streaming", "video"],
+        "max_output_tokens": 16384,
+        "description": "DeepMind Veo - High-Definition Text-to-Video & VideoFX via aisandbox-pa runVideoFx",
+    },
+    "handy-flow-music": {
+        "upstream_id": "handy-flow-music",
+        "family": "handy",
+        "provider_id": "handy",
+        "provider_name": "Handy Creative Media Suite",
+        "category": "DeepMind Lyria Music",
+        "capabilities": ["streaming", "audio"],
+        "max_output_tokens": 16384,
+        "description": "Flow Music / MusicFX - DeepMind Lyria Audio Generation via aisandbox-pa soundFx / soundSearch",
+    },
+    "handy-musicfx-dj": {
+        "upstream_id": "handy-musicfx-dj",
+        "family": "handy",
+        "provider_id": "handy",
+        "provider_name": "Handy Creative Media Suite",
+        "category": "MusicFX DJ Realtime Audio",
+        "capabilities": ["streaming", "audio", "interactive"],
+        "max_output_tokens": 16384,
+        "description": "MusicFX DJ - Real-time Interactive Web Audio Mixing & Lyria Live Stem Streamer",
     },
 }

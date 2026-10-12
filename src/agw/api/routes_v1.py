@@ -11,6 +11,7 @@ from fastapi.responses import StreamingResponse
 from agw.accounts.manager import AccountManager
 from agw.aistudio.client import AIStudioClient
 from agw.geminiweb.client import GeminiWebClient
+from agw.handy.client import HandyClient
 from agw.api.middleware import get_api_key_auth
 from agw.cloudcode.client import CloudCodeClient
 from agw.cloudcode.envelope import build_rpc_envelope
@@ -70,6 +71,7 @@ def create_v1_router(
     health_tracker: AccountHealthTracker,
     aistudio_client: Optional[AIStudioClient] = None,
     geminiweb_client: Optional[GeminiWebClient] = None,
+    handy_client: Optional[HandyClient] = None,
     quota_monitor: Optional[QuotaMonitor] = None,
 ) -> APIRouter:
     verify_key = get_api_key_auth(config)
@@ -336,7 +338,13 @@ def create_v1_router(
             access_tok = None
             raw_cred = None
 
-            if acc_tier == "studio":
+            if family == "handy" or acc_tier == "handy":
+                # Handy models extract and use the account's existing Google session cookies
+                raw_cred = account_mgr.vault.get_token(f"{acc_id}:cookies") or account_mgr.get_token_raw(acc_id)
+                if not raw_cred:
+                    logger.warning(f"No cookies found in vault for handy account {acc_id}")
+                    continue
+            elif acc_tier == "studio":
                 raw_cred = account_mgr.get_token_raw(acc_id)
                 if not raw_cred:
                     logger.warning(f"No API key found in vault for studio account {acc_id}")
@@ -358,7 +366,23 @@ def create_v1_router(
 
             # Handle Streaming Request
             if is_streaming:
-                if acc_tier == "studio":
+                if family == "handy" or acc_tier == "handy":
+                    if not handy_client:
+                        logger.warning("HandyClient not configured")
+                        continue
+                    try:
+                        parsed_cred = json.loads(raw_cred)
+                        handy_cookies = parsed_cred.get("cookies", {}) if isinstance(parsed_cred, dict) else {}
+                    except Exception as e:
+                        logger.warning(f"Failed to parse handy credentials for {acc_id}: {e}")
+                        continue
+                    prompt_txt = _extract_messages_text(messages)
+                    stream_iter = handy_client.stream_media_generation(
+                        model_id=upstream_id,
+                        cookies=handy_cookies,
+                        prompt=prompt_txt,
+                    )
+                elif acc_tier == "studio":
                     if not aistudio_client:
                         logger.warning("AIStudioClient not configured")
                         continue
@@ -385,6 +409,22 @@ def create_v1_router(
                         else:
                             yield st, rw
                     stream_iter = _gweb_stream()
+                elif acc_tier == "handy":
+                    if not handy_client:
+                        logger.warning("HandyClient not configured")
+                        continue
+                    try:
+                        parsed_cred = json.loads(raw_cred)
+                        handy_cookies = parsed_cred.get("cookies", {})
+                    except Exception as e:
+                        logger.warning(f"Failed to parse handy credentials for {acc_id}: {e}")
+                        continue
+                    prompt_txt = _extract_messages_text(messages)
+                    stream_iter = handy_client.stream_media_generation(
+                        model_id=upstream_id,
+                        cookies=handy_cookies,
+                        prompt=prompt_txt,
+                    )
                 else:
                     stream_iter = cloudcode_client.stream_generate_content(access_tok, envelope)
 
@@ -529,6 +569,17 @@ def create_v1_router(
                 prompt_txt = _extract_messages_text(messages)
                 status_code, payload, raw_text = await geminiweb_client.generate_content(
                     web_cookies, web_snlm0e, prompt_txt
+                )
+            elif acc_tier == "handy":
+                # Handy models are streaming-only media generators
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": {
+                            "message": f"Handy model '{model_id}' is a streaming-only media generator. Set 'stream: true' in your request.",
+                            "type": "invalid_request_error",
+                        }
+                    },
                 )
             else:
                 status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, envelope)

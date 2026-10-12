@@ -432,10 +432,24 @@ def create_admin_router(
                         gweb_err = "No Gemini Web session cookies found. Log into gemini.google.com to link."
             except Exception as e:
                 gweb_err = str(e)
+            # 3. Check if account-specific Vertex / AI Studio API key is available
+            try:
+                raw_k = account_mgr.vault.get_token(f"{account_id}:vertex")
+                if raw_k:
+                    t2 = time.time()
+                    v_ok, v_msg, models = await aistudio_client.validate_key(raw_k)
+                    studio_lat = round((time.time() - t2) * 1000)
+                    if v_ok:
+                        studio_ok = True
+                        studio_err = None
+                    else:
+                        studio_err = v_msg
+                else:
+                    studio_err = "No AI Studio API Key bound for this account."
+            except Exception as e:
+                studio_err = str(e)
 
-            studio_err = "No AI Studio API Key enrolled for this account. Add key in modal to connect."
-
-        all_ok = agy_ok or gweb_ok or studio_ok or gcli_ok
+        all_ok = agy_ok and gweb_ok and studio_ok and gcli_ok
         now_ts = int(time.time())
 
         return {
@@ -473,7 +487,7 @@ def create_admin_router(
                     "status": "healthy" if studio_ok else "unconfigured",
                     "error": studio_err,
                     "latency_ms": studio_lat,
-                    "models": ["Gemini 2.5 Pro", "Gemini 2.5 Flash"],
+                    "models": ["Gemini 3.8 Flash", "Gemini 3.1 Pro", "Imagen 3"] if studio_ok else [],
                 },
                 "gemini_cli": {
                     "name": "Gemini CLI OAuth",
@@ -780,6 +794,7 @@ def create_admin_router(
         gweb_accs = [a for a in acc_summaries if a.get("cookies_verified")]
         studio_accs = [a for a in acc_summaries if a.get("vertex_verified")]
         gcli_accs = [a for a in acc_summaries if a.get("oauth_verified")]
+        handy_accs = [a for a in acc_summaries if a.get("cookies_verified") or a.get("tier") == "handy"]
 
         # Quotas for agy (Cloud Code)
         total_g_rem = 0.0
@@ -807,6 +822,7 @@ def create_admin_router(
         gweb_working = len([a for a in gweb_accs if a.get("enabled", True)]) > 0
         studio_working = len([a for a in studio_accs if a.get("enabled", True)]) > 0
         gcli_working = len([a for a in gcli_accs if a.get("enabled", True)]) > 0 and not has_all_cd
+        handy_working = len([a for a in handy_accs if a.get("enabled", True)]) > 0
 
         result = {
             "agy": {
@@ -892,6 +908,34 @@ def create_admin_router(
                 "window_5h_tokens": usage_by_ch["gcli"]["window_5h_tokens"],
                 "avg_latency_ms": usage_by_ch["gcli"]["avg_latency_ms"] or 108.0,
                 "models": ["Gemini Code Assist", "Gemini CLI Coding Engine"],
+            },
+            "handy": {
+                "name": "Handy Creative Media (handy)",
+                "code": "handy",
+                "badge": "🎨 handy",
+                "connected_accounts": len(handy_accs),
+                "active_accounts": len([a for a in handy_accs if a.get("enabled", True)]),
+                "working": handy_working,
+                "status": "Healthy" if handy_working else "Unconfigured",
+                "quota_used_pct": 0,
+                "quota_free_pct": 100 if handy_working else 0,
+                "quota_detail": "Google Labs Shared Cookies Active" if handy_working else "Cookies Not Linked",
+                "limit_type": "Google Labs / DeepMind Session Limits",
+                "requests": usage_by_ch.get("handy", {}).get("requests", 0),
+                "total_tokens": usage_by_ch.get("handy", {}).get("total_tokens", 0),
+                "prompt_tokens": usage_by_ch.get("handy", {}).get("prompt_tokens", 0),
+                "completion_tokens": usage_by_ch.get("handy", {}).get("completion_tokens", 0),
+                "window_5h_requests": usage_by_ch.get("handy", {}).get("window_5h_requests", 0),
+                "window_5h_tokens": usage_by_ch.get("handy", {}).get("window_5h_tokens", 0),
+                "avg_latency_ms": usage_by_ch.get("handy", {}).get("avg_latency_ms") or 220.0,
+                "models": [
+                    "handy-google-playground",
+                    "handy-project-genie",
+                    "handy-google-flow",
+                    "handy-veo-video",
+                    "handy-flow-music",
+                    "handy-musicfx-dj",
+                ],
             },
         }
 

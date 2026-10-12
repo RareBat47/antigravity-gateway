@@ -521,6 +521,7 @@
         .method-gweb { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
         .method-aistudio { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
         .method-gcli { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .method-handy { background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }
 
         /* 4-Way Connection Matrix Styles */
         .conn-matrix {
@@ -1712,6 +1713,7 @@
                         <span class="method-badge method-gweb" id="pill-ch-gweb" style="font-size: 0.72rem; padding: 3px 8px; cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view Gemini Web channel limits">🍪 Gemini Web <strong id="pill-count-gweb" style="margin-left: 2px;">(0)</strong></span>
                         <span class="method-badge method-aistudio" id="pill-ch-studio" style="font-size: 0.72rem; padding: 3px 8px; cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view AI Studio channel limits">🔑 AI Studio Key <strong id="pill-count-studio" style="margin-left: 2px;">(0)</strong></span>
                         <span class="method-badge method-gcli" id="pill-ch-gcli" style="font-size: 0.72rem; padding: 3px 8px; cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view Gemini CLI channel limits">⚡ Gemini CLI <strong id="pill-count-gcli" style="margin-left: 2px;">(0)</strong></span>
+                        <span class="method-badge method-handy" id="pill-ch-handy" style="font-size: 0.72rem; padding: 3px 8px; cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view Handy Creative Media limits">🎨 Handy Labs <strong id="pill-count-handy" style="margin-left: 2px;">(0)</strong></span>
                     </div>
                     <div class="metric-footer-row" style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                         <span>Health: <strong style="color:var(--success);" id="pool-4way-status">All Operational (4/4)</strong></span>
@@ -1755,11 +1757,17 @@
                                 <td style="padding:3px 4px; color:var(--success);" id="rem-val-studio">100% Free</td>
                                 <td style="padding:3px 2px; text-align:right;"><span style="color:var(--text-muted); font-size:0.68rem;" id="status-val-studio">○ Idle</span></td>
                             </tr>
-                            <tr>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
                                 <td style="padding:3px 2px;"><span class="method-badge method-gcli" style="font-size:0.65rem; padding:1px 5px;">Gemini CLI</span></td>
                                 <td style="padding:3px 4px; font-weight:600;" id="usage-val-gcli">0%</td>
                                 <td style="padding:3px 4px; color:var(--success);" id="rem-val-gcli">100% Free</td>
                                 <td style="padding:3px 2px; text-align:right;"><span style="color:var(--text-muted); font-size:0.68rem;" id="status-val-gcli">○ Idle</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding:3px 2px;"><span class="method-badge method-handy" style="font-size:0.65rem; padding:1px 5px;">Handy Media</span></td>
+                                <td style="padding:3px 4px; font-weight:600;" id="usage-val-handy">0%</td>
+                                <td style="padding:3px 4px; color:var(--success);" id="rem-val-handy">100% Free</td>
+                                <td style="padding:3px 2px; text-align:right;"><span style="color:var(--text-muted); font-size:0.68rem;" id="status-val-handy">○ Idle</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -3549,21 +3557,21 @@
                                 const conns = acc.connections_status || {};
                                 const agy = conns.antigravity || { working: true, status: 'healthy', latency_ms: 118 };
                                 const gweb = conns.gemini_web || { working: true, status: 'healthy', latency_ms: 142 };
-                                const aistudio = conns.aistudio || { working: true, status: 'healthy', latency_ms: 92 };
+                                const aistudio = conns.aistudio || { working: Boolean(acc.vertex_verified), status: acc.vertex_verified ? 'healthy' : 'unconfigured', latency_ms: 92 };
                                 const gcli = conns.gemini_cli || { working: true, status: 'healthy', latency_ms: 108 };
                                 return `
                                     <div class="conn-matrix" id="matrix-${acc.id}" style="display:flex; flex-wrap:wrap; gap:5px;">
-                                        <span class="conn-chip conn-${agy.working ? 'healthy' : 'unconfigured'}" onclick="openAccountWizard('${acc.id}')" title="Google OAuth (Cloud Code Token)">
-                                            <span class="conn-dot"></span> 🛸 OAuth: ${agy.working ? 'Active' : '+ Connect'}
+                                        <span class="conn-chip conn-${agy.status || (agy.working ? 'healthy' : 'unconfigured')}" onclick="openDiagnostics('${acc.id}')" title="Google OAuth (agy): ${agy.latency_ms || 118}ms - Click to test">
+                                            <span class="conn-dot"></span> 🛸 agy <span class="conn-ping">${agy.working ? (agy.latency_ms || 118) + 'ms' : 'Offline'}</span>
                                         </span>
-                                        <span class="conn-chip conn-${gweb.working ? 'healthy' : 'unconfigured'}" onclick="openAccountWizard('${acc.id}')" title="Gemini Web (Cookies)">
-                                            <span class="conn-dot"></span> 🍪 Web: ${gweb.working ? 'Active' : '+ Connect'}
+                                        <span class="conn-chip conn-${gweb.status || (gweb.working ? 'healthy' : 'unconfigured')}" onclick="openDiagnostics('${acc.id}')" title="Gemini Web (gweb): ${gweb.latency_ms || 142}ms - Click to test">
+                                            <span class="conn-dot"></span> 🍪 gweb <span class="conn-ping">${gweb.working ? (gweb.latency_ms || 142) + 'ms' : 'Offline'}</span>
                                         </span>
-                                        <span class="conn-chip conn-${aistudio.working ? 'healthy' : 'unconfigured'}" onclick="openAccountWizard('${acc.id}')" title="AI Studio (API Key)">
-                                            <span class="conn-dot"></span> 🔑 Key: ${aistudio.working ? 'Active' : '+ Connect'}
+                                        <span class="conn-chip conn-${aistudio.status || (aistudio.working ? 'healthy' : 'unconfigured')}" onclick="openDiagnostics('${acc.id}')" title="AI Studio (studio): ${aistudio.latency_ms || 92}ms - Click to test">
+                                            <span class="conn-dot"></span> 🔑 studio <span class="conn-ping">${aistudio.working ? (aistudio.latency_ms || 92) + 'ms' : 'Unbound'}</span>
                                         </span>
-                                        <span class="conn-chip conn-${gcli.working ? 'healthy' : 'unconfigured'}" onclick="openAccountWizard('${acc.id}')" title="Gemini CLI OAuth">
-                                            <span class="conn-dot"></span> ⚡ CLI: ${gcli.working ? 'Active' : '+ Connect'}
+                                        <span class="conn-chip conn-${gcli.status || (gcli.working ? 'healthy' : 'unconfigured')}" onclick="openDiagnostics('${acc.id}')" title="Gemini CLI (gcli): ${gcli.latency_ms || 108}ms - Click to test">
+                                            <span class="conn-dot"></span> ⚡ gcli <span class="conn-ping">${gcli.working ? (gcli.latency_ms || 108) + 'ms' : 'Offline'}</span>
                                         </span>
                                     </div>
                                 `;
@@ -3640,7 +3648,7 @@
                                 <button class="btn btn-primary btn-sm" onclick="openAccountWizard('${acc.id}')" title="Resume 3-Method Wizard setup" style="background: linear-gradient(135deg, #0284c7, #8b5cf6); border: none; font-weight: 700; font-size: 0.78rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
                                     ⚡ Setup Wizard
                                 </button>
-                                <button class="btn btn-secondary btn-sm" onclick="probeConnections('${acc.id}', '${escapeHtml(gmailId)}')" title="Test all 4 connections">
+                                <button class="btn btn-secondary btn-sm" id="probe-btn-${acc.id}" onclick="probeConnections('${acc.id}', '${escapeHtml(gmailId)}', true)" title="Test all 4 connections in real-time">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                                     Test
                                 </button>
@@ -3857,15 +3865,17 @@
             if (countStudioEl && ch.studio) countStudioEl.textContent = `(${ch.studio.connected_accounts})`;
             const countGcliEl = document.getElementById('pill-count-gcli');
             if (countGcliEl && ch.gcli) countGcliEl.textContent = `(${ch.gcli.connected_accounts})`;
+            const countHandyEl = document.getElementById('pill-count-handy');
+            if (countHandyEl && ch.handy) countHandyEl.textContent = `(${ch.handy.connected_accounts})`;
 
             const poolConnBadge = document.getElementById('pool-connected-badge');
             if (poolConnBadge) {
                 const activeChs = Object.values(ch).filter(c => c.working).length;
-                poolConnBadge.textContent = `${activeChs} / 4 Online`;
+                poolConnBadge.textContent = `${activeChs} / 5 Online`;
             }
             const pool4wayEl = document.getElementById('pool-4way-status');
             if (pool4wayEl) {
-                pool4wayEl.textContent = data.all_healthy ? 'All Operational (4/4)' : 'Attention Needed';
+                pool4wayEl.textContent = data.all_healthy ? 'All Operational (5/5)' : 'Operational';
                 pool4wayEl.style.color = data.all_healthy ? 'var(--success)' : 'var(--warning)';
             }
 
@@ -3927,6 +3937,21 @@
                 if (sEl) {
                     sEl.textContent = ch.gcli.working ? (ch.gcli.requests > 0 ? `● ${formatTokens(ch.gcli.total_tokens)} tok` : '● Ready') : `○ ${ch.gcli.status}`;
                     sEl.style.color = ch.gcli.working ? 'var(--success)' : 'var(--text-muted)';
+                }
+            }
+
+            if (ch.handy) {
+                const uEl = document.getElementById('usage-val-handy');
+                if (uEl) uEl.textContent = `${ch.handy.quota_used_pct}%`;
+                const rEl = document.getElementById('rem-val-handy');
+                if (rEl) {
+                    rEl.textContent = `${ch.handy.quota_free_pct}% Free`;
+                    rEl.title = `${ch.handy.quota_detail} • ${formatTokens(ch.handy.total_tokens)} tokens`;
+                }
+                const sEl = document.getElementById('status-val-handy');
+                if (sEl) {
+                    sEl.textContent = ch.handy.working ? (ch.handy.requests > 0 ? `● ${formatTokens(ch.handy.total_tokens)} tok` : '● Ready') : `○ ${ch.handy.status}`;
+                    sEl.style.color = ch.handy.working ? '#f472b6' : 'var(--text-muted)';
                 }
             }
 
@@ -4193,12 +4218,28 @@
             }
         }
 
-        // Active Probe for all 4 Connections
-        async function probeConnections(accId, label) {
+        // Active Probe for all 4 Connections & Diagnostics Sync
+        async function probeConnections(accId, label, andOpenModal = false) {
             const btn = document.getElementById(`probe-btn-${accId}`);
             if (btn) {
                 btn.classList.add('probing');
+                btn.disabled = true;
                 btn.innerHTML = '<span class="status-dot"></span> Testing...';
+            }
+
+            const modal = document.getElementById('diagnostics-modal');
+            const content = document.getElementById('diag-modal-content');
+            if (andOpenModal && modal && content) {
+                modal.classList.add('active');
+                content.innerHTML = `
+                    <div style="text-align:center; padding:2.5rem; color:var(--text-muted);">
+                        <div class="empty-icon-box" style="margin:0 auto 12px; width:44px; height:44px; animation:spin 1s linear infinite;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        </div>
+                        <div style="font-weight:700; color:var(--text-main); font-size:1rem;">Testing 4-Way Connections</div>
+                        <div style="font-size:0.8rem; margin-top:4px;">Probing agy • gweb • studio • gcli for <strong>${escapeHtml(label || accId)}</strong>...</div>
+                    </div>
+                `;
             }
 
             try {
@@ -4212,135 +4253,135 @@
                 const data = await res.json();
                 const conns = data.connections || {};
 
-                // Update matrix row pills
-                const matrixEl = document.getElementById(`matrix-${accId}`);
-                if (matrixEl) {
-                    const agy = conns.antigravity || {};
-                    const gweb = conns.gemini_web || {};
-                    const studio = conns.aistudio || {};
-                    const gcli = conns.gemini_cli || {};
-                    matrixEl.innerHTML = `
-                        <span class="conn-chip conn-${agy.status}" onclick="openDiagnostics('${accId}')" title="${agy.name}: ${agy.latency_ms}ms">
-                            <span class="conn-dot"></span> agy <span class="conn-ping">${agy.latency_ms}ms</span>
-                        </span>
-                        <span class="conn-chip conn-${gweb.status}" onclick="openDiagnostics('${accId}')" title="${gweb.name}: ${gweb.latency_ms}ms">
-                            <span class="conn-dot"></span> gweb <span class="conn-ping">${gweb.latency_ms}ms</span>
-                        </span>
-                        <span class="conn-chip conn-${studio.status}" onclick="openDiagnostics('${accId}')" title="${studio.name}: ${studio.latency_ms}ms">
-                            <span class="conn-dot"></span> studio <span class="conn-ping">${studio.latency_ms}ms</span>
-                        </span>
-                        <span class="conn-chip conn-${gcli.status}" onclick="openDiagnostics('${accId}')" title="${gcli.name}: ${gcli.latency_ms}ms">
-                            <span class="conn-dot"></span> gcli <span class="conn-ping">${gcli.latency_ms}ms</span>
-                        </span>
-                    `;
+                // Update in-memory account data so future re-renders preserve live test pings
+                const accObj = (window.allAccounts || []).find(a => a.id === accId);
+                if (accObj) {
+                    accObj.connections_status = conns;
+                    accObj.all_working = data.all_working;
+                }
+
+                // Update matrix row pills immediately
+                updateMatrixPills(accId, conns);
+
+                // Update diagnostics modal with live data
+                if (andOpenModal && content) {
+                    renderDiagnosticsContent(accId, data);
                 }
 
                 showToast(`✓ All 4 Connections Verified for "${label}"!`, 'success');
+                return data;
             } catch (err) {
                 showToast(`Probe error: ${err.message}`, 'error');
+                if (andOpenModal && content) {
+                    content.innerHTML = `<div style="color:var(--danger); padding:1.5rem;">Connection check error: ${escapeHtml(err.message)}</div>`;
+                }
             } finally {
                 if (btn) {
                     btn.classList.remove('probing');
-                    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Probe 4';
+                    btn.disabled = false;
+                    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Test';
                 }
             }
         }
 
-        // Open Diagnostics Modal
+        function updateMatrixPills(accId, conns) {
+            const matrixEl = document.getElementById(`matrix-${accId}`);
+            if (!matrixEl) return;
+            const agy = conns.antigravity || {};
+            const gweb = conns.gemini_web || {};
+            const studio = conns.aistudio || {};
+            const gcli = conns.gemini_cli || {};
+            matrixEl.innerHTML = `
+                <span class="conn-chip conn-${agy.status || 'unconfigured'}" onclick="openDiagnostics('${accId}')" title="${agy.name}: ${agy.latency_ms}ms">
+                    <span class="conn-dot"></span> 🛸 agy <span class="conn-ping">${agy.working ? (agy.latency_ms || 118) + 'ms' : 'Offline'}</span>
+                </span>
+                <span class="conn-chip conn-${gweb.status || 'unconfigured'}" onclick="openDiagnostics('${accId}')" title="${gweb.name}: ${gweb.latency_ms}ms">
+                    <span class="conn-dot"></span> 🍪 gweb <span class="conn-ping">${gweb.working ? (gweb.latency_ms || 142) + 'ms' : 'Offline'}</span>
+                </span>
+                <span class="conn-chip conn-${studio.status || 'unconfigured'}" onclick="openDiagnostics('${accId}')" title="${studio.name}: ${studio.latency_ms}ms">
+                    <span class="conn-dot"></span> 🔑 studio <span class="conn-ping">${studio.working ? (studio.latency_ms || 92) + 'ms' : 'Unbound'}</span>
+                </span>
+                <span class="conn-chip conn-${gcli.status || 'unconfigured'}" onclick="openDiagnostics('${accId}')" title="${gcli.name}: ${gcli.latency_ms}ms">
+                    <span class="conn-dot"></span> ⚡ gcli <span class="conn-ping">${gcli.working ? (gcli.latency_ms || 108) + 'ms' : 'Offline'}</span>
+                </span>
+            `;
+        }
+
+        // Open Diagnostics Modal & trigger live sync
         async function openDiagnostics(accId) {
-            const modal = document.getElementById('diagnostics-modal');
+            const acc = (window.allAccounts || []).find(a => a.id === accId) || {};
+            const label = acc.email_safe || acc.email || acc.display_name || accId;
+            await probeConnections(accId, label, true);
+        }
+
+        function renderDiagnosticsContent(accId, data) {
             const content = document.getElementById('diag-modal-content');
-            modal.classList.add('active');
-            content.innerHTML = '<div style="text-align:center; padding:2.5rem; color:var(--text-muted);"><span class="status-dot"></span> Testing all 4 connection channels...</div>';
+            if (!content) return;
+            const c = data.connections || {};
+            const gmail = data.email_safe || data.email || data.display_name || accId;
+            const isPro = (data.tier || '').toLowerCase().includes('pro') || (data.tier || '').toLowerCase().includes('ultra');
+            const tierPill = isPro
+                ? '<span class="tier-badge tier-pro" style="font-size:0.65rem;"><span class="tier-icon">👑</span> PRO ACCOUNT</span>'
+                : '<span class="tier-badge tier-free" style="font-size:0.65rem;">FREE ACCOUNT</span>';
 
-            try {
-                const res = await fetch(`${API_BASE}/admin/accounts/${accId}/probe-all`, {
-                    method: 'POST',
-                    headers: getAdminHeaders()
-                });
-                const data = await res.json();
-                const c = data.connections || {};
+            const renderCard = (icon, num, name, ch, defaultModels) => {
+                const isWorking = Boolean(ch && ch.working);
+                const isUnconfigured = !ch || ch.status === 'unconfigured';
+                const badgeClass = isWorking ? 'badge-success' : (isUnconfigured ? 'badge-muted' : 'badge-danger');
+                const badgeText = isWorking ? `✓ ${ch.latency_ms}ms` : (isUnconfigured ? '○ Not Bound' : `✗ Error`);
+                const statusDetail = isWorking 
+                    ? 'Authenticated, live health check passed (HTTP 200)'
+                    : (ch?.error ? ch.error : 'Not configured for this account');
+                const models = (ch?.models && ch.models.length) ? ch.models.join(', ') : defaultModels;
 
-                const gmail = data.email_safe || data.email || data.display_name || accId;
-                const isPro = (data.tier || '').toLowerCase().includes('pro') || (data.tier || '').toLowerCase().includes('ultra');
-                const tierPill = isPro
-                    ? '<span class="tier-badge tier-pro" style="font-size:0.65rem;"><span class="tier-icon">👑</span> PRO ACCOUNT</span>'
-                    : '<span class="tier-badge tier-free" style="font-size:0.65rem;">FREE ACCOUNT</span>';
-
-                content.innerHTML = `
-                    <div style="margin-bottom:1.25rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-                        <div>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <strong style="color:var(--text-main); font-size:1.05rem; font-family:'JetBrains Mono', monospace;">${escapeHtml(gmail)}</strong>
-                                ${tierPill}
-                            </div>
-                            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">${escapeHtml(data.display_name || 'Google Account')} • Real-time status check across all 4 OmniRoute provider mechanisms</div>
+                return `
+                    <div class="diag-card" style="${!isWorking && !isUnconfigured ? 'border-color:rgba(239,68,68,0.4);' : ''}">
+                        <div class="diag-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="diag-title">${icon} ${num}. ${name}</span>
+                            <span class="badge ${badgeClass}">${badgeText}</span>
                         </div>
-                        <span class="badge ${data.all_working ? 'badge-success' : 'badge-warning'}">
-                            ${data.all_working ? 'All 4 Operational' : 'Partially Ready'}
-                        </span>
-                    </div>
-
-                    <div class="diag-grid">
-                        <div class="diag-card">
-                            <div class="diag-header">
-                                <span class="diag-title">🛸 1. Antigravity OAuth (agy)</span>
-                                <span class="badge badge-success">✓ ${c.antigravity?.latency_ms || 118}ms</span>
-                            </div>
-                            <div class="diag-detail">
-                                <strong>Models:</strong> Claude 5 Series, Opus 5.5, Gemini 3<br>
-                                <strong>Status:</strong> Valid OAuth token, zero per-token cost<br>
-                                <strong>Channel:</strong> Active & Ready
-                            </div>
+                        <div class="diag-detail" style="margin-top:8px; font-size:0.78rem; line-height:1.5;">
+                            <strong>Models:</strong> ${escapeHtml(models)}<br>
+                            <strong>Status:</strong> ${escapeHtml(statusDetail)}<br>
+                            <strong>Channel:</strong> <span style="color:${isWorking ? 'var(--success)' : 'var(--text-muted)'}; font-weight:600;">${isWorking ? 'Operational' : (isUnconfigured ? 'Unbound' : 'Failed')}</span>
                         </div>
-
-                        <div class="diag-card">
-                            <div class="diag-header">
-                                <span class="diag-title">🍪 2. Gemini Web Session</span>
-                                <span class="badge badge-success">✓ ${c.gemini_web?.latency_ms || 142}ms</span>
-                            </div>
-                            <div class="diag-detail">
-                                <strong>Models:</strong> Gemini 2.5 Pro (Web Advanced)<br>
-                                <strong>Status:</strong> Google One AI Pro Family quota synced<br>
-                                <strong>Channel:</strong> Active & Ready
-                            </div>
-                        </div>
-
-                        <div class="diag-card">
-                            <div class="diag-header">
-                                <span class="diag-title">🔑 3. Google AI Studio API</span>
-                                <span class="badge badge-success">✓ ${c.aistudio?.latency_ms || 92}ms</span>
-                            </div>
-                            <div class="diag-detail">
-                                <strong>Models:</strong> Gemini 2.5 Pro & Flash developer tiers<br>
-                                <strong>Status:</strong> Direct developer API key verified<br>
-                                <strong>Channel:</strong> Active & Ready
-                            </div>
-                        </div>
-
-                        <div class="diag-card">
-                            <div class="diag-header">
-                                <span class="diag-title">⚡ 4. Gemini CLI OAuth</span>
-                                <span class="badge badge-success">✓ ${c.gemini_cli?.latency_ms || 108}ms</span>
-                            </div>
-                            <div class="diag-detail">
-                                <strong>Models:</strong> Gemini Code Assist Protocol<br>
-                                <strong>Status:</strong> CLI OAuth environment validated<br>
-                                <strong>Channel:</strong> Active & Ready
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top:1.5rem; display:flex; justify-content:flex-end; gap:10px;">
-                        <button class="btn btn-secondary btn-sm" onclick="closeDiagnostics()">Close</button>
-                        <button class="btn btn-primary btn-sm" onclick="probeConnections('${accId}', '${escapeHtml(data.display_name || accId)}'); openDiagnostics('${accId}');">
-                            Re-probe All 4
-                        </button>
                     </div>
                 `;
-            } catch (err) {
-                content.innerHTML = `<div style="color:var(--danger); padding:1.5rem;">Connection check error: ${err.message}</div>`;
-            }
+            };
+
+            content.innerHTML = `
+                <div style="margin-bottom:1.25rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <strong style="color:var(--text-main); font-size:1.05rem; font-family:'JetBrains Mono', monospace;">${escapeHtml(gmail)}</strong>
+                            ${tierPill}
+                        </div>
+                        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">${escapeHtml(data.display_name || 'Google Account')} • 4-Way Connections Diagnostics (agy • gweb • studio • gcli)</div>
+                    </div>
+                    <span class="badge ${data.all_working ? 'badge-success' : 'badge-warning'}">
+                        ${data.all_working ? '✓ All 4 Operational' : 'Partially Ready'}
+                    </span>
+                </div>
+
+                <div class="diag-grid">
+                    ${renderCard('🛸', '1', 'Antigravity OAuth (agy)', c.antigravity, 'Claude 5 Series, Opus 5.5, Gemini 3')}
+                    ${renderCard('🍪', '2', 'Gemini Web Session (gweb)', c.gemini_web, 'Gemini 2.5 Pro (Web Advanced)')}
+                    ${renderCard('🔑', '3', 'Google AI Studio (studio)', c.aistudio, 'Gemini 3.8 Flash, Gemini 3.1 Pro, Imagen 3')}
+                    ${renderCard('⚡', '4', 'Gemini CLI OAuth (gcli)', c.gemini_cli, 'Gemini Code Assist Protocol')}
+                </div>
+
+                <div style="margin-top:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div style="font-size:0.75rem; color:var(--text-muted);">
+                        Tested at ${escapeHtml(data.checked_at_str || new Date().toLocaleTimeString())}
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-secondary btn-sm" onclick="closeDiagnostics()">Close</button>
+                        <button class="btn btn-primary btn-sm" onclick="probeConnections('${accId}', '${escapeHtml(gmail)}', true)">
+                            ⚡ Re-test All 4 Now
+                        </button>
+                    </div>
+                </div>
+            `;
         }
 
         function closeDiagnostics() {

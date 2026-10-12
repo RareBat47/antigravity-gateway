@@ -7,6 +7,7 @@ server:
 security:
   gateway_api_key: ""
   admin_api_key: ""
+  handy_api_key: "agw-handy-local"
   local_trust: false
   dashboard_local_access: true
   encryption_key: ""
@@ -44,6 +45,14 @@ security:
       allowed_families: ["all"]
       allowed_models: []
       profile: "gcli"
+      advertise_all_models: true
+
+    - key: "agw-handy-local"
+      name: "Handy Creative Media Suite"
+      description: "Google Labs/DeepMind streaming media generation (Playground, Genie, Flow, Veo, MusicFX, MusicFX DJ)"
+      allowed_families: ["handy", "all"]
+      allowed_models: []
+      profile: "handy"
       advertise_all_models: true
 
     # === WORKSTATION CLIENT KEYS (Fully Unlocked to All Free Models) ===

@@ -35,6 +35,10 @@ class ApiKeyEntry(BaseModel):
 class SecuritySettings(BaseModel):
     gateway_api_key: str = Field(default="")
     admin_api_key: str = Field(default="")
+    handy_api_key: str = Field(
+        default="",
+        description="Dedicated API key for Handy Creative Suite (media generation streaming)",
+    )
     encryption_key: Optional[str] = None
     rate_limit_per_minute: int = 120
     cors_origins: List[str] = Field(default_factory=list)
@@ -137,6 +141,8 @@ def load_config(config_path: Optional[str] = None) -> AppConfig:
         sec_data["gateway_api_key"] = gw_key
     if admin_key := os.environ.get("ADMIN_API_KEY"):
         sec_data["admin_api_key"] = admin_key
+    if handy_key := os.environ.get("HANDY_API_KEY"):
+        sec_data["handy_api_key"] = handy_key
     if enc_key := os.environ.get("GATEWAY_ENCRYPTION_KEY"):
         sec_data["encryption_key"] = enc_key
     if local_trust_env := os.environ.get("GATEWAY_LOCAL_TRUST"):

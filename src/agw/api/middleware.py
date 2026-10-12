@@ -74,6 +74,16 @@ def get_api_key_auth(config: AppConfig) -> Callable:
             }
             return provided
 
+        # 1b. Check dedicated handy API key
+        if config.security.handy_api_key and (provided == config.security.handy_api_key or norm_key == config.security.handy_api_key):
+            request.state.api_key_info = {
+                "key": config.security.handy_api_key,
+                "name": "handy-creative-suite",
+                "allowed_families": ["handy", "all"],
+                "allowed_models": [],
+            }
+            return provided
+
         # 2. Check multi-key pool
         if provided:
             for entry in config.security.api_keys:

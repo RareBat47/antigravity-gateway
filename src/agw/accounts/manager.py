@@ -383,6 +383,43 @@ class AccountManager:
             "tier": "gweb",
         }
 
+    async def add_handy_account(
+        self,
+        cookies: Dict[str, str],
+        label: str = "Handy Creative Suite",
+        display_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Enroll Handy Creative Suite session using Google session cookies."""
+        import json
+        from agw.handy.client import HandyClient
+        client = HandyClient()
+        valid, msg = await client.validate_session(cookies)
+        if not valid:
+            raise ValueError(f"Handy session validation failed: {msg}")
+
+        psid = cookies.get("__Secure-1PSID", "")
+        account_id = f"acc-handy-{hashlib.sha256(psid.encode()).hexdigest()[:8]}"
+        name = display_name or label
+        safe_email = f"handy-{psid[:6]}@labs.google"
+
+        stored_data = json.dumps({"cookies": cookies})
+        self.vault.store_token(account_id, stored_data)
+        await self.repo.upsert_account(
+            account_id=account_id,
+            email_safe=safe_email,
+            display_name=name,
+            project_id="google-labs-handy",
+            tier="handy",
+            status="active",
+            enabled=True,
+        )
+        return {
+            "account_id": account_id,
+            "email_safe": safe_email,
+            "display_name": name,
+            "tier": "handy",
+        }
+
     def get_token_raw(self, account_id: str) -> Optional[str]:
         """Get the raw credential string from vault for this account."""
         return self.vault.get_token(account_id)

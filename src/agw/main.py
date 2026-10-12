@@ -19,6 +19,7 @@ from agw.auth.vault import CredentialVault
 from agw.cloudcode.client import CloudCodeClient
 from agw.aistudio.client import AIStudioClient
 from agw.geminiweb.client import GeminiWebClient
+from agw.handy.client import HandyClient
 from agw.config import AppConfig, load_config
 from agw.dashboard import get_dashboard_html
 from agw.db.repository import DatabaseRepository
@@ -60,6 +61,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     client = CloudCodeClient(timeout=float(cfg.scheduler.upstream_timeout_seconds))
     aistudio_client = AIStudioClient()
     geminiweb_client = GeminiWebClient()
+    handy_client = HandyClient()
     account_mgr = AccountManager(cfg, repo, vault, client)
     from agw.agent.provisioner import AutonomousProvisioningAgent
     provisioning_agent = AutonomousProvisioningAgent(
@@ -153,6 +155,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             health_tracker=health_tracker,
             aistudio_client=aistudio_client,
             geminiweb_client=geminiweb_client,
+            handy_client=handy_client,
             quota_monitor=quota_monitor,
         )
     )

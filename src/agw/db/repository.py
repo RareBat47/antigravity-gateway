@@ -474,9 +474,9 @@ class DatabaseRepository:
     async def get_channel_usage_summary(self) -> Dict[str, Any]:
         """Aggregate usage events and tokens partitioned across the 4 channels."""
         from agw.constants import PROVIDER_DEFINITIONS
-        canonical_channels = {"agy", "gweb", "studio", "gcli"}
+        canonical_channels = {"agy", "gweb", "studio", "gcli", "handy"}
         model_to_channel = {}
-        for ch_key in ("agy", "gweb", "studio", "gcli"):
+        for ch_key in ("agy", "gweb", "studio", "gcli", "handy"):
             prov = PROVIDER_DEFINITIONS.get(ch_key, {})
             for m in prov.get("models", []):
                 model_to_channel[m.lower()] = ch_key
@@ -487,6 +487,8 @@ class DatabaseRepository:
                 return m
             if m in model_to_channel:
                 return model_to_channel[m]
+            if "handy" in m or "veo" in m or "genie" in m or "musicfx" in m or "playground" in m:
+                return "handy"
             if "web" in m or "advanced" in m:
                 return "gweb"
             if "studio" in m or "vertex" in m:
@@ -531,6 +533,7 @@ class DatabaseRepository:
             "gweb": {"requests": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "window_5h_requests": 0, "window_5h_tokens": 0, "avg_latency_ms": 0.0},
             "studio": {"requests": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "window_5h_requests": 0, "window_5h_tokens": 0, "avg_latency_ms": 0.0},
             "gcli": {"requests": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "window_5h_requests": 0, "window_5h_tokens": 0, "avg_latency_ms": 0.0},
+            "handy": {"requests": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "window_5h_requests": 0, "window_5h_tokens": 0, "avg_latency_ms": 0.0},
         }
 
         latencies = {
@@ -538,6 +541,7 @@ class DatabaseRepository:
             "gweb": {"total": 0.0, "count": 0},
             "studio": {"total": 0.0, "count": 0},
             "gcli": {"total": 0.0, "count": 0},
+            "handy": {"total": 0.0, "count": 0},
         }
 
         for r in rows:
