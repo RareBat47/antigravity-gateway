@@ -3210,22 +3210,17 @@
                 
                 // Status badge
                 let statusBadge = '';
-                const conns = acc.connections_status || {};
-                const hasAgy = conns.antigravity && conns.antigravity.working;
-                const hasGweb = conns.gemini_web && conns.gemini_web.working;
-                const hasStudio = conns.aistudio && conns.aistudio.working;
-                let activeChannelsCount = (hasAgy ? 1 : 0) + (hasGweb ? 1 : 0) + (hasStudio ? 1 : 0);
-                if (activeChannelsCount === 0 && acc.has_credentials) activeChannelsCount = 1;
-                const isComplete = activeChannelsCount >= 3;
+                const completedCount = acc.completed_methods !== undefined ? acc.completed_methods : (acc.is_setup_complete ? 3 : (acc.has_credentials ? 1 : 0));
+                const isComplete = acc.is_setup_complete === true || completedCount >= 3;
 
                 if (!isEnabled) {
                     statusBadge = '<span class="badge badge-muted">Disabled</span>';
                 } else if (!isComplete) {
-                    statusBadge = `<span class="badge" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24; border:1px solid rgba(245, 158, 11, 0.3); font-weight:600; cursor:pointer; padding:3px 8px; border-radius:5px;" onclick="openAddModal('${acc.id}')" title="Click to finish channel setup">🟡 ${activeChannelsCount}/3 Active (Click to Complete)</span>`;
+                    statusBadge = `<span class="badge-lazy-red" onclick="openAccountWizard('${acc.id}')" title="Setup Incomplete: Click to resume 3-method setup">!! lad youre lazy (${completedCount}/3)</span>`;
                 } else if (hasCooldown) {
                     statusBadge = '<span class="badge badge-warning">Cooldown</span>';
                 } else {
-                    statusBadge = '<span class="badge badge-success" style="box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); font-weight: 700;">🟢 All Channels Live</span>';
+                    statusBadge = '<span class="badge badge-success" style="box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); font-weight: 700;">🟢 Active (3/3 Complete)</span>';
                 }
 
                 // Provider badge inference
@@ -3283,16 +3278,16 @@
                                 const gcli = conns.gemini_cli || { working: true, status: 'healthy', latency_ms: 108 };
                                 return `
                                     <div class="conn-matrix" id="matrix-${acc.id}" style="display:flex; flex-wrap:wrap; gap:5px;">
-                                        <span class="conn-chip conn-${agy.working ? 'healthy' : 'unconfigured'}" onclick="openAddModal('${acc.id}')" title="Google OAuth (Cloud Code Token)">
+                                        <span class="conn-chip conn-${agy.working ? 'healthy' : 'unconfigured'}" onclick="openAccountWizard('${acc.id}')" title="Google OAuth (Cloud Code Token)">
                                             <span class="conn-dot"></span> 🛸 OAuth: ${agy.working ? 'Active' : '+ Connect'}
                                         </span>
-                                        <span class="conn-chip conn-${gweb.working ? 'healthy' : 'unconfigured'}" onclick="openAddModal('${acc.id}'); switchTab('gweb');" title="Gemini Web (Cookies)">
+                                        <span class="conn-chip conn-${gweb.working ? 'healthy' : 'unconfigured'}" onclick="openAccountWizard('${acc.id}')" title="Gemini Web (Cookies)">
                                             <span class="conn-dot"></span> 🍪 Web: ${gweb.working ? 'Active' : '+ Connect'}
                                         </span>
-                                        <span class="conn-chip conn-${aistudio.working ? 'healthy' : 'unconfigured'}" onclick="openAddModal('${acc.id}'); switchTab('aistudio');" title="AI Studio (API Key)">
+                                        <span class="conn-chip conn-${aistudio.working ? 'healthy' : 'unconfigured'}" onclick="openAccountWizard('${acc.id}')" title="AI Studio (API Key)">
                                             <span class="conn-dot"></span> 🔑 Key: ${aistudio.working ? 'Active' : '+ Connect'}
                                         </span>
-                                        <span class="conn-chip conn-${gcli.working ? 'healthy' : 'unconfigured'}" onclick="openAddModal('${acc.id}'); switchTab('gcli');" title="Gemini CLI OAuth">
+                                        <span class="conn-chip conn-${gcli.working ? 'healthy' : 'unconfigured'}" onclick="openAccountWizard('${acc.id}')" title="Gemini CLI OAuth">
                                             <span class="conn-dot"></span> ⚡ CLI: ${gcli.working ? 'Active' : '+ Connect'}
                                         </span>
                                     </div>
@@ -3366,8 +3361,8 @@
                         </td>
                         <td>
                             <div class="actions-cell" style="justify-content: flex-end; gap: 6px;">
-                                <button class="btn btn-primary btn-sm" onclick="openAddModal('${acc.id}')" title="Configure channels for this account" style="background: linear-gradient(135deg, #0284c7, #8b5cf6); border: none; font-weight: 700; font-size: 0.78rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
-                                    ⚡ Setup Channels
+                                <button class="btn btn-primary btn-sm" onclick="openAccountWizard('${acc.id}')" title="Resume 3-Method Wizard setup" style="background: linear-gradient(135deg, #0284c7, #8b5cf6); border: none; font-weight: 700; font-size: 0.78rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
+                                    ⚡ Setup Wizard
                                 </button>
                                 <button class="btn btn-secondary btn-sm" onclick="probeConnections('${acc.id}', '${escapeHtml(gmailId)}')" title="Test all 4 connections">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
