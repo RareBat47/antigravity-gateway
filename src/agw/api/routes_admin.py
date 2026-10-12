@@ -1,6 +1,8 @@
 """Administrative endpoints for managing accounts, health, and quotas."""
 
+import json
 import logging
+import re
 import secrets
 import time
 from typing import Any, Dict, Optional
@@ -39,6 +41,58 @@ class AddGeminiWebRequest(BaseModel):
     display_name: Optional[str] = None
 
 
+def _parse_gemini_cookies(raw_cookies: Any) -> Dict[str, str]:
+    """Parse Gemini Web cookies from header string, json, or raw token string."""
+    if isinstance(raw_cookies, dict):
+        return {str(k): str(v) for k, v in raw_cookies.items()}
+    if not isinstance(raw_cookies, str) or not raw_cookies.strip():
+        return {}
+    raw = raw_cookies.strip()
+    if raw.startswith("{") and raw.endswith("}"):
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict):
+                return {str(k): str(v) for k, v in parsed.items()}
+        except Exception:
+            pass
+
+    # Strip prefixes
+    if raw.lower().startswith("cookie:"):
+        raw = raw[7:].strip()
+    elif raw.lower().startswith("cookies:"):
+        raw = raw[8:].strip()
+
+    cookies: Dict[str, str] = {}
+
+    # Extract known cookies via regex
+    known = ["__Secure-1PSID", "__Secure-1PSIDTS", "__Secure-1PSIDCC", "__Secure-3PSID", "__Secure-3PSIDTS", "SID", "HSID", "SSID", "APISID", "SAPISID"]
+    for k in known:
+        m = re.search(rf'(?:^|[;\s]){re.escape(k)}=([^;\s\r\n]+)', raw)
+        if m:
+            cookies[k] = m.group(1).strip('"\'')
+
+    # Also parse line or semicolon separated items
+    normalized = raw.replace("\n", ";").replace("\r", ";")
+    for item in normalized.split(";"):
+        item = item.strip()
+        if "=" in item:
+            k, v = item.split("=", 1)
+            k = k.strip()
+            v = v.strip().strip('"\'')
+            if k and v and len(k) < 60 and k not in cookies:
+                cookies[k] = v
+
+    # Fallback: if __Secure-1PSID was not extracted, assume the whole raw string is __Secure-1PSID
+    if "__Secure-1PSID" not in cookies:
+        clean = raw.strip().strip('"\'')
+        if clean.startswith("__Secure-1PSID="):
+            clean = clean[len("__Secure-1PSID="):].strip()
+        if len(clean) >= 15:
+            cookies["__Secure-1PSID"] = clean
+
+    return cookies
+
+
 def create_admin_router(
     config: AppConfig,
     repo: DatabaseRepository,
@@ -69,16 +123,51 @@ def create_admin_router(
 
     @router.get("/dashboard", response_class=HTMLResponse)
     async def get_dashboard():
-        """Serve embedded web dashboard UI."""
+        """Serve embedded web dashboard UI with live synced API keys."""
         from agw.dashboard import get_dashboard_html
+        content = get_dashboard_html()
+        if config.security.gateway_api_key:
+            content = content.replace("agw-local-dE9XbJxEmq2AJpjsk1zTPxbF0O7f2Q2WyQO8g5GQgOM", config.security.gateway_api_key)
+            content = content.replace("__GATEWAY_KEY_PLACEHOLDER__", config.security.gateway_api_key)
+        if config.security.admin_api_key:
+            content = content.replace("agw-admin-YvMPfKwf5tYbYRIeMC-AV2R6wI3oRYTwQJ1EnmZefL4", config.security.admin_api_key)
+            content = content.replace("__ADMIN_KEY_PLACEHOLDER__", config.security.admin_api_key)
         return HTMLResponse(
-            content=get_dashboard_html(),
+            content=content,
             headers={
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 "Pragma": "no-cache",
                 "Expires": "0",
             },
         )
+
+    @router.api_route("/oauth/start", methods=["GET", "POST"])
+    async def admin_oauth_start(request: Request):
+        """Initiate OAuth2 PKCE login flow from admin/wizard."""
+        from agw.api.routes_auth import _PENDING_SESSIONS
+        from agw.auth.oauth import build_auth_url, generate_pkce
+        state = secrets.token_urlsafe(16)
+        verifier, challenge = generate_pkce()
+        base_url = config.server.public_base_url or str(request.base_url).rstrip("/")
+        redirect_uri = f"{base_url}/auth/callback"
+        _PENDING_SESSIONS[state] = {
+            "verifier": verifier,
+            "redirect_uri": redirect_uri,
+        }
+        auth_url = build_auth_url(
+            client_id=config.oauth.client_id,
+            redirect_uri=redirect_uri,
+            state=state,
+            code_challenge=challenge,
+        )
+        return {
+            "status": "pending",
+            "state": state,
+            "code_verifier": verifier,
+            "redirect_uri": redirect_uri,
+            "auth_url": auth_url,
+            "message": "Open auth_url in your browser to authenticate with Google Antigravity.",
+        }
 
     @router.get("/accounts", dependencies=[Depends(verify_admin)])
     async def list_accounts():
@@ -395,19 +484,9 @@ def create_admin_router(
     async def add_geminiweb_channel(req: AddGeminiWebRequest):
         """Add and validate consumer Gemini Web session cookies."""
         try:
-            cookie_dict = {}
-            raw = req.cookies.strip()
-            if raw.startswith("{") and raw.endswith("}"):
-                try:
-                    cookie_dict = json.loads(raw)
-                except Exception:
-                    cookie_dict = {}
+            cookie_dict = _parse_gemini_cookies(req.cookies)
             if not cookie_dict:
-                for item in raw.split(";"):
-                    if "=" in item:
-                        k, v = item.strip().split("=", 1)
-                        cookie_dict[k.strip()] = v.strip()
-
+                raise ValueError("No valid session cookies detected.")
             info = await account_mgr.add_gemini_web_account(
                 cookies=cookie_dict,
                 label=req.label,
@@ -549,12 +628,13 @@ def create_admin_router(
         return {"status": "success", "cleared": account_id}
 
     class LinkCookiesRequest(BaseModel):
-        cookies: Optional[Dict[str, str]] = None
+        cookies: Optional[Any] = None
 
     @router.post("/accounts/{account_id}/link-cookies", dependencies=[Depends(verify_admin)])
     async def admin_link_cookies(account_id: str, req: LinkCookiesRequest):
         """Link Gemini Web cookies to an existing account, auto-harvesting from Chrome if omitted."""
-        cookies = req.cookies
+        cookies = _parse_gemini_cookies(req.cookies)
+
         snlm0e = ""
         if not cookies:
             ok, extracted, msg = geminiweb_client.extract_from_local_chrome()
@@ -564,11 +644,16 @@ def create_admin_router(
 
         valid, vmsg, token = await geminiweb_client.validate_session(cookies)
         if not valid:
-            raise HTTPException(status_code=400, detail=f"Gemini Web session validation failed: {vmsg}")
-        snlm0e = token
+            if "__Secure-1PSID" in cookies and len(cookies["__Secure-1PSID"]) >= 15:
+                logger.warning("Gemini Web validation warning for %s: %s (saving cookies anyway)", account_id, vmsg)
+                snlm0e = ""
+            else:
+                raise HTTPException(status_code=400, detail=f"Gemini Web session validation failed: {vmsg}")
+        else:
+            snlm0e = token or ""
 
         res = await account_mgr.link_account_cookies(account_id, cookies, snlm0e)
-        return {"status": "success", "account_id": account_id, "channel": "cookies", "bindings": res}
+        return {"status": "success", "account_id": account_id, "channel": "cookies", "bindings": res, "warning": None if valid else vmsg}
 
     class LinkVertexRequest(BaseModel):
         api_key: str

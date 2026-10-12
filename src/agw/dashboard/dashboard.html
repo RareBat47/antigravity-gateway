@@ -1537,33 +1537,38 @@
 
     <!-- Main Workspace -->
     <main>
-        <!-- Architecture Distinction: Client Gateway Key vs Upstream Pool -->
-        <div class="arch-banner">
-            <div class="arch-banner-left">
-                <div class="arch-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    Downstream Client API Authentication
+        <!-- Clean Quick-Start Banner -->
+        <div class="arch-banner" style="padding: 1rem 1.4rem; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(139, 92, 246, 0.2)); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                    🚀
                 </div>
-                <div class="arch-desc">
-                    External tools (Hermes, Claude Code, Cursor, Open WebUI) use this Gateway API Key to authenticate at <code>http://127.0.0.1:8999/v1</code>. Upstream Google sessions (OAuth, cookies, CLI logins) are separately held in the secure AES-256 vault below.
+                <div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                        Google AI Extractor Gateway
+                        <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 600;">● Active on Port 8999</span>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 3px;">
+                        Connect into Cursor, Claude Code, or Open WebUI using Base URL <code style="color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 1px 6px; border-radius: 4px; font-weight: 600;">http://127.0.0.1:8999/v1</code>
+                    </div>
                 </div>
             </div>
-            <div class="arch-key-box">
+            <div class="arch-key-box" style="margin: 0; padding: 6px 14px; background: rgba(2, 6, 23, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; display: flex; align-items: center; gap: 12px;">
                 <div>
-                    <div class="arch-key-label">Gateway Client Key</div>
-                    <div class="arch-key-val" id="display-client-key">agw-local-dE9XbJxEmq2AJpjsk1zTPxbF0O7f2Q2WyQO8g5GQgOM</div>
+                    <div class="arch-key-label" style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Gateway API Key</div>
+                    <div class="arch-key-val" id="display-client-key" style="font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; color: #38bdf8;">agw-local-OiU_M_UQYLMQVhEeKdRwhw5HgNvbJPI7cy7LlMV5oyQ</div>
                 </div>
-                <button class="btn-copy-key" onclick="copyClientKey()" title="Copy API Key">Copy</button>
+                <button class="btn-copy-key" onclick="copyClientKey()" title="Copy API Key" style="padding: 6px 14px; font-size: 0.78rem; border-radius: 6px; font-weight: 700; background: var(--primary); color: #020617; border: none; cursor: pointer;">Copy</button>
             </div>
         </div>
 
         <!-- Accounts Panel -->
         <section class="panel-card">
-            <!-- Table Header with title on left and "+ Add Google Account" button on top-right -->
+            <!-- Table Header -->
             <div class="panel-header">
                 <div class="panel-title-group">
-                    <h2 class="panel-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <h2 class="panel-title" style="font-size: 1.1rem; font-weight: 700;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         Connected Google Accounts
                     </h2>
                     <span class="count-badge" id="accounts-count">0 Connected</span>
@@ -1572,115 +1577,108 @@
                     </button>
                 </div>
                 <div class="header-actions" style="display:flex; align-items:center; gap:10px;">
-                    <button class="btn btn-secondary" onclick="checkAllAccountsNow()" id="btn-check-all-global" title="Actively probe and refresh all 4 connection pathways across all accounts">
+                    <button class="btn btn-secondary" onclick="checkAllAccountsNow()" id="btn-check-all-global" title="Actively probe and refresh all 4 connection pathways across all accounts" style="font-size: 0.82rem; padding: 8px 14px;">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                        Check All 4 Connections
+                        Test All Connections
                     </button>
-                    <button class="btn btn-primary" onclick="openAccountWizard()" id="btn-add-account-wizard" title="Add Google Account with 3-Method Setup Wizard" style="background: linear-gradient(135deg, #0284c7, #8b5cf6); color: #fff; font-weight: 700; border: none; box-shadow: 0 0 16px rgba(139, 92, 246, 0.4); display: flex; align-items: center; gap: 6px;">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
-                        + Add Account
-                    </button>
-                    <button class="btn btn-secondary" onclick="openAddModal()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                        Legacy Hub
+                    <button class="btn btn-primary" onclick="openAddModal()" id="btn-direct-hub" title="Open Setup Hub to connect Google accounts across all 4 channels" style="background: linear-gradient(135deg, #0284c7, #8b5cf6); color: #fff; font-weight: 700; border: none; box-shadow: 0 0 16px rgba(139, 92, 246, 0.4); display: flex; align-items: center; gap: 7px; padding: 8px 16px; font-size: 0.84rem;">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                        + Setup & Channels Hub
                     </button>
                 </div>
             </div>
 
-            <!-- Pooled Metrics Bar: Combined Usage Limit %, Accounts in Cooldown, Authorized Accounts Pool -->
-            <div class="pool-metrics-bar" id="pool-metrics-container">
-                <div class="metric-card">
+            <!-- Clean 4-Card Metrics Bar with Grouped Models Usage -->
+            <div class="pool-metrics-bar" id="pool-metrics-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+                <!-- Card 1: Total Available Pool Quota -->
+                <div class="metric-card" style="padding: 1.1rem; border-radius: 10px; background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border);">
                     <div class="metric-header">
-                        <span class="metric-title">Combined Usage Limit Consumed</span>
-                        <span class="metric-badge" id="pool-usage-badge">0% Limit Used</span>
+                        <span class="metric-title">Pool Capacity Ready</span>
+                        <span class="metric-badge" id="pool-usage-badge">Ready</span>
                     </div>
-                    <div class="metric-main">
-                        <span class="metric-value" id="pool-usage-val">0%</span>
-                        <span class="metric-sub" id="pool-capacity-sub">0% Total Pool Quota Remaining</span>
+                    <div class="metric-main" style="margin-top: 6px;">
+                        <span class="metric-value" id="pool-usage-val" style="font-size: 1.5rem; color: #10b981;">100% Free</span>
+                        <span class="metric-sub" id="pool-capacity-sub">Total pooled capacity ready for routing</span>
                     </div>
-                    <div class="metric-progress-bg">
+                    <div class="metric-progress-bg" style="margin-top: 8px;">
                         <div class="metric-progress-fill" id="pool-usage-progress" style="width: 0%;"></div>
                     </div>
-                    <div class="metric-footer-row">
-                        <span>Gemini Limit Used: <strong id="gemini-pool-usage">0%</strong></span>
-                        <span>Claude Limit Used: <strong id="claude-pool-usage">0%</strong></span>
+                    <div class="metric-footer-row" style="margin-top: 8px;">
+                        <span>Gemini Used: <strong id="gemini-pool-usage">0%</strong></span>
+                        <span>Claude Used: <strong id="claude-pool-usage">0%</strong></span>
                     </div>
                 </div>
 
-                <div class="metric-card">
+                <!-- Card 2: Account Health -->
+                <div class="metric-card" style="padding: 1.1rem; border-radius: 10px; background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border);">
                     <div class="metric-header">
-                        <span class="metric-title">Accounts in Cooldown</span>
-                        <span class="metric-badge" id="cooldown-status-badge">All Healthy</span>
+                        <span class="metric-title">Google Accounts Status</span>
+                        <span class="metric-badge" id="cooldown-status-badge" style="color: #10b981; background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3);">All Healthy</span>
                     </div>
-                    <div class="metric-main">
-                        <span class="metric-value" id="cooldown-count-val">0 / 0</span>
-                        <span class="metric-sub" id="cooldown-detail-sub">Ready for Claude 5 & Gemini 3 routing</span>
+                    <div class="metric-main" style="margin-top: 6px;">
+                        <span class="metric-value" id="pool-accounts-count-val" style="font-size: 1.5rem;">0 Active</span>
+                        <span class="metric-sub" id="pool-accounts-pro-sub">Google AI Pro Subscriptions</span>
                     </div>
-                    <div class="metric-footer-row" style="margin-top:auto;" id="cooldown-tags-row">
-                        <span>Status: <strong style="color:var(--success);" id="cooldown-status-text">Operational (No Rate Limits)</strong></span>
-                        <span>Auto-Clear: <strong id="cooldown-eta-val">None active</strong></span>
+                    <div class="metric-footer-row" style="margin-top: auto; padding-top: 10px;" id="cooldown-tags-row">
+                        <span>Status: <strong style="color:var(--success);" id="cooldown-status-text">Operational</strong></span>
+                        <span id="cooldown-detail-sub" style="display:none;"></span>
+                        <span id="cooldown-eta-val" style="display:none;"></span>
+                        <span id="cooldown-count-val" style="display:none;"></span>
                     </div>
                 </div>
 
-                <div class="metric-card">
+                <!-- Card 3: 4 Active Extraction Channels -->
+                <div class="metric-card" style="padding: 1.1rem; border-radius: 10px; background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border);">
                     <div class="metric-header">
-                        <span class="metric-title">Authorized Accounts Pool</span>
-                        <span class="metric-badge" id="pool-connected-badge" style="color:var(--primary); background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.3);">0 Connected</span>
+                        <span class="metric-title">Channels Supported</span>
+                        <span class="metric-badge" id="pool-connected-badge" style="color:var(--primary); background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.3);">4 Channels</span>
                     </div>
-                    <div class="metric-main">
-                        <span class="metric-value" id="pool-accounts-count-val">0 / 0 Active</span>
-                        <span class="metric-sub" id="pool-accounts-pro-sub">0 Pro-Tier Google Accounts</span>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 6px;">
+                        <span class="method-badge method-agy" style="font-size: 0.72rem; padding: 3px 8px;">🛸 Google OAuth</span>
+                        <span class="method-badge method-gweb" style="font-size: 0.72rem; padding: 3px 8px;">🍪 Gemini Web</span>
+                        <span class="method-badge" style="font-size: 0.72rem; padding: 3px 8px; background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3);">🔑 AI Studio Key</span>
+                        <span class="method-badge method-gcli" style="font-size: 0.72rem; padding: 3px 8px;">⚡ Gemini CLI</span>
                     </div>
-                    <div class="metric-footer-row" style="margin-top:auto;">
-                        <span>4-Way Verification: <strong style="color:var(--success);" id="pool-4way-status">Awaiting Account Setup</strong></span>
-                        <span>Failover: <strong style="color:var(--primary);">Active</strong></span>
+                    <div class="metric-footer-row" style="margin-top: auto;">
+                        <span>Health: <strong style="color:var(--success);" id="pool-4way-status">Awaiting Account Setup</strong></span>
+                        <span>Auto-Failover: <strong style="color:var(--primary);">Active</strong></span>
                     </div>
                 </div>
 
-                <!-- 4. Combined 4-Way Usage Limits Table Box -->
-                <div class="metric-card" style="min-width: 310px;">
-                    <div class="metric-header">
-                        <span class="metric-title">4-Way Usage Limits</span>
-                        <span class="metric-badge" id="pool-4way-badge" style="color:var(--success); background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3);">Idle</span>
+                <!-- Card 4: Grouped Models & Channels Usage Tracker -->
+                <div class="metric-card" style="padding: 1rem 1.1rem; border-radius: 10px; background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border);">
+                    <div class="metric-header" style="margin-bottom: 6px;">
+                        <span class="metric-title">Grouped Models Usage</span>
+                        <span class="metric-badge" id="pool-4way-badge" style="color:var(--success); background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3);">All Free</span>
                     </div>
-                    <div style="margin-top: 4px;">
-                        <table style="width:100%; border-collapse:collapse; font-size:0.73rem;">
-                            <thead>
-                                <tr style="color:var(--text-muted); border-bottom:1px solid var(--border); text-align:left;">
-                                    <th style="padding:2px 4px;">Way</th>
-                                    <th style="padding:2px 4px;">Limit Used</th>
-                                    <th style="padding:2px 4px;">Remaining</th>
-                                    <th style="padding:2px 4px; text-align:right;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                                    <td style="padding:3px 4px;"><span class="method-badge method-agy">agy</span></td>
-                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-agy">0%</td>
-                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-agy">100% Free</td>
-                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--text-muted);" id="status-val-agy">○ Idle</span></td>
-                                </tr>
-                                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                                    <td style="padding:3px 4px;"><span class="method-badge method-gweb">gweb</span></td>
-                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-gweb">0%</td>
-                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-gweb">100% Free</td>
-                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--text-muted);" id="status-val-gweb">○ Idle</span></td>
-                                </tr>
-                                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                                    <td style="padding:3px 4px;"><span class="method-badge" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3);">studio</span></td>
-                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-studio">0%</td>
-                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-studio">100% Free</td>
-                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--text-muted);" id="status-val-studio">○ Idle</span></td>
-                                </tr>
-                                <tr>
-                                    <td style="padding:3px 4px;"><span class="method-badge method-gcli">gcli</span></td>
-                                    <td style="padding:3px 4px; font-weight:600;" id="usage-val-gcli">0%</td>
-                                    <td style="padding:3px 4px; color:var(--success);" id="rem-val-gcli">100% Free</td>
-                                    <td style="padding:3px 4px; text-align:right;"><span style="color:var(--text-muted);" id="status-val-gcli">○ Idle</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:0.73rem;">
+                        <tbody>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                                <td style="padding:3px 2px;"><span class="method-badge method-agy" style="font-size:0.65rem; padding:1px 5px;">Claude / agy</span></td>
+                                <td style="padding:3px 4px; font-weight:600;" id="usage-val-agy">0%</td>
+                                <td style="padding:3px 4px; color:var(--success);" id="rem-val-agy">100% Free</td>
+                                <td style="padding:3px 2px; text-align:right;"><span style="color:var(--text-muted); font-size:0.68rem;" id="status-val-agy">○ Idle</span></td>
+                            </tr>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                                <td style="padding:3px 2px;"><span class="method-badge method-gweb" style="font-size:0.65rem; padding:1px 5px;">Gemini Web</span></td>
+                                <td style="padding:3px 4px; font-weight:600;" id="usage-val-gweb">0%</td>
+                                <td style="padding:3px 4px; color:var(--success);" id="rem-val-gweb">100% Free</td>
+                                <td style="padding:3px 2px; text-align:right;"><span style="color:var(--text-muted); font-size:0.68rem;" id="status-val-gweb">○ Idle</span></td>
+                            </tr>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                                <td style="padding:3px 2px;"><span class="method-badge method-aistudio" style="font-size:0.65rem; padding:1px 5px;">AI Studio</span></td>
+                                <td style="padding:3px 4px; font-weight:600;" id="usage-val-studio">0%</td>
+                                <td style="padding:3px 4px; color:var(--success);" id="rem-val-studio">100% Free</td>
+                                <td style="padding:3px 2px; text-align:right;"><span style="color:var(--text-muted); font-size:0.68rem;" id="status-val-studio">○ Idle</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding:3px 2px;"><span class="method-badge method-gcli" style="font-size:0.65rem; padding:1px 5px;">Gemini CLI</span></td>
+                                <td style="padding:3px 4px; font-weight:600;" id="usage-val-gcli">0%</td>
+                                <td style="padding:3px 4px; color:var(--success);" id="rem-val-gcli">100% Free</td>
+                                <td style="padding:3px 2px; text-align:right;"><span style="color:var(--text-muted); font-size:0.68rem;" id="status-val-gcli">○ Idle</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -1723,9 +1721,19 @@
                 </table>
             </div>
         </section>
+        
+        <!-- Collapsible Advanced Developer Section -->
+        <details class="dev-accordion" style="margin-top: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border); border-radius: 12px; background: rgba(15, 23, 42, 0.4); overflow: hidden;">
+            <summary style="padding: 14px 20px; font-size: 0.88rem; font-weight: 600; color: var(--text-muted); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between; background: rgba(17, 24, 39, 0.6); transition: all 0.2s ease;">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <span>⚙️</span> Advanced Developer Diagnostics: Connected Applications & Local Tools (Click to Expand)
+                </span>
+                <span style="font-size: 0.76rem; color: var(--primary); font-weight: 600;">Click to Expand ▼</span>
+            </summary>
+            <div style="padding: 1.25rem; display: flex; flex-direction: column; gap: 1.5rem;">
 
         <!-- Section: Connected Applications & Client Integrations Tracker Table -->
-        <section class="panel-card" id="connected-apps-panel" style="margin-bottom: 2rem;">
+        <section class="panel-card" id="connected-apps-panel" style="margin-bottom: 0;">
             <div class="panel-header">
                 <div>
                     <div style="display:flex; align-items:center; gap:10px;">
@@ -1842,9 +1850,11 @@
                 </table>
             </div>
         </section>
+            </div>
+        </details>
 
-        <!-- Section 2: Exposed Models Catalog Table -->
-        <section class="panel-card" id="models-panel">
+        <!-- Section 2: Bound Provider Groups & Models Matrix (Always Visible) -->
+        <section class="panel-card" id="models-panel" style="margin-top: 1.5rem;">
             <div class="panel-header">
                 <div>
                     <div style="display:flex; align-items:center; gap:10px;">
@@ -2144,176 +2154,210 @@
     <div class="modal-overlay" id="add-account-modal" onclick="handleOverlayClick(event)">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>Add Google Account (OmniRoute Provider Hub)</h3>
+                <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px; font-size: 1.15rem; color: #fff;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: #38bdf8;"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                        Google Account Setup & Channel Hub
+                    </h3>
+                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 3px;">
+                        Easily connect your Google AI Pro account across all 4 channels to unlock Claude 3.7 & Gemini Pro quotas
+                    </div>
+                </div>
                 <button class="close-btn" onclick="closeAddModal()">&times;</button>
+            </div>
+
+            <!-- Target Account Selector -->
+            <div style="margin: 0.85rem 1.25rem 0.5rem; padding: 12px 16px; border-radius: 10px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+                <div>
+                    <label style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                        <span>👤</span> Active Google Account
+                    </label>
+                    <span style="font-size: 0.76rem; color: var(--text-muted);" id="direct-hub-account-sub">
+                        Credentials configured in the tabs below will automatically link to this account:
+                    </span>
+                </div>
+                <select id="direct-hub-account-select" onchange="onDirectHubAccountSelectChange()" style="background: var(--surface); color: var(--text-main); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; outline: none; min-width: 260px;">
+                    <option value="__new__">✨ New Standalone Account Slot</option>
+                </select>
             </div>
             
             <div class="tab-bar">
                 <button class="tab-btn active" id="tab-btn-agy" onclick="switchTab('agy')">
-                    <span>🛸</span> Antigravity / OAuth (agy)
+                    <span>1️⃣</span> Step 1: Google Sign-In
                 </button>
                 <button class="tab-btn" id="tab-btn-gweb" onclick="switchTab('gweb')">
-                    <span>🍪</span> Gemini Web Cookies
+                    <span>2️⃣</span> Step 2: Gemini Web (Cookies)
                 </button>
                 <button class="tab-btn" id="tab-btn-aistudio" onclick="switchTab('aistudio')">
-                    <span>🔑</span> AI Studio API Key
+                    <span>3️⃣</span> Step 3: AI Studio Key
                 </button>
                 <button class="tab-btn" id="tab-btn-gcli" onclick="switchTab('gcli')">
-                    <span>⚡</span> Gemini CLI OAuth
+                    <span>⚙️</span> Step 4: Gemini CLI (Optional)
                 </button>
             </div>
 
-            <!-- Modal Body: Method 1 — Antigravity Google OAuth (agy / antigravity) -->
+            <!-- Modal Body: Step 1 — Antigravity Google OAuth (agy) -->
             <div class="modal-body" id="tab-content-agy">
-                <div class="method-info-box">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                    <div>
-                        <strong>Provider IDs: <code>agy</code> & <code>antigravity</code></strong><br>
-                        Developer-tool authentication path. Exposes subscription-backed model routing including <strong>Claude 5 Series</strong> (Sonnet 5.5, Opus 5.5, Fable 5, 1M context) and <strong>Gemini 3</strong> through Google infrastructure without per-token Anthropic fees.
+                <div class="variant-box" style="padding: 28px 24px; text-align: center; background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; margin-top: 6px;">
+                    <div style="font-size: 1.12rem; font-weight: 700; color: #fff; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color: #38bdf8;"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                        Sign in with your Google Account
                     </div>
-                </div>
-
-                <!-- Variant A: Detect Local CLI Login -->
-                <div class="variant-box">
-                    <div class="variant-header">
-                        <div class="variant-title">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
-                            Variant A: Detect Local Antigravity CLI Login
-                        </div>
-                        <span class="badge badge-success">agy v1.3.3 Installed</span>
+                    <p style="font-size: 0.84rem; color: #cbd5e1; max-width: 520px; margin: 0 auto 16px; line-height: 1.6;">
+                        Sign in with the Google account that has your <strong>Google AI Pro / Gemini Advanced</strong> subscription. This connects your Cloud Code engine and unlocks <strong>Claude 3.7 Sonnet, Claude Opus, and Gemini 3 Pro</strong> without per-token charges.
+                    </p>
+                    <div style="margin-bottom: 20px;">
+                        <span style="font-size: 0.76rem; background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 12px; border-radius: 999px; font-weight: 600;">
+                            ✓ Official Google OAuth Screen &bull; AES-256 Vault Encrypted
+                        </span>
                     </div>
-                    <div class="variant-desc">
-                        Auto-detects the active CLI session from your local environment (<code>~/.gemini/antigravity-cli</code>) and imports credentials with 1 click.
-                    </div>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="detectLocalAgyLogin()" id="btn-detect-agy" style="align-self: flex-start; margin-top: 4px;">
-                        Detect & Link Local Session
+                    <button type="button" class="btn btn-primary" onclick="initiateOAuthFlow()" id="oauth-start-btn" style="padding: 13px 32px; font-size: 0.96rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #8b5cf6); border: none; box-shadow: 0 0 22px rgba(139, 92, 246, 0.5); display: inline-flex; align-items: center; gap: 9px; cursor: pointer;">
+                        ⚡ Sign In with Google
                     </button>
-                </div>
-
-                <!-- Variant B: Google OAuth Sign-in Flow -->
-                <div class="variant-box">
-                    <div class="variant-header">
-                        <div class="variant-title">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                            Variant B: Sign In with Google (PKCE Flow)
-                        </div>
+                    <div id="oauth-status-info" style="margin-top: 14px; font-size: 0.82rem; color: var(--text-muted);"></div>
+                    <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.78rem; color: var(--text-muted); line-height: 1.5;">
+                        💡 <em>Tip: Once signed in, this window will automatically select your account and move to Step 2 so you can add your Gemini Web cookies!</em>
                     </div>
-                    <div class="variant-desc">
-                        Launch an in-browser OAuth 2.0 PKCE authorization session to link any Google account.
-                    </div>
-                    <button type="button" class="btn btn-primary btn-sm" onclick="initiateOAuthFlow()" id="oauth-start-btn" style="align-self: flex-start; margin-top: 4px;">
-                        Sign In with Google
-                    </button>
-                </div>
-
-                <!-- Variant C: Manual Token Import -->
-                <div class="variant-box">
-                    <div class="variant-title" style="margin-bottom: 6px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        Variant C: Import / Paste Refresh Token File
-                    </div>
-                    <form onsubmit="handleGenericAccountSubmit(event, 'agy')">
-                        <div class="form-group">
-                            <label>Account Label *</label>
-                            <input type="text" id="agy-label" placeholder="e.g. Antigravity-Pro-Primary" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Display Name / Email (Optional)</label>
-                            <input type="text" id="agy-display-name" placeholder="user@gmail.com">
-                        </div>
-                        <div class="form-group">
-                            <label>OAuth Refresh Token / Token JSON *</label>
-                            <textarea id="agy-token" placeholder="Paste 1//... or token JSON" rows="2" required></textarea>
-                            <span class="field-hint">Encrypted into local AES-256 database vault.</span>
-                        </div>
-                        <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="closeAddModal()">Cancel</button>
-                            <button type="submit" class="btn btn-primary btn-sm">Save Antigravity Account</button>
-                        </div>
-                    </form>
                 </div>
             </div>
 
-            <!-- Modal Body: Method 2 — Gemini Web Session Cookies (gemini-web / gweb) -->
+            <!-- Modal Body: Step 2 — Gemini Web Session Cookies (gweb) -->
             <div class="modal-body" id="tab-content-gweb" style="display: none;">
-                <div class="method-info-box" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.25); color: #a7f3d0;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                    <div>
-                        <strong>Provider ID: <code>gemini-web</code> · Alias: <code>gweb</code></strong><br>
-                        Unofficial web-session integration. Reuses your authenticated <strong>Google One AI Pro Family member</strong> website session (<code>gemini.google.com</code>). Bypasses per-token billing to unlock full <strong>Gemini 2.5 Pro</strong> quotas per family account!
+                <div class="method-info-box" style="background: rgba(16, 185, 129, 0.06); border-color: rgba(16, 185, 129, 0.3); color: #d1fae5; padding: 12px 16px; border-radius: 10px; margin-bottom: 1rem;">
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #10b981; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                        <span>🍪</span> Step 2: Connect Gemini Web Session (Cookies)
+                    </div>
+                    <div style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.5;">
+                        Connect your authenticated <strong>Google One AI Pro / Gemini Advanced</strong> web session from <code>gemini.google.com</code>. This extracts full <strong>Gemini 2.5 Pro</strong> reasoning without per-token charges!
                     </div>
                 </div>
 
-                <div style="margin-bottom: 1.25rem; padding: 14px; border-radius: 10px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <!-- Option A: 1-Click Auto-Detect Local Chrome -->
+                <div style="margin-bottom: 1.25rem; padding: 16px; border-radius: 12px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: space-between; gap: 14px;">
                     <div>
-                        <div style="font-weight: 600; color: #38bdf8; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                            1-Click Auto-Detect Local Chrome
+                        <div style="font-weight: 700; color: #38bdf8; font-size: 0.92rem; display: flex; align-items: center; gap: 7px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            Method A: 1-Click Auto-Detect Chrome (Fastest)
                         </div>
-                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                            Extracts active Gemini Web session cookies directly from your local Chrome profile without DevTools.
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; line-height: 1.4;">
+                            If you're already logged into <code>gemini.google.com</code> in Google Chrome on this computer, click below to connect automatically.
                         </div>
                     </div>
-                    <button type="button" class="btn btn-primary" id="btn-detect-chrome" onclick="autoDetectChromeWebSession()" style="white-space: nowrap; padding: 7px 14px; font-size: 0.82rem;">
-                        ⚡ Auto-Detect Chrome
+                    <button type="button" class="btn btn-primary" id="btn-detect-chrome" onclick="autoDetectChromeWebSession()" style="white-space: nowrap; padding: 10px 18px; font-size: 0.84rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #8b5cf6); border: none; box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);">
+                        ⚡ Connect Chrome Session
                     </button>
                 </div>
 
-                <div style="text-align: center; margin: 0.5rem 0 1rem; color: var(--text-muted); font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 600;">
-                    ── OR ENTER MANUALLY ──
+                <!-- Option B: Step-by-Step Manual Extraction Guide -->
+                <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(16, 185, 129, 0.28); border-radius: 12px; padding: 16px 18px; margin-bottom: 1.25rem; font-size: 0.82rem; line-height: 1.6;">
+                    <div style="font-weight: 700; color: #10b981; font-size: 0.88rem; margin-bottom: 10px; display: flex; align-items: center; gap: 7px;">
+                        <span>📖</span> Method B: How to Extract Gemini Web Session Cookies (Chrome, Brave, Edge, Firefox)
+                    </div>
+                    <ol style="margin-left: 1.25rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 7px;">
+                        <li>Open your browser with the Google account that has <strong>Google AI Pro / Gemini Advanced</strong>.</li>
+                        <li>Go to <a href="https://gemini.google.com" target="_blank" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">gemini.google.com</a> and confirm you see <em>Gemini Advanced</em>.</li>
+                        <li>Press <kbd style="background: #1e293b; padding: 2px 7px; border-radius: 5px; border: 1px solid #475569; font-weight: 700;">F12</kbd> or <kbd style="background: #1e293b; padding: 2px 7px; border-radius: 5px; border: 1px solid #475569; font-weight: 700;">Ctrl+Shift+I</kbd> (Right-click &rarr; <em>Inspect</em>) to open Developer Tools.</li>
+                        <li>Click the <strong>Application</strong> tab (in Firefox, click <strong>Storage</strong>).</li>
+                        <li>In the left tree, expand <strong>Storage &rarr; Cookies</strong> &rarr; click <code>https://gemini.google.com</code>.</li>
+                        <li>Find the cookie named <strong style="color: #38bdf8; font-family: monospace; background: rgba(56,189,248,0.1); padding: 1px 6px; border-radius: 4px;">__Secure-1PSID</strong>. Double-click its <em>Value</em> column and copy the string.</li>
+                        <li><em>(Recommended)</em> Also find <strong style="color: #38bdf8; font-family: monospace; background: rgba(56,189,248,0.1); padding: 1px 6px; border-radius: 4px;">__Secure-1PSIDTS</strong> and copy its value.</li>
+                        <li>Paste either format in the box below:
+                            <div style="margin-top: 4px; padding: 6px 10px; background: rgba(0,0,0,0.4); border-radius: 6px; font-family: monospace; font-size: 0.76rem; color: #a7f3d0;">
+                                • Full: __Secure-1PSID=YOUR_VALUE; __Secure-1PSIDTS=YOUR_TS_VALUE<br>
+                                • Or simply paste the raw __Secure-1PSID string alone!
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+
+                <div style="text-align: center; margin: 0.5rem 0 1rem; color: var(--text-muted); font-size: 0.76rem; letter-spacing: 0.05em; font-weight: 700;">
+                    ── ENTER CREDENTIALS ──
                 </div>
 
                 <form onsubmit="handleGenericAccountSubmit(event, 'gemini-web')">
-                    <div class="form-group">
-                        <label>Account Label *</label>
-                        <input type="text" id="gweb-label" placeholder="e.g. Family-Member-1-Pro" required>
+                    <div style="margin-bottom: 1.15rem; padding: 12px 14px; border-radius: 8px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 0.82rem; color: var(--text-muted);">Bound Google Account:</span>
+                        <strong style="color: #38bdf8; font-size: 0.9rem;" class="bound-account-name-badge">(Select account above)</strong>
+                    </div>
+
+                    <div class="form-group" style="display: none;">
+                        <input type="text" id="gweb-label" value="">
+                        <input type="text" id="gweb-email" value="">
                     </div>
 
                     <div class="form-group">
-                        <label>Family Member Email (Optional)</label>
-                        <input type="text" id="gweb-email" placeholder="family.member1@gmail.com">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Browser Session Cookies (Header String or JSON) *</label>
-                        <textarea id="gweb-cookies" placeholder="Paste __Secure-1PSID=...; __Secure-1PSIDTS=... or full cookie header" rows="4" required></textarea>
-                        <span class="field-hint">
-                            How to get: Open <code>gemini.google.com</code> in your browser $\rightarrow$ F12 DevTools $\rightarrow$ Application $\rightarrow$ Cookies $\rightarrow$ Copy <code>__Secure-1PSID</code> & <code>__Secure-1PSIDTS</code>.
-                        </span>
+                        <label style="font-weight: 600; font-size: 0.84rem;">Browser Session Cookies (Header String, JSON, or raw __Secure-1PSID) *</label>
+                        <textarea id="gweb-cookies" placeholder="Paste __Secure-1PSID=...; __Secure-1PSIDTS=... or raw __Secure-1PSID value here" rows="3" required style="line-height: 1.4;"></textarea>
                     </div>
 
                     <div class="modal-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="save-gweb-btn">Save Gemini Web Session</button>
+                        <button type="submit" class="btn btn-primary" id="save-gweb-btn" style="font-weight: 700; background: linear-gradient(135deg, #059669, #10b981); border: none;">Save Gemini Web Session</button>
                     </div>
                 </form>
             </div>
 
-            <!-- Modal Body: Method 3 — Google AI Studio API Key -->
+            <!-- Modal Body: Step 3 — Google AI Studio API Key (studio) -->
             <div class="modal-body" id="tab-content-aistudio" style="display: none;">
-                <div class="method-info-box" style="background: rgba(168, 85, 247, 0.05); border-color: rgba(168, 85, 247, 0.25); color: #e9d5ff;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                    <div>
-                        <strong>Provider: Gemini / Google AI Studio API Key</strong><br>
-                        Official developer API credential (<code>AIza...</code>). Independent developer quota with fast structured responses for <strong>Gemini 2.5 Pro & Flash</strong>. Pooling multiple keys scales your free RPM limits.
+                <div class="method-info-box" style="background: rgba(168, 85, 247, 0.06); border-color: rgba(168, 85, 247, 0.3); color: #f3e8ff; padding: 12px 16px; border-radius: 10px; margin-bottom: 1rem;">
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #c084fc; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                        <span>🔑</span> Step 3: Connect Google AI Studio API Key
+                    </div>
+                    <div style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.5;">
+                        Official Google developer API credential (<code>AIza...</code>). Provides independent developer RPM quotas with fast structured responses for <strong>Gemini 2.5 Pro & Flash</strong>. Free of charge!
                     </div>
                 </div>
 
+                <!-- 1-Click Launch Button -->
+                <div style="margin-bottom: 1.25rem; padding: 16px; border-radius: 12px; background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+                    <div>
+                        <div style="font-weight: 700; color: #c084fc; font-size: 0.92rem; display: flex; align-items: center; gap: 7px;">
+                            <span>🌐</span> Get Free API Key from Google
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; line-height: 1.4;">
+                            Open Google AI Studio in a new tab, click "Create API key", and copy your key.
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="window.open('https://aistudio.google.com/app/apikey', '_blank')" style="white-space: nowrap; padding: 10px 18px; font-size: 0.84rem; font-weight: 700; border-color: rgba(168, 85, 247, 0.4); color: #e9d5ff;">
+                        🔑 Open Google AI Studio ↗
+                    </button>
+                </div>
+
+                <!-- Step-by-Step API Key Creation Guide -->
+                <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(168, 85, 247, 0.28); border-radius: 12px; padding: 16px 18px; margin-bottom: 1.25rem; font-size: 0.82rem; line-height: 1.6;">
+                    <div style="font-weight: 700; color: #c084fc; font-size: 0.88rem; margin-bottom: 8px; display: flex; align-items: center; gap: 7px;">
+                        <span>📖</span> Quick Steps to Create Your Key:
+                    </div>
+                    <ol style="margin-left: 1.25rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 6px;">
+                        <li>Sign in to <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">aistudio.google.com/app/apikey</a> with your Google AI Pro account.</li>
+                        <li>Click the blue <strong>"Create API key"</strong> button &rarr; choose <em>"Create API key in new project"</em>.</li>
+                        <li>Copy the generated key (starts with <code style="color: #38bdf8; background: rgba(56,189,248,0.1); padding: 1px 6px; border-radius: 4px;">AIzaSy...</code>) and paste it below.</li>
+                    </ol>
+                </div>
+
+                <div style="text-align: center; margin: 0.5rem 0 1rem; color: var(--text-muted); font-size: 0.76rem; letter-spacing: 0.05em; font-weight: 700;">
+                    ── ENTER CREDENTIALS ──
+                </div>
+
                 <form onsubmit="handleGenericAccountSubmit(event, 'aistudio')">
-                    <div class="form-group">
-                        <label>Account Label *</label>
-                        <input type="text" id="aistudio-label" placeholder="e.g. AI-Studio-Key-01" required>
+                    <div style="margin-bottom: 1.15rem; padding: 12px 14px; border-radius: 8px; background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.25); display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 0.82rem; color: var(--text-muted);">Bound Google Account:</span>
+                        <strong style="color: #c084fc; font-size: 0.9rem;" class="bound-account-name-badge">(Select account above)</strong>
+                    </div>
+
+                    <div class="form-group" style="display: none;">
+                        <input type="text" id="aistudio-label" value="">
                     </div>
 
                     <div class="form-group">
-                        <label>Google AI Studio API Key *</label>
-                        <input type="password" id="aistudio-key" placeholder="AIzaSy..." required>
-                        <span class="field-hint">Generate at <code>aistudio.google.com/apikey</code> on each family Google account.</span>
+                        <label style="font-weight: 600; font-size: 0.84rem;">Google AI Studio / Vertex AI API Key *</label>
+                        <input type="password" id="aistudio-key" placeholder="AIzaSy..." required style="padding: 10px 14px; font-family: 'JetBrains Mono', monospace;">
+                        <span class="field-hint">Paste your <code>AIza...</code> key obtained from Google AI Studio above.</span>
                     </div>
 
                     <div class="modal-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save AI Studio Key</button>
+                        <button type="submit" class="btn btn-primary" style="font-weight: 700; background: linear-gradient(135deg, #7c3aed, #a855f7); border: none;">Save AI Studio Key</button>
                     </div>
                 </form>
             </div>
@@ -2329,10 +2373,15 @@
                 </div>
 
                 <form onsubmit="handleGenericAccountSubmit(event, 'gemini-cli')">
-                    <div class="form-group">
-                        <label>Account Label *</label>
-                        <input type="text" id="gcli-label" placeholder="e.g. Gemini-CLI-OAuth-01" required>
+                    <div style="margin-bottom: 1.15rem; padding: 12px 14px; border-radius: 8px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Bound Google Account:</span>
+                        <strong style="color: #fbbf24; font-size: 0.88rem;" class="bound-account-name-badge">(Select account above)</strong>
                     </div>
+
+                    <div class="form-group" style="display: none;">
+                        <input type="text" id="gcli-label" value="">
+                    </div>
+
                     <div class="form-group">
                         <label>OAuth Client ID *</label>
                         <input type="text" id="gcli-client-id" placeholder="xxxx.apps.googleusercontent.com" required>
@@ -2536,8 +2585,8 @@
 
     <!-- JavaScript Logic -->
     <script>
-        const DEFAULT_ADMIN_KEY = 'agw-admin-YvMPfKwf5tYbYRIeMC-AV2R6wI3oRYTwQJ1EnmZefL4';
-        const CLIENT_KEY = 'agw-local-dE9XbJxEmq2AJpjsk1zTPxbF0O7f2Q2WyQO8g5GQgOM';
+        let DEFAULT_ADMIN_KEY = 'agw-admin-YvMPfKwf5tYbYRIeMC-AV2R6wI3oRYTwQJ1EnmZefL4';
+        let CLIENT_KEY = 'agw-local-OiU_M_UQYLMQVhEeKdRwhw5HgNvbJPI7cy7LlMV5oyQ';
         const API_BASE = window.location.origin;
 
         function getAdminHeaders() {
@@ -2548,11 +2597,30 @@
             };
         }
 
+        async function syncApiKeys() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/api-keys`, { headers: getAdminHeaders() });
+                if (res.ok) {
+                    const keys = await res.json();
+                    const master = keys.find(k => k.name === 'master-default' || (k.key && k.key.startsWith('agw-local-')));
+                    if (master && master.key) {
+                        CLIENT_KEY = master.key;
+                        window.CLIENT_KEY = master.key;
+                        const el = document.getElementById('display-client-key');
+                        if (el) el.textContent = master.key;
+                    }
+                }
+            } catch (e) {
+                console.warn('API key sync notice:', e);
+            }
+        }
+
         function copyClientKey() {
-            navigator.clipboard.writeText(CLIENT_KEY).then(() => {
+            const keyToCopy = window.CLIENT_KEY || CLIENT_KEY;
+            navigator.clipboard.writeText(keyToCopy).then(() => {
                 showToast('Gateway Client Key copied to clipboard!', 'success');
             }).catch(() => {
-                showToast('Key: ' + CLIENT_KEY, 'info');
+                showToast('Key: ' + keyToCopy, 'info');
             });
         }
 
@@ -2584,8 +2652,61 @@
             });
         }
 
-        function openAddModal() {
-            document.getElementById('add-account-modal').classList.add('active');
+        function openAddModal(preselectAccountId = null) {
+            const modal = document.getElementById('add-account-modal');
+            const select = document.getElementById('direct-hub-account-select');
+            if (select) {
+                const accounts = window.allAccounts || [];
+                select.innerHTML = '';
+                if (accounts.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.value = '__none__';
+                    opt.textContent = '⚠️ No accounts connected yet (Complete Tab 1 first)';
+                    select.appendChild(opt);
+                } else {
+                    accounts.forEach((acc, idx) => {
+                        const opt = document.createElement('option');
+                        opt.value = acc.id;
+                        const name = acc.email_safe || acc.display_name || acc.label || acc.id;
+                        opt.textContent = `👤 ${name} (${acc.tier || 'Pro'})`;
+                        if (preselectAccountId ? preselectAccountId === acc.id : idx === 0) {
+                            opt.selected = true;
+                        }
+                        select.appendChild(opt);
+                    });
+                }
+            }
+            onDirectHubAccountSelectChange();
+            modal.classList.add('active');
+        }
+
+        function onDirectHubAccountSelectChange() {
+            const select = document.getElementById('direct-hub-account-select');
+            const targetId = select ? select.value : null;
+            const sub = document.getElementById('direct-hub-account-sub');
+            const gwebLabel = document.getElementById('gweb-label');
+            const aistudioLabel = document.getElementById('aistudio-label');
+            const gcliLabel = document.getElementById('gcli-label');
+
+            if (targetId && targetId !== '__none__') {
+                const acc = (window.allAccounts || []).find(a => a.id === targetId) || {};
+                const name = acc.email_safe || acc.display_name || acc.label || targetId;
+                if (sub) sub.innerHTML = `Active Account: <strong style="color:#38bdf8;">${name}</strong> (Credentials will bind to this account)`;
+                document.querySelectorAll('.bound-account-name-badge').forEach(el => {
+                    el.textContent = name;
+                });
+                if (gwebLabel) gwebLabel.value = `${name}-Gemini-Web`;
+                if (aistudioLabel) aistudioLabel.value = `${name}-Studio-Key`;
+                if (gcliLabel) gcliLabel.value = `${name}-Gemini-CLI`;
+            } else {
+                if (sub) sub.textContent = 'Sign in via Tab 1 (Antigravity / OAuth) to connect your Google account first:';
+                document.querySelectorAll('.bound-account-name-badge').forEach(el => {
+                    el.textContent = '⚠️ Sign in via Tab 1 first';
+                });
+                if (gwebLabel) gwebLabel.value = '';
+                if (aistudioLabel) aistudioLabel.value = '';
+                if (gcliLabel) gcliLabel.value = '';
+            }
         }
 
         function closeAddModal() {
@@ -2602,87 +2723,78 @@
             if (e.key === 'Escape') closeAddModal();
         });
 
-        // Detect Local CLI Login
-        async function detectLocalAgyLogin() {
-            const btn = document.getElementById('btn-detect-agy');
-            btn.disabled = true;
-            btn.textContent = 'Detecting CLI session...';
-
-            try {
-                // In local mode, verify local agy CLI binary existence
-                showToast('Local Antigravity CLI binary found at /home/rarebat/.local/bin/agy (v1.3.3)', 'info');
-                setTimeout(() => {
-                    document.getElementById('agy-label').value = 'Local-Antigravity-CLI';
-                    document.getElementById('agy-display-name').value = 'rarebat@local-agy';
-                    document.getElementById('agy-token').focus();
-                    showToast('Populated label. Paste your token or click Sign In with Google.', 'info');
-                    btn.disabled = false;
-                    btn.textContent = 'Detect & Link Local Session';
-                }, 600);
-            } catch (err) {
-                showToast('Detection error: ' + err.message, 'error');
-                btn.disabled = false;
-                btn.textContent = 'Detect & Link Local Session';
-            }
-        }
-
-        // Generic Submit Handler for all 4 OmniRoute methods
+        // Generic Submit Handler for all OmniRoute methods
         async function handleGenericAccountSubmit(e, methodType) {
             e.preventDefault();
+            const select = document.getElementById('direct-hub-account-select');
+            const targetAccountId = (select && select.value && select.value !== '__none__') ? select.value : null;
+
             let label = '', displayName = '', secret = '';
             let endpoint = `${API_BASE}/admin/accounts`;
             let reqBody = {};
 
-            if (methodType === 'agy') {
-                label = document.getElementById('agy-label').value.trim();
-                displayName = document.getElementById('agy-display-name').value.trim();
-                secret = document.getElementById('agy-token').value.trim();
-                endpoint = `${API_BASE}/admin/accounts`;
-                reqBody = {
-                    label: label,
-                    display_name: displayName || label,
-                    refresh_token: secret
-                };
-            } else if (methodType === 'gemini-web') {
-                label = document.getElementById('gweb-label').value.trim();
-                displayName = document.getElementById('gweb-email').value.trim();
+            if (methodType === 'gemini-web') {
                 secret = document.getElementById('gweb-cookies').value.trim();
-                endpoint = `${API_BASE}/admin/channels/geminiweb/add`;
-                reqBody = {
-                    label: label,
-                    display_name: displayName || label,
-                    cookies: secret
-                };
+                if (!secret) {
+                    showToast('Please enter your Gemini Web session cookies.', 'error');
+                    return;
+                }
+                if (targetAccountId) {
+                    endpoint = `${API_BASE}/admin/accounts/${targetAccountId}/link-cookies`;
+                    reqBody = { cookies: secret };
+                } else {
+                    label = (document.getElementById('gweb-label').value || 'Gemini-Web').trim();
+                    endpoint = `${API_BASE}/admin/channels/geminiweb/add`;
+                    reqBody = {
+                        label: label,
+                        display_name: label,
+                        cookies: secret
+                    };
+                }
             } else if (methodType === 'aistudio') {
-                label = document.getElementById('aistudio-label').value.trim();
-                displayName = label;
                 secret = document.getElementById('aistudio-key').value.trim();
-                endpoint = `${API_BASE}/admin/channels/aistudio/add`;
-                reqBody = {
-                    label: label,
-                    display_name: displayName || label,
-                    api_key: secret
-                };
+                if (!secret) {
+                    showToast('Please enter your Google AI Studio / Vertex AI API key.', 'error');
+                    return;
+                }
+                if (targetAccountId) {
+                    endpoint = `${API_BASE}/admin/accounts/${targetAccountId}/link-vertex`;
+                    reqBody = { api_key: secret };
+                } else {
+                    label = (document.getElementById('aistudio-label').value || 'Studio-Key').trim();
+                    endpoint = `${API_BASE}/admin/channels/aistudio/add`;
+                    reqBody = {
+                        label: label,
+                        display_name: label,
+                        api_key: secret
+                    };
+                }
             } else if (methodType === 'gemini-cli') {
-                label = document.getElementById('gcli-label').value.trim();
                 const cid = document.getElementById('gcli-client-id').value.trim();
                 const csec = document.getElementById('gcli-client-secret').value.trim();
-                displayName = label;
+                if (!cid || !csec) {
+                    showToast('Please provide both Client ID and Client Secret.', 'error');
+                    return;
+                }
                 secret = JSON.stringify({ client_id: cid, client_secret: csec });
+                label = (document.getElementById('gcli-label').value || 'Gemini-CLI').trim();
                 endpoint = `${API_BASE}/admin/accounts`;
                 reqBody = {
                     label: label,
-                    display_name: displayName || label,
+                    display_name: label,
                     refresh_token: secret
                 };
             }
 
-            if (!label || !secret) {
-                showToast('Please provide required fields', 'error');
-                return;
+            const saveBtn = e.target ? e.target.querySelector('button[type="submit"]') : null;
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.dataset.origText = saveBtn.textContent;
+                saveBtn.textContent = 'Saving...';
             }
 
             try {
+                showToast('Validating and binding credential...', 'info');
                 const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: getAdminHeaders(),
@@ -2691,35 +2803,56 @@
 
                 const data = await res.json();
                 if (!res.ok) {
-                    throw new Error(data.detail || 'Failed to connect account');
+                    throw new Error(data.detail || 'Failed to connect credentials');
                 }
 
-                showToast(`Channel "${label}" connected successfully!`, 'success');
+                let msg = targetAccountId 
+                    ? `✓ Credentials successfully bound to account!` 
+                    : `✓ Channel "${label}" connected successfully!`;
+                if (data.warning) {
+                    msg += ` (Note: ${data.warning})`;
+                }
+                showToast(msg, 'success');
                 closeAddModal();
-                fetchAccounts();
+                fetchAccounts(true);
             } catch (err) {
-                console.error('Failed to add account:', err);
+                console.error('Failed to bind credentials:', err);
                 showToast(err.message, 'error');
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = saveBtn.dataset.origText || 'Save';
+                }
             }
         }
 
         async function autoDetectChromeWebSession() {
             const btn = document.getElementById('btn-detect-chrome');
+            const select = document.getElementById('direct-hub-account-select');
+            const targetAccountId = (select && select.value && select.value !== '__none__') ? select.value : null;
+
             if (btn) { btn.disabled = true; btn.textContent = 'Scanning Chrome...'; }
             try {
-                const res = await fetch(`${API_BASE}/admin/channels/geminiweb/detect-chrome`, {
+                let endpoint = `${API_BASE}/admin/channels/geminiweb/detect-chrome`;
+                let reqBody = {};
+                if (targetAccountId) {
+                    endpoint = `${API_BASE}/admin/accounts/${targetAccountId}/link-cookies`;
+                    reqBody = { cookies: null };
+                }
+                const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: getAdminHeaders(),
+                    body: JSON.stringify(reqBody)
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Failed to detect Chrome session');
-                showToast('Chrome Gemini Web session successfully connected!', 'success');
+                showToast('Chrome Gemini Web session successfully connected and bound!', 'success');
                 closeAddModal();
-                fetchAccounts();
+                fetchAccounts(true);
             } catch (err) {
                 showToast(err.message, 'error');
             } finally {
-                if (btn) { btn.disabled = false; btn.textContent = 'Detect & Link Chrome Gemini Session'; }
+                if (btn) { btn.disabled = false; btn.textContent = '⚡ Auto-Detect Chrome'; }
             }
         }
 
@@ -2966,10 +3099,12 @@
                                 </div>
                                 <h3 class="empty-title">No Google accounts connected yet</h3>
                                 <p class="empty-desc">Connect your Google AI Pro Family member accounts or Antigravity sessions to aggregate quotas and route Claude & Gemini requests.</p>
-                                <button class="btn btn-primary" onclick="openAccountWizard()" style="margin-top: 0.5rem; background: linear-gradient(135deg, #0284c7, #8b5cf6); border: none;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-                                    Add Google Account
-                                </button>
+                                <div style="display:flex; justify-content:center; margin-top:0.75rem;">
+                                    <button class="btn btn-primary" onclick="openAddModal()" style="background: linear-gradient(135deg, #0284c7, #8b5cf6); border: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-weight: 700; box-shadow: 0 0 16px rgba(139, 92, 246, 0.4);">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                                        Open Direct Hub (Configure Accounts)
+                                    </button>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -3001,17 +3136,22 @@
                 
                 // Status badge
                 let statusBadge = '';
-                const completedCount = acc.completed_methods !== undefined ? acc.completed_methods : (acc.has_credentials ? 1 : 0);
-                const isComplete = acc.is_setup_complete === true || completedCount >= 3;
+                const conns = acc.connections_status || {};
+                const hasAgy = conns.antigravity && conns.antigravity.working;
+                const hasGweb = conns.gemini_web && conns.gemini_web.working;
+                const hasStudio = conns.aistudio && conns.aistudio.working;
+                let activeChannelsCount = (hasAgy ? 1 : 0) + (hasGweb ? 1 : 0) + (hasStudio ? 1 : 0);
+                if (activeChannelsCount === 0 && acc.has_credentials) activeChannelsCount = 1;
+                const isComplete = activeChannelsCount >= 3;
 
                 if (!isEnabled) {
                     statusBadge = '<span class="badge badge-muted">Disabled</span>';
                 } else if (!isComplete) {
-                    statusBadge = `<span class="badge-lazy-red" onclick="openAccountWizard('${acc.id}')" title="Setup Incomplete: Click to resume 3-method setup">!! lad youre lazy (${completedCount}/3)</span>`;
+                    statusBadge = `<span class="badge" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24; border:1px solid rgba(245, 158, 11, 0.3); font-weight:600; cursor:pointer; padding:3px 8px; border-radius:5px;" onclick="openAddModal('${acc.id}')" title="Click to finish channel setup">🟡 ${activeChannelsCount}/3 Active (Click to Complete)</span>`;
                 } else if (hasCooldown) {
                     statusBadge = '<span class="badge badge-warning">Cooldown</span>';
                 } else {
-                    statusBadge = '<span class="badge badge-success" style="box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); font-weight: 700;">🟢 Active (3/3 Complete)</span>';
+                    statusBadge = '<span class="badge badge-success" style="box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); font-weight: 700;">🟢 All Channels Live</span>';
                 }
 
                 // Provider badge inference
@@ -3061,18 +3201,18 @@
                                 const aistudio = conns.aistudio || { working: true, status: 'healthy', latency_ms: 92 };
                                 const gcli = conns.gemini_cli || { working: true, status: 'healthy', latency_ms: 108 };
                                 return `
-                                    <div class="conn-matrix" id="matrix-${acc.id}">
-                                        <span class="conn-chip conn-${agy.status}" onclick="openDiagnostics('${acc.id}')" title="Antigravity OAuth: Claude 5 & Gemini 3 (${agy.latency_ms}ms)">
-                                            <span class="conn-dot"></span> agy <span class="conn-ping">${agy.latency_ms}ms</span>
+                                    <div class="conn-matrix" id="matrix-${acc.id}" style="display:flex; flex-wrap:wrap; gap:5px;">
+                                        <span class="conn-chip conn-${agy.working ? 'healthy' : 'unconfigured'}" onclick="openAddModal('${acc.id}')" title="Google OAuth (Cloud Code Token)">
+                                            <span class="conn-dot"></span> 🛸 OAuth: ${agy.working ? 'Active' : '+ Connect'}
                                         </span>
-                                        <span class="conn-chip conn-${gweb.status}" onclick="openDiagnostics('${acc.id}')" title="Gemini Web: Pro Family Web Session (${gweb.latency_ms}ms)">
-                                            <span class="conn-dot"></span> gweb <span class="conn-ping">${gweb.latency_ms}ms</span>
+                                        <span class="conn-chip conn-${gweb.working ? 'healthy' : 'unconfigured'}" onclick="openAddModal('${acc.id}'); switchTab('gweb');" title="Gemini Web (Cookies)">
+                                            <span class="conn-dot"></span> 🍪 Web: ${gweb.working ? 'Active' : '+ Connect'}
                                         </span>
-                                        <span class="conn-chip conn-${aistudio.status}" onclick="openDiagnostics('${acc.id}')" title="Google AI Studio: Developer API (${aistudio.latency_ms}ms)">
-                                            <span class="conn-dot"></span> studio <span class="conn-ping">${aistudio.latency_ms}ms</span>
+                                        <span class="conn-chip conn-${aistudio.working ? 'healthy' : 'unconfigured'}" onclick="openAddModal('${acc.id}'); switchTab('aistudio');" title="AI Studio (API Key)">
+                                            <span class="conn-dot"></span> 🔑 Key: ${aistudio.working ? 'Active' : '+ Connect'}
                                         </span>
-                                        <span class="conn-chip conn-${gcli.status}" onclick="openDiagnostics('${acc.id}')" title="Gemini CLI OAuth Protocol (${gcli.latency_ms}ms)">
-                                            <span class="conn-dot"></span> gcli <span class="conn-ping">${gcli.latency_ms}ms</span>
+                                        <span class="conn-chip conn-${gcli.working ? 'healthy' : 'unconfigured'}" onclick="openAddModal('${acc.id}'); switchTab('gcli');" title="Gemini CLI OAuth">
+                                            <span class="conn-dot"></span> ⚡ CLI: ${gcli.working ? 'Active' : '+ Connect'}
                                         </span>
                                     </div>
                                 `;
@@ -3116,13 +3256,13 @@
                             </div>
                         </td>
                         <td>
-                            <div class="actions-cell" style="justify-content: flex-end;">
-                                <button class="btn-probe" id="probe-btn-${acc.id}" onclick="probeConnections('${acc.id}', '${escapeHtml(gmailId)}')" title="Probe all 4 connections for this account">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                                    Probe 4
+                            <div class="actions-cell" style="justify-content: flex-end; gap: 6px;">
+                                <button class="btn btn-primary btn-sm" onclick="openAddModal('${acc.id}')" title="Configure channels for this account" style="background: linear-gradient(135deg, #0284c7, #8b5cf6); border: none; font-weight: 700; font-size: 0.78rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;">
+                                    ⚡ Setup Channels
                                 </button>
-                                <button class="btn btn-secondary btn-sm" onclick="refreshToken('${acc.id}')" title="Refresh tokens & quota">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                <button class="btn btn-secondary btn-sm" onclick="probeConnections('${acc.id}', '${escapeHtml(gmailId)}')" title="Test all 4 connections">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                    Test
                                 </button>
                                 <button class="btn btn-danger-outline" onclick="deleteAccount('${acc.id}', '${escapeHtml(gmailId)}')" title="Delete Account">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -3570,8 +3710,11 @@
                         `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,status=1`
                     );
 
+                    const info = document.getElementById('oauth-status-info');
+                    if (info) {
+                        info.innerHTML = `Window opened! If blocked by browser, <a href="${data.auth_url}" target="_blank" style="color: #38bdf8; text-decoration: underline; font-weight: 700;">Click Here to Authorize Google Account</a>.`;
+                    }
                     showToast('Google Sign-in window opened. Complete consent to auto-configure.', 'info');
-                    closeAddModal();
 
                     // Start automatic background watcher
                     if (oauthPollInterval) clearInterval(oauthPollInterval);
@@ -3588,8 +3731,11 @@
                                     try { oauthWindow.close(); } catch(e) {}
                                 }
                                 const newest = currentAccs[currentAccs.length - 1];
+                                window.allAccounts = currentAccs;
                                 renderAccountsTable(currentAccs);
-                                showToast(`✓ Google Account (${newest.email_safe || newest.email || newest.display_name || newest.label}) auto-configured & ready!`, 'success');
+                                showToast(`✓ Google Account (${newest.email_safe || newest.email || newest.display_name || newest.label}) connected!`, 'success');
+                                openAddModal(newest.id);
+                                switchTab('gweb');
                             }
                         } catch (e) {}
 
@@ -3617,14 +3763,60 @@
             }
         }
 
+        // Helper to advance 3-Method Wizard Step 1 when OAuth completes
+        function handleWizardOAuthComplete(acc) {
+            if (wizardOAuthPollInterval) {
+                clearInterval(wizardOAuthPollInterval);
+                wizardOAuthPollInterval = null;
+            }
+            activeWizardAccountId = acc.account_id || acc.id;
+
+            const name = acc.email_safe || acc.email || acc.display_name || activeWizardAccountId;
+            const labelAcc = document.getElementById('wizard-account-label');
+            if (labelAcc) labelAcc.textContent = `Target: ${name}`;
+
+            // Update step 1
+            const cardOauth = document.getElementById('wizard-card-oauth');
+            const badgeOauth = document.getElementById('wizard-badge-oauth');
+            const detailOauth = document.getElementById('wizard-oauth-detail');
+            const btn = document.getElementById('wizard-btn-oauth');
+            if (cardOauth) cardOauth.className = 'wizard-card-step step-completed';
+            if (badgeOauth) {
+                badgeOauth.className = 'badge badge-success';
+                badgeOauth.textContent = '🟢 Active';
+            }
+            if (detailOauth) detailOauth.textContent = `✓ Identity Linked (${name})`;
+            if (btn) { btn.disabled = true; btn.textContent = '✓ Connected'; }
+
+            // Unlock step 2
+            const cardCookies = document.getElementById('wizard-card-cookies');
+            const badgeCookies = document.getElementById('wizard-badge-cookies');
+            const btnCookies = document.getElementById('wizard-btn-cookies');
+            if (cardCookies) cardCookies.className = 'wizard-card-step step-active';
+            if (badgeCookies) {
+                badgeCookies.className = 'badge badge-warning';
+                badgeCookies.textContent = 'Pending';
+            }
+            if (btnCookies) btnCookies.disabled = false;
+
+            updateWizardProgress(1);
+            showToast(`✓ OAuth linked for ${name}! Next: Step 2.`, 'success');
+            fetchAccounts(true);
+        }
+
         // Cross-window Event Listeners for 100% Zero-Touch Auto-Enrollment
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'AGW_OAUTH_SUCCESS') {
                 const acc = event.data.account;
                 if (oauthPollInterval) { clearInterval(oauthPollInterval); oauthPollInterval = null; }
                 closeAddModal();
-                showToast(`✓ Account (${acc.email_safe || acc.display_name}) linked and auto-configured!`, 'success');
-                fetchAccounts(true);
+                const wizardModal = document.getElementById('wizard-modal');
+                if (wizardModal && wizardModal.classList.contains('active')) {
+                    handleWizardOAuthComplete(acc);
+                } else {
+                    showToast(`✓ Account (${acc.email_safe || acc.display_name}) linked and auto-configured!`, 'success');
+                    fetchAccounts(true);
+                }
             }
         });
 
@@ -3635,8 +3827,13 @@
                     if (Date.now() - parsed.timestamp < 10000) {
                         if (oauthPollInterval) { clearInterval(oauthPollInterval); oauthPollInterval = null; }
                         closeAddModal();
-                        showToast(`✓ Account (${parsed.account.email_safe || parsed.account.display_name}) linked and auto-configured!`, 'success');
-                        fetchAccounts(true);
+                        const wizardModal = document.getElementById('wizard-modal');
+                        if (wizardModal && wizardModal.classList.contains('active')) {
+                            handleWizardOAuthComplete(parsed.account);
+                        } else {
+                            showToast(`✓ Account (${parsed.account.email_safe || parsed.account.display_name}) linked and auto-configured!`, 'success');
+                            fetchAccounts(true);
+                        }
                     }
                 } catch(e) {}
             }
@@ -3796,12 +3993,26 @@
             const preCount = preAccounts.length;
 
             try {
-                const res = await fetch(`${API_BASE}/admin/oauth/start`, { headers: getAdminHeaders() });
+                let res = await fetch(`${API_BASE}/admin/oauth/start`, { headers: getAdminHeaders() });
+                if (!res.ok) {
+                    res = await fetch(`${API_BASE}/auth/login`, { method: 'POST', headers: getAdminHeaders() });
+                }
                 if (!res.ok) throw new Error('Failed to initiate OAuth');
                 const data = await res.json();
 
                 const oauthWin = window.open(data.auth_url, 'GoogleOAuth', 'width=600,height=720');
                 if (btn) btn.textContent = 'Waiting for Google Login...';
+
+                const detailOauth = document.getElementById('wizard-oauth-detail');
+                if (detailOauth) {
+                    detailOauth.innerHTML = `Login window launched. <a href="${data.auth_url}" target="_blank" style="color:#38bdf8; text-decoration:underline; font-weight:600;">Click here if popup was blocked</a>`;
+                }
+
+                if (!oauthWin || oauthWin.closed || typeof oauthWin.closed === 'undefined') {
+                    showToast('Popup was blocked by browser. Click the login link in Step 1 to continue.', 'warning');
+                } else {
+                    showToast('Google Sign-in popup opened. Sign in to complete connection.', 'info');
+                }
 
                 let attempts = 0;
                 wizardOAuthPollInterval = setInterval(async () => {
@@ -3810,36 +4021,10 @@
                         const checkRes = await fetch(`${API_BASE}/admin/accounts`, { headers: getAdminHeaders() });
                         const currentAccs = await checkRes.json();
                         if (Array.isArray(currentAccs) && currentAccs.length > preCount) {
-                            clearInterval(wizardOAuthPollInterval);
-                            wizardOAuthPollInterval = null;
                             if (oauthWin && !oauthWin.closed) { try { oauthWin.close(); } catch(e) {} }
-
                             window.allAccounts = currentAccs;
                             const newAcc = currentAccs[currentAccs.length - 1];
-                            activeWizardAccountId = newAcc.id;
-
-                            // Update step 1
-                            const cardOauth = document.getElementById('wizard-card-oauth');
-                            const badgeOauth = document.getElementById('wizard-badge-oauth');
-                            const detailOauth = document.getElementById('wizard-oauth-detail');
-                            cardOauth.className = 'wizard-card-step step-completed';
-                            badgeOauth.className = 'badge badge-success';
-                            badgeOauth.textContent = '🟢 Active';
-                            detailOauth.textContent = `✓ Identity Linked (${newAcc.email_safe || newAcc.display_name})`;
-                            if (btn) { btn.disabled = true; btn.textContent = '✓ Connected'; }
-
-                            // Unlock step 2
-                            const cardCookies = document.getElementById('wizard-card-cookies');
-                            const badgeCookies = document.getElementById('wizard-badge-cookies');
-                            const btnCookies = document.getElementById('wizard-btn-cookies');
-                            cardCookies.className = 'wizard-card-step step-active';
-                            badgeCookies.className = 'badge badge-warning';
-                            badgeCookies.textContent = 'Pending';
-                            btnCookies.disabled = false;
-
-                            updateWizardProgress(1);
-                            renderAccountsTable(currentAccs);
-                            showToast(`✓ OAuth linked for ${newAcc.email_safe || newAcc.display_name}! Next: Step 2.`, 'success');
+                            handleWizardOAuthComplete(newAcc);
                         }
                     } catch(e) {}
 
@@ -4331,6 +4516,7 @@
         }
 
         // Initial Load and Auto-Refresh (every 8 seconds for accounts)
+        syncApiKeys();
         fetchAccounts();
         fetchExposedModels();
         setInterval(fetchAccounts, 8000);

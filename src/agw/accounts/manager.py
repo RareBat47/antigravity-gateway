@@ -356,7 +356,9 @@ class AccountManager:
         client = GeminiWebClient()
         valid, msg, snlm0e = await client.validate_session(cookies)
         if not valid:
-            raise ValueError(f"Gemini Web session validation failed: {msg}")
+            if not ("__Secure-1PSID" in cookies and len(cookies["__Secure-1PSID"]) >= 15):
+                raise ValueError(f"Gemini Web session validation failed: {msg}")
+            snlm0e = ""
 
         psid = cookies.get("__Secure-1PSID", "")
         account_id = f"acc-web-{hashlib.sha256(psid.encode()).hexdigest()[:8]}"

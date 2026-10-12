@@ -58,12 +58,20 @@ class GeminiWebClient:
                     return False, None, f"HTTP {resp.status_code} from gemini.google.com"
 
                 html = resp.text
-                match = re.search(r'\"SNlM0e\":\"(.*?)\"', html)
-                if match:
-                    token = match.group(1)
-                    return True, token, "Session token extracted"
+                patterns = [
+                    r'"SNlM0e":"([^"]+)"',
+                    r'\"SNlM0e\":\"(.*?)\"',
+                    r'SNlM0e["\']?\s*[:=]\s*["\']([^"\']+)["\']',
+                    r'\[\"SNlM0e\",\[\],\"(.*?)\"\]',
+                ]
+                for pat in patterns:
+                    match = re.search(pat, html)
+                    if match:
+                        token = match.group(1)
+                        if token and len(token) > 5:
+                            return True, token, "Session token extracted"
 
-                if "accounts.google.com" in html and ("Sign in" in html or "signin" in html):
+                if "accounts.google.com" in str(resp.url) or ("accounts.google.com" in html and ("Sign in" in html or "signin" in html)):
                     return False, None, "Cookie expired or not logged into Gemini Web"
 
                 return False, None, "SNlM0e token not found in response HTML"

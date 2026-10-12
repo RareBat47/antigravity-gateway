@@ -37,6 +37,7 @@ data/*.db-shm
 data/*.key
 data/*.enc
 data/quota-state.json
+data/identity.json
 docs/account-status.md
 .env
 config.yaml
