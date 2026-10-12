@@ -6,7 +6,8 @@ from agw.routing.registry import ModelRegistry
 from agw.security.identity import LocalIdentityManager, is_default_secret
 
 
-def test_identity_replaces_default_secrets():
+def test_identity_replaces_default_secrets(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
     from agw.config import AppConfig
     cfg = AppConfig()
     result = LocalIdentityManager().ensure_identity(cfg)
