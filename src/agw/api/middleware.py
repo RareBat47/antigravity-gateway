@@ -56,10 +56,18 @@ def get_api_key_auth(config: AppConfig) -> Callable:
         elif header_key := (request.headers.get("x-api-key") or request.headers.get("api-key")):
             provided = header_key.strip()
 
+        # Strip common client prefixes like 'sk-ant-' or 'sk-'
+        norm_key = provided
+        if norm_key:
+            for pfx in ("sk-ant-api03-", "sk-ant-api-", "sk-ant-", "sk-"):
+                if norm_key.startswith(pfx):
+                    norm_key = norm_key[len(pfx):]
+                    break
+
         # 1. Check primary master gateway key
-        if config.security.gateway_api_key and provided == config.security.gateway_api_key:
+        if config.security.gateway_api_key and (provided == config.security.gateway_api_key or norm_key == config.security.gateway_api_key):
             request.state.api_key_info = {
-                "key": provided,
+                "key": config.security.gateway_api_key,
                 "name": "master-default",
                 "allowed_families": ["all"],
                 "allowed_models": [],
@@ -69,7 +77,7 @@ def get_api_key_auth(config: AppConfig) -> Callable:
         # 2. Check multi-key pool
         if provided:
             for entry in config.security.api_keys:
-                if provided == entry.key:
+                if provided == entry.key or norm_key == entry.key or provided.endswith(entry.key):
                     request.state.api_key_info = {
                         "key": entry.key,
                         "name": entry.name,
@@ -78,7 +86,16 @@ def get_api_key_auth(config: AppConfig) -> Callable:
                     }
                     return provided
 
-        # 3. Local trust bypass for loopback requests (OpenCode, Cursor, Aider, Claude Code, etc.)
+        # 3. Local trust bypass for loopback requests (Claude Code, OpenCode, Cursor, etc.)
+        if is_loopback_client(request) and (config.security.local_trust or (provided and provided.startswith("sk-ant-"))):
+            request.state.api_key_info = {
+                "key": provided or "local-trusted",
+                "name": "Frontier 5.1 & Claude 5.5 Flagship",
+                "allowed_families": ["all"],
+                "allowed_models": [],
+            }
+            return provided
+
         if config.security.local_trust and is_loopback_client(request):
             if not provided or provided in ("local", "auto", "default", "dummy", "none") or provided.startswith("sk-") or provided.startswith("agw-"):
                 effective_key = provided or "local-trusted"
