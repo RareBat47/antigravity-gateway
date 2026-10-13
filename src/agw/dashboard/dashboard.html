@@ -1049,6 +1049,7 @@
         .prov-megacontext { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.35); }
         .prov-agentic { background: rgba(245, 158, 11, 0.15); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.35); }
         .prov-speed { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35); }
+        .prov-handy { background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.35); }
 
         .provider-name {
             font-size: 0.95rem;
@@ -2040,13 +2041,37 @@
                         <span class="prov-model-pill">gemini-3.8-flash-high</span>
                     </div>
                 </div>
+
+                <!-- Provider 5: Handy Creative Media Suite -->
+                <div class="provider-card">
+                    <div class="provider-card-header">
+                        <span class="provider-badge prov-handy">🎨 Provider 5</span>
+                        <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600;">6 Models</span>
+                    </div>
+                    <div class="provider-name">Handy Creative Media Suite</div>
+                    <div class="provider-desc">Google Labs & DeepMind: Veo Video, Lyria MusicFX, Genie World Models & Playground.</div>
+                    <div class="provider-key-box">
+                        <span class="provider-key-text" title="agw-handy-local">agw-handy-local</span>
+                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-handy-local', 'Copied Handy Provider API Key!')" title="Copy Key">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                    <div class="provider-models-list">
+                        <span class="prov-model-pill">handy-veo-video</span>
+                        <span class="prov-model-pill">handy-flow-music</span>
+                        <span class="prov-model-pill">handy-musicfx-dj</span>
+                        <span class="prov-model-pill">handy-project-genie</span>
+                        <span class="prov-model-pill">handy-google-flow</span>
+                        <span class="prov-model-pill">handy-google-playground</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- README Table 1: The 4 Categorized Provider APIs Table -->
+            <!-- README Table 1: The 5 Categorized Provider APIs Table -->
             <div style="margin-top: 1.5rem; margin-bottom: 2rem;">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 0.75rem;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <h3 style="font-size:0.98rem; font-weight:700; color:var(--text-main); margin:0;">🔑 The 4 Categorized Provider APIs Matrix</h3>
+                        <h3 style="font-size:0.98rem; font-weight:700; color:var(--text-main); margin:0;">🔑 The 5 Categorized Provider APIs Matrix</h3>
                         <span class="count-badge">Direct External Software Setup</span>
                     </div>
                     <span style="font-size:0.75rem; color:var(--text-muted);">Use these keys & base URLs to bind each provider group in Claude Code, OpenCode, Cursor & Hermes</span>
@@ -2199,6 +2224,45 @@
                                 <td>
                                     <span style="font-size:0.75rem; color:var(--text-sub); line-height:1.4;">
                                         <strong>Autonomous Agentic & Pro Workflows:</strong> Difficult bugs, multi-file refactoring, step-by-step diagnostic reasoning.
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <span class="provider-badge prov-handy">🎨 handy</span>
+                                    </div>
+                                    <div style="font-size:0.75rem; color:var(--text-main); font-weight:600; margin-top:3px;">Handy Creative Media Suite</div>
+                                </td>
+                                <td>
+                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
+                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-handy-local</span>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-handy-local', 'Copied Handy API Key!')" title="Copy Key">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
+                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">http://127.0.0.1:8999/v1</span>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('http://127.0.0.1:8999/v1', 'Copied Base URL!')" title="Copy Base URL">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                        <span class="prov-model-pill">handy-veo-video</span>
+                                        <span class="prov-model-pill">handy-flow-music</span>
+                                        <span class="prov-model-pill">handy-musicfx-dj</span>
+                                        <span class="prov-model-pill">handy-project-genie</span>
+                                        <span class="prov-model-pill">handy-google-flow</span>
+                                        <span class="prov-model-pill">handy-google-playground</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-size:0.75rem; color:var(--text-sub); line-height:1.4;">
+                                        <strong>Google Labs & Creative Media:</strong> DeepMind Veo (text-to-video), Lyria (MusicFX/DJ), Project Genie (world models), Google Flow (storyboard), and Playground (WebGL games).
                                     </span>
                                 </td>
                             </tr>
@@ -2914,6 +2978,57 @@
                             <strong>Core Models:</strong> Gemini Code Assist, Gemini CLI Coding Engine
                         </div>
                     </div>
+
+                    <!-- Channel 5: Handy Creative Media Suite (handy) -->
+                    <div style="background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="method-badge method-handy" style="font-size: 0.78rem; padding: 3px 10px;">🎨 handy Labs</span>
+                                <strong style="font-size: 0.95rem; color: #f8fafc;">Handy Creative Media</strong>
+                            </div>
+                            <span class="badge badge-success" id="lim-status-badge-handy">Healthy</span>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">
+                            <strong>Limit Model:</strong> Google Labs / DeepMind streaming media pipelines via shared session cookies.
+                        </div>
+                        <!-- Progress / Quota meters -->
+                        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                                <span style="color: #94a3b8;">Creative Pipeline Status:</span>
+                                <strong id="lim-handy-channel-status" style="color: #f472b6;">Active & Ready</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                                <span style="color: #94a3b8;">Quota Free:</span>
+                                <strong id="lim-handy-free-pct" style="color: var(--success);">100% Free</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                                <span style="color: #94a3b8;">Extraction Mode:</span>
+                                <strong style="color: #f472b6;">Shared Cookie Session</strong>
+                            </div>
+                        </div>
+                        <!-- Key Stats Table -->
+                        <table style="width: 100%; font-size: 0.74rem; border-collapse: collapse; margin-top: auto;">
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">5-Hour Window Activity:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-handy-5h-activity">0 reqs • 0 tok</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">All-Time Volume:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-handy-lifetime-vol">0 reqs • 0 tok</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 4px 0; color: #94a3b8;">Average Latency:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600;" id="lim-handy-lat">~220 ms</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 0; color: #94a3b8;">Connected Accounts Bound:</td>
+                                <td style="padding: 4px 0; text-align: right; font-weight: 600; color: #f472b6;" id="lim-handy-accs">--</td>
+                            </tr>
+                        </table>
+                        <div style="margin-top: 10px; font-size: 0.7rem; color: #64748b; line-height: 1.3;">
+                            <strong>Core Models:</strong> Veo Video, Lyria MusicFX, MusicFX DJ, Project Genie, Flow, Playground
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-actions" style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
@@ -3022,7 +3137,7 @@
                         const opt = document.createElement('option');
                         opt.value = acc.id;
                         const name = acc.email_safe || acc.display_name || acc.label || acc.id;
-                        opt.textContent = `👤 ${name} (${acc.tier || 'Pro'})`;
+                        opt.textContent = `👤 ${name} (${acc.tier || 'Free'})`;
                         if (preselectAccountId ? preselectAccountId === acc.id : idx === 0) {
                             opt.selected = true;
                         }
@@ -3477,8 +3592,9 @@
                 const hasCooldown = acc.active_cooldowns && acc.active_cooldowns.length > 0;
 
                 // Subscription Tier Badge (PRO vs FREE)
+                // An account is strictly PRO if its verified Google subscription tier is 'pro' or 'ultra'
                 const tierStr = (acc.tier || '').toLowerCase();
-                const isPro = tierStr.includes('pro') || tierStr.includes('ultra') || tierStr.includes('plus') || (acc.claude_pct !== null && acc.claude_pct !== undefined && acc.claude_pct > 0);
+                const isPro = (tierStr.includes('pro') || tierStr.includes('ultra')) && !tierStr.includes('free');
                 const tierBadge = isPro
                     ? `<span class="tier-badge tier-pro" title="Subscription: Google AI Pro / Cloud Code Assist (Claude 5 & Gemini 3 Unlocked)">
                         <svg class="tier-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -4042,6 +4158,22 @@
                 if (latEl) latEl.textContent = `${Math.round(ch.gcli.avg_latency_ms)} ms`;
                 const accsEl = document.getElementById('lim-gcli-accs');
                 if (accsEl) accsEl.textContent = `${ch.gcli.active_accounts} / ${ch.gcli.connected_accounts} Bound`;
+            }
+
+            // handy
+            if (ch.handy) {
+                const statEl = document.getElementById('lim-handy-channel-status');
+                if (statEl) statEl.textContent = ch.handy.working ? 'Creative Active & Ready' : 'Idle';
+                const freeEl = document.getElementById('lim-handy-free-pct');
+                if (freeEl) freeEl.textContent = `${ch.handy.quota_free_pct}% Free`;
+                const h5El = document.getElementById('lim-handy-5h-activity');
+                if (h5El) h5El.textContent = `${ch.handy.window_5h_requests} reqs • ${formatTokens(ch.handy.window_5h_tokens)} tokens`;
+                const lifeEl = document.getElementById('lim-handy-lifetime-vol');
+                if (lifeEl) lifeEl.textContent = `${ch.handy.requests} reqs • ${formatTokens(ch.handy.total_tokens)} tokens`;
+                const latEl = document.getElementById('lim-handy-lat');
+                if (latEl) latEl.textContent = `${Math.round(ch.handy.avg_latency_ms)} ms`;
+                const accsEl = document.getElementById('lim-handy-accs');
+                if (accsEl) accsEl.textContent = `${ch.handy.active_accounts} / ${ch.handy.connected_accounts} Accounts Active`;
             }
         }
 
@@ -4946,6 +5078,7 @@
             const megacontextCount = models.filter(m => m.provider_id === 'mega-context-1m').length;
             const agenticCount = models.filter(m => m.provider_id === 'gemini-agentic-pro').length;
             const speedCount = models.filter(m => m.provider_id === 'gemini-speed-flash').length;
+            const handyCount = models.filter(m => m.provider_id === 'handy' || (m.family && m.family.toLowerCase() === 'handy')).length;
 
             const modelsCountBadge = document.getElementById('models-count');
             if (modelsCountBadge) modelsCountBadge.textContent = `${total} Models Active`;
@@ -4960,11 +5093,13 @@
             if (cntAgentic) cntAgentic.textContent = agenticCount;
             const cntSpeed = document.getElementById('count-speed');
             if (cntSpeed) cntSpeed.textContent = speedCount;
+            const cntHandy = document.getElementById('count-handy');
+            if (cntHandy) cntHandy.textContent = handyCount;
         }
 
         function setModelFilter(category) {
             currentModelFilter = category;
-            ['all', 'frontier', 'megacontext', 'agentic', 'speed'].forEach(cat => {
+            ['all', 'frontier', 'megacontext', 'agentic', 'speed', 'handy'].forEach(cat => {
                 const tab = document.getElementById(`filter-tab-${cat}`);
                 if (tab) {
                     if (cat === category) tab.classList.add('active');
@@ -4986,6 +5121,7 @@
                 if (currentModelFilter === 'megacontext' && provId !== 'mega-context-1m') return false;
                 if (currentModelFilter === 'agentic' && provId !== 'gemini-agentic-pro') return false;
                 if (currentModelFilter === 'speed' && provId !== 'gemini-speed-flash') return false;
+                if (currentModelFilter === 'handy' && provId !== 'handy' && (m.family || '').toLowerCase() !== 'handy') return false;
 
                 if (!query) return true;
                 const matchId = (m.id || '').toLowerCase().includes(query);
@@ -5068,6 +5204,9 @@
                 } else if (provId === 'gemini-speed-flash') {
                     providerBadge = `<span class="provider-badge prov-speed">⚡ Speed Flash</span>`;
                     dedicatedKey = 'agw-speed-local';
+                } else if (provId === 'handy' || (m.family && m.family.toLowerCase() === 'handy')) {
+                    providerBadge = `<span class="provider-badge prov-handy">🎨 handy</span>`;
+                    dedicatedKey = 'agw-handy-local';
                 }
 
                 // Capabilities Badges

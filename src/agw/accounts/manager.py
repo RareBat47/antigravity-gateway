@@ -74,7 +74,7 @@ class AccountManager:
         except Exception as e:
             logger.warning(f"Could not load Code Assist project for {email} ({e}), automatically defaulting to auto-configured project.")
             project_id = f"auto-{hashlib.sha256(email.encode()).hexdigest()[:8]}"
-            tier = "pro"
+            tier = "free"
 
         # Store encrypted token in vault
         self.vault.store_token(account_id, refresh_tok)
@@ -132,7 +132,7 @@ class AccountManager:
         except Exception as e:
             logger.warning(f"Could not load Code Assist project for {email} ({e}), automatically defaulting to auto-configured project.")
             project_id = f"auto-{hashlib.sha256(label.encode()).hexdigest()[:8]}"
-            tier = "pro"
+            tier = "free"
 
         self.vault.store_token(account_id, refresh_token)
         self._access_tokens[account_id] = access_tok
@@ -419,6 +419,29 @@ class AccountManager:
             "display_name": name,
             "tier": "handy",
         }
+
+    async def sync_all_account_tiers(self) -> Dict[str, str]:
+        """Audit and update all connected Google OAuth accounts with their true Google subscription tier."""
+        accounts = await self.repo.list_accounts()
+        results = {}
+        for acc in accounts:
+            acc_id = acc["id"]
+            current_tier = acc.get("tier", "unknown")
+            # Only audit OAuth accounts (not studio, gweb, handy synthetic accounts)
+            if acc_id.startswith("acc-studio") or acc_id.startswith("acc-web") or acc_id.startswith("acc-handy") or current_tier in ("studio", "gweb", "handy"):
+                results[acc_id] = current_tier
+                continue
+            try:
+                tok = await self.get_access_token(acc_id)
+                project_id, real_tier = await self.client.load_code_assist(tok, allow_onboard=False)
+                if real_tier != current_tier:
+                    logger.info(f"Correcting tier for {acc.get('email_safe')} from '{current_tier}' to '{real_tier}'")
+                    await self.repo.update_account_tier(acc_id, real_tier)
+                results[acc_id] = real_tier
+            except Exception as e:
+                logger.warning(f"Could not re-verify tier for {acc.get('email_safe')}: {e}")
+                results[acc_id] = current_tier
+        return results
 
     def get_token_raw(self, account_id: str) -> Optional[str]:
         """Get the raw credential string from vault for this account."""

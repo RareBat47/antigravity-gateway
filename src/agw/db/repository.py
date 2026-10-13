@@ -78,6 +78,19 @@ class DatabaseRepository:
                 )
             await db.commit()
 
+    async def update_account_tier(
+        self,
+        account_id: str,
+        tier: str,
+    ) -> None:
+        """Update the detected subscription tier of an account."""
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                "UPDATE accounts SET tier = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (tier, account_id),
+            )
+            await db.commit()
+
     async def update_account_profile(
         self,
         account_id: str,

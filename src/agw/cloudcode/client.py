@@ -80,19 +80,23 @@ class CloudCodeClient:
                         elif isinstance(data.get("cloudaicompanion_project"), str):
                             project_id = data["cloudaicompanion_project"]
 
-                        tier = "unknown"
+                        # Strict & Accurate Tier Detection:
+                        # Real Pro accounts have a paidTier with id like 'g1-pro-tier' (Google AI Pro)
+                        # and creditType 'GOOGLE_ONE_AI'. Free accounts have 'free-tier' or null paidTier.
+                        tier = "free"
                         if paid_tier := data.get("paidTier"):
                             tid = paid_tier.get("id", "").lower()
-                            tier = "ultra" if "ultra" in tid else ("pro" if "pro" in tid else "free")
-                        elif current_tier := data.get("currentTier"):
-                            cid = current_tier.get("id", "").lower()
-                            tier = "pro" if ("standard" in cid or "pro" in cid) else "free"
-                        elif allowed_tiers := data.get("allowedTiers"):
-                            for t in allowed_tiers:
-                                tid = t.get("id", "").lower()
-                                if "pro" in tid or "standard" in tid:
-                                    tier = "pro"
-                                    break
+                            credits = paid_tier.get("availableCredits", [])
+                            has_g1_credit = any(
+                                isinstance(c, dict) and "GOOGLE_ONE" in c.get("creditType", "")
+                                for c in credits
+                            )
+                            if "free" not in tid and ("ultra" in tid or "pro" in tid or "g1-" in tid or has_g1_credit):
+                                tier = "ultra" if "ultra" in tid else "pro"
+                            else:
+                                tier = "free"
+                        else:
+                            tier = "free"
 
                         if project_id:
                             return project_id, tier
@@ -102,6 +106,9 @@ class CloudCodeClient:
                             onboard_proj = await self.onboard_user(access_token)
                             if onboard_proj:
                                 return onboard_proj, tier
+                        
+                        # Return empty project_id with the detected tier
+                        return "", tier
                     else:
                         last_err = f"HTTP {resp.status_code}: {resp.text[:200]}"
                 except Exception as e:
