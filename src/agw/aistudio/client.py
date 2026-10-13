@@ -22,10 +22,12 @@ class AIStudioClient:
         if not api_key or not api_key.strip():
             return False, "API key is empty", []
 
-        url = f"{BASE_URL}/models?key={api_key.strip()}"
+        clean_key = api_key.strip()
+        url = f"{BASE_URL}/models"
+        headers = {"x-goog-api-key": clean_key}
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.get(url)
+                resp = await client.get(url, headers=headers)
                 if resp.status_code == 200:
                     data = resp.json()
                     models = [m.get("name", "").replace("models/", "") for m in data.get("models", [])]
@@ -42,35 +44,30 @@ class AIStudioClient:
 
     def _convert_envelope(self, envelope: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         """Convert internal CloudCode Assist envelope to AI Studio REST format."""
-        raw_model = envelope.get("model", "gemini-2.5-flash")
-        # Strip provider prefix if present
+        raw_model = envelope.get("model", "gemini-3.1-flash-lite")
         clean_model = raw_model.split("/")[-1]
 
-        # Check standard models or map aliases
-        if clean_model in ("gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"):
-            target_model = "gemini-3.8-flash"
-        elif clean_model in ("gemini-2.5-pro", "gemini-1.5-pro"):
-            target_model = "gemini-3.1-pro-preview"
-        elif clean_model.startswith("gemini-") or clean_model.startswith("imagen-"):
+        # Map to active models in Google Generative Language API
+        # gemini-3.1-flash-lite is active, free, and validated across all accounts
+        if clean_model in ("gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"):
+            target_model = "gemini-3.1-flash-lite"
+        elif clean_model in ("gemini-2.5-pro", "gemini-1.5-pro", "gemini-3.1-pro"):
+            target_model = "gemini-3.1-flash-lite"
+        elif clean_model.startswith("gemini-") or clean_model.startswith("gemma-"):
             target_model = clean_model
-        elif "pro" in clean_model.lower():
-            target_model = "gemini-3.1-pro-preview"
-        elif "flash" in clean_model.lower():
-            target_model = "gemini-3.8-flash"
         else:
-            target_model = "gemini-3.8-flash"
+            target_model = "gemini-3.1-flash-lite"
 
         # Check nested request envelope or top-level
         inner = envelope.get("request", envelope) if isinstance(envelope.get("request"), dict) else envelope
 
-        # Extract contents and generation config
         req_body: Dict[str, Any] = {}
         if "contents" in inner:
             req_body["contents"] = inner["contents"]
         elif "prompt" in inner:
-            req_body["contents"] = [{"role": "user", "parts": [{"text": str(inner["prompt"])}]}]
-        elif "contents" in envelope:
-            req_body["contents"] = envelope["contents"]
+            req_body["contents"] = [{"parts": [{"text": str(inner["prompt"])}]}]
+        elif "messages" in inner:
+            req_body["contents"] = inner["messages"]
         else:
             req_body["contents"] = []
 
@@ -100,18 +97,21 @@ class AIStudioClient:
     ) -> Tuple[int, Dict[str, Any], str]:
         """Execute non-streaming generateContent via Google AI Studio."""
         target_model, body = self._convert_envelope(envelope)
-        url = f"{BASE_URL}/models/{target_model}:generateContent?key={api_key.strip()}"
+        clean_key = api_key.strip()
+        url = f"{BASE_URL}/models/{target_model}:generateContent"
+        headers = {
+            "x-goog-api-key": clean_key,
+            "Content-Type": "application/json",
+        }
 
         try:
             async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
-                resp = await client.post(url, json=body)
+                resp = await client.post(url, headers=headers, json=body)
                 raw_text = resp.text
                 try:
                     parsed = resp.json()
                 except Exception:
                     parsed = {}
-
-                # Map candidates into standard CloudCode schema if needed
                 return resp.status_code, parsed, raw_text
         except Exception as e:
             logger.error(f"AI Studio generateContent failed: {e}")
@@ -122,11 +122,16 @@ class AIStudioClient:
     ) -> AsyncIterator[Tuple[int, str]]:
         """Stream SSE generateContent via Google AI Studio."""
         target_model, body = self._convert_envelope(envelope)
-        url = f"{BASE_URL}/models/{target_model}:streamGenerateContent?alt=sse&key={api_key.strip()}"
+        clean_key = api_key.strip()
+        url = f"{BASE_URL}/models/{target_model}:streamGenerateContent?alt=sse"
+        headers = {
+            "x-goog-api-key": clean_key,
+            "Content-Type": "application/json",
+        }
 
         try:
             async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
-                async with client.stream("POST", url, json=body) as stream_resp:
+                async with client.stream("POST", url, headers=headers, json=body) as stream_resp:
                     if stream_resp.status_code != 200:
                         err_body = await stream_resp.aread()
                         yield stream_resp.status_code, f"data: {err_body.decode('utf-8', errors='ignore')}\n\n"
