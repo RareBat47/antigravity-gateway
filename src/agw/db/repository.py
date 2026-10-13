@@ -459,9 +459,9 @@ class DatabaseRepository:
             db.row_factory = aiosqlite.Row
             cursor = await db.execute(
                 """
-                SELECT remaining_fraction, reset_time, recorded_at
+                SELECT remaining_fraction, reset_time, source, recorded_at
                 FROM quota_snapshots
-                WHERE account_id = ? AND source = 'gweb'
+                WHERE account_id = ? AND source IN ('gweb', 'gweb_free')
                 ORDER BY recorded_at DESC LIMIT 1
                 """,
                 (account_id,),

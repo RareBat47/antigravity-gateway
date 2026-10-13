@@ -251,16 +251,24 @@ def create_admin_router(
             gweb_info = await repo.get_account_gweb_quota(aid)
             has_cookies = bool(s.get("cookies_verified"))
             if gweb_info and has_cookies:
+                is_pro_pool = gweb_info.get("source") == "gweb"
                 rem_frac = gweb_info.get("remaining_fraction", 1.0)
-                s["gweb_credits_remaining"] = int(round(rem_frac * 2400))
+                if is_pro_pool:
+                    s["gweb_credits_remaining"] = int(round(rem_frac * 2400))
+                    s["gweb_tier"] = "pro"
+                else:
+                    s["gweb_credits_remaining"] = None
+                    s["gweb_tier"] = "free"
                 s["gweb_pct"] = int(round(rem_frac * 100))
                 s["gweb_reset_time"] = gweb_info.get("reset_time")
             elif has_cookies:
-                s["gweb_credits_remaining"] = 2400
+                s["gweb_credits_remaining"] = None
+                s["gweb_tier"] = "free"
                 s["gweb_pct"] = 100
                 s["gweb_reset_time"] = None
             else:
                 s["gweb_credits_remaining"] = 0
+                s["gweb_tier"] = "unbound"
                 s["gweb_pct"] = 0
                 s["gweb_reset_time"] = None
 

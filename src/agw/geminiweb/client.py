@@ -121,29 +121,82 @@ class GeminiWebClient:
             return True, "Session verified and active", token
         return False, msg, None
 
-    async def fetch_quotas(self, cookies: Dict[str, str], snlm0e: Optional[str] = None) -> Dict[str, Any]:
-        """Fetch live quota limits and reset windows using gemini-webapi."""
+    async def fetch_quotas(
+        self,
+        cookies: Dict[str, str],
+        snlm0e: Optional[str] = None,
+        authuser: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Fetch live quota limits and reset windows directly from Google's native jSf9Qc batchexecute RPC."""
+        import datetime
+        if authuser is None:
+            try:
+                authuser = int(cookies.get("authuser", 0))
+            except Exception:
+                authuser = 0
+
+        target_url = (
+            f"https://gemini.google.com/u/{authuser}/_/BardChatUi/data/batchexecute?rpcids=jSf9Qc&source-path=%2Fu%2F{authuser}%2Fusage&hl=en&rt=c"
+            if authuser is not None else "https://gemini.google.com/_/BardChatUi/data/batchexecute?rpcids=jSf9Qc&source-path=%2Fusage&hl=en&rt=c"
+        )
+        cookie_str = "; ".join([f"{k}={v}" for k, v in cookies.items() if k != "authuser"])
+        headers = {
+            "Cookie": cookie_str,
+            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+            "X-Same-Domain": "1",
+            "User-Agent": USER_AGENT,
+        }
+        if authuser is not None:
+            headers["X-Goog-AuthUser"] = str(authuser)
+
+        f_req = json.dumps([[["jSf9Qc", "[]", None, "1"]]])
+        data = {"f.req": f_req, "at": snlm0e or ""}
+
         try:
-            from gemini_webapi import GeminiClient
-            psid = cookies.get("__Secure-1PSID")
-            psidts = cookies.get("__Secure-1PSIDTS")
-            client = GeminiClient(secure_1psid=psid, secure_1psidts=psidts)
-            for k, v in cookies.items():
-                if k != "authuser":
-                    client._cookies.set(k, v, domain=".google.com", secure=True)
-            if snlm0e:
-                client.access_token = snlm0e
-            await client.init(timeout=15.0, auto_refresh=False)
-            res = {
-                "quotas": client.quotas,
-                "usage_info": client.usage_info,
-                "abuse_status": client.abuse_status,
-            }
-            await client.close()
-            return res
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.post(target_url, headers=headers, data=data)
+                if resp.status_code != 200:
+                    return {}
+                for line in resp.text.splitlines():
+                    if "jSf9Qc" in line:
+                        arr = json.loads(line)
+                        inner = json.loads(arr[0][2])
+                        tier_code = inner[0]
+                        tier_str = "PRO" if tier_code == 2 else "FREE"
+                        windows = inner[1]
+                        current_5h = {}
+                        weekly = {}
+                        for w in windows:
+                            if len(w) > 2:
+                                w_type = w[2]
+                                rem = w[0]
+                                epoch = w[3][0][0] if len(w) > 3 and w[3] and len(w[3][0]) > 0 else None
+                                reset_iso = datetime.datetime.fromtimestamp(epoch, datetime.timezone.utc).isoformat() if epoch else ""
+                                if w_type == 1:
+                                    max_cr = 2400 if tier_code == 2 else 600
+                                    current_5h = {
+                                        "remaining_credits": rem,
+                                        "max_credits": max_cr,
+                                        "reset_at": reset_iso,
+                                        "usage_percentage": max(0, int(round((1.0 - (rem / max_cr)) * 100))),
+                                    }
+                                elif w_type == 2:
+                                    max_cr = 48384 if tier_code == 2 else 12096
+                                    weekly = {
+                                        "remaining_credits": rem,
+                                        "max_credits": max_cr,
+                                        "reset_at": reset_iso,
+                                    }
+                        return {
+                            "usage_info": {
+                                "tier": {"id": tier_code, "label": tier_str},
+                                "current_5h": current_5h,
+                                "weekly": weekly,
+                            }
+                        }
         except Exception as e:
-            logger.warning(f"Failed to fetch gemini web quotas: {e}")
-            return {}
+            logger.warning(f"Native jSf9Qc quota fetch failed for authuser={authuser}: {e}")
+        return {}
 
     async def generate_content(
         self, cookies: Dict[str, str], snlm0e: str, prompt: str, authuser: Optional[int] = None

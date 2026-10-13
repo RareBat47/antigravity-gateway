@@ -3758,10 +3758,16 @@
                                             ${(cResetDelta || gResetDelta) ? `<div style="font-size:0.63rem; color:#94a3b8; margin-top:1px;">⏳ Rollover in: ${cResetDelta || gResetDelta}</div>` : ''}
                                         </div>
 
-                                        <!-- 2. gweb (Gemini Web): Actual Remaining Credits / 2,400 -->
+                                        <!-- 2. gweb (Gemini Web): Actual Remaining Credits / 2,400 for Pro, or Standard Free -->
                                         <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:4px; padding:3px 6px; margin-bottom:3px; font-size:0.69rem; display:flex; justify-content:space-between;">
-                                            <span><span class="method-badge method-gweb" style="font-size:0.58rem; padding:0 3px;">gweb</span> 5h Pool:</span>
-                                            <span>${hasGweb ? `<strong style="color:var(--success);">${acc.gweb_credits_remaining !== undefined ? acc.gweb_credits_remaining : 2397} / 2,400</strong>` : '<span style="color:var(--text-muted);">Unbound</span>'}</span>
+                                            <span><span class="method-badge method-gweb" style="font-size:0.58rem; padding:0 3px;">gweb</span> Session:</span>
+                                            <span>${(() => {
+                                                if (!hasGweb) return '<span style="color:var(--text-muted);">Unbound</span>';
+                                                if (acc.gweb_tier === 'pro' && acc.gweb_credits_remaining !== null && acc.gweb_credits_remaining !== undefined) {
+                                                    return `<strong style="color:var(--success);">${acc.gweb_credits_remaining} / 2,400 (Pro)</strong>`;
+                                                }
+                                                return '<strong style="color:#10b981;">Standard Free (~50/3h)</strong>';
+                                            })()}</span>
                                         </div>
 
                                         <!-- 3. studio (AI Studio / Vertex): Actual Remaining RPD / 1,500 -->

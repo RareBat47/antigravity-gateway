@@ -210,8 +210,8 @@ async def sync_and_refresh_all_accounts(
         snlm0e = data["snlm0e"]
         authuser = data["authuser"]
 
-        # Fetch live quotas directly from Gemini Web API
-        quota_data = await web_client.fetch_quotas(cookies, snlm0e=snlm0e)
+        # Fetch live quotas directly from Gemini Web API targeting this exact user index
+        quota_data = await web_client.fetch_quotas(cookies, snlm0e=snlm0e, authuser=authuser)
 
         # Store in encrypted vault
         payload = json.dumps({
@@ -229,23 +229,34 @@ async def sync_and_refresh_all_accounts(
             (acc_id,),
         )
 
-        # Record quota snapshot if quotas returned
-        if quota_data and "quotas" in quota_data:
-            q_info = quota_data.get("usage_info", {})
-            current_5h = q_info.get("current_5h", {})
-            rem_credits = current_5h.get("remaining_credits", 2400)
+        # Record quota snapshot with real account metrics (Pro vs Standard Free)
+        if quota_data and "usage_info" in quota_data:
+            q_info = quota_data.get("usage_info") or {}
+            current_5h = q_info.get("current_5h") or {}
+            rem_credits = current_5h.get("remaining_credits")
             reset_at = current_5h.get("reset_at")
-            rem_fraction = round(rem_credits / 2400.0, 4)
 
-            # Record snapshots for gemini-web / gemini-pro models
-            for model_name in ["gemini-pro-web", "gemini-flash-web"]:
-                c.execute(
-                    """
-                    INSERT INTO quota_snapshots (account_id, model_id, model_family, remaining_fraction, reset_time, source, confidence)
-                    VALUES (?, ?, 'gemini', ?, ?, 'gweb', 1.0)
-                    """,
-                    (acc_id, model_name, rem_fraction, reset_at or ""),
-                )
+            if rem_credits is not None:
+                # Account has Google One AI Pro credit budget
+                rem_fraction = round(rem_credits / 2400.0, 4)
+                for model_name in ["gemini-pro-web", "gemini-flash-web"]:
+                    c.execute(
+                        """
+                        INSERT INTO quota_snapshots (account_id, model_id, model_family, remaining_fraction, reset_time, source, confidence)
+                        VALUES (?, ?, 'gemini', ?, ?, 'gweb', 1.0)
+                        """,
+                        (acc_id, model_name, rem_fraction, reset_at or ""),
+                    )
+            else:
+                # Account is standard free Gemini Web consumer tier (~50 msg/3h rolling)
+                for model_name in ["gemini-pro-web", "gemini-flash-web"]:
+                    c.execute(
+                        """
+                        INSERT INTO quota_snapshots (account_id, model_id, model_family, remaining_fraction, reset_time, source, confidence)
+                        VALUES (?, ?, 'gemini', 1.0, '', 'gweb_free', 1.0)
+                        """,
+                        (acc_id, model_name),
+                    )
 
         conn.commit()
         synced_accounts.append({
