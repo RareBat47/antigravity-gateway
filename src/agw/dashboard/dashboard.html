@@ -1669,12 +1669,12 @@
                 <!-- Card 1: Total Available Pool Quota -->
                 <div class="metric-card" style="padding: 1.1rem; border-radius: 10px; background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border);">
                     <div class="metric-header">
-                        <span class="metric-title">Pool Capacity Ready</span>
+                        <span class="metric-title">Cloud Code (agy) Sliding Quota</span>
                         <span class="metric-badge" id="pool-usage-badge">Ready</span>
                     </div>
                     <div class="metric-main" style="margin-top: 6px;">
-                        <span class="metric-value" id="pool-usage-val" style="font-size: 1.5rem; color: #10b981;">100% Free</span>
-                        <span class="metric-sub" id="pool-capacity-sub">Total pooled capacity ready for routing</span>
+                        <span class="metric-value" id="pool-usage-val" style="font-size: 1.5rem; color: #10b981;">100% Available</span>
+                        <span class="metric-sub" id="pool-capacity-sub">Pooled 5h sliding window capacity</span>
                     </div>
                     <div class="metric-progress-bg" style="margin-top: 8px;">
                         <div class="metric-progress-fill" id="pool-usage-progress" style="width: 0%;"></div>
@@ -1730,18 +1730,18 @@
                 </div>
 
                 <!-- Card 4: Grouped Models & Channels Usage Tracker -->
-                <div class="metric-card" style="padding: 1rem 1.1rem; border-radius: 10px; background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border); cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view full 4-channel limits & usage breakdown in one place">
+                <div class="metric-card" style="padding: 1rem 1.1rem; border-radius: 10px; background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border); cursor: pointer;" onclick="openChannelLimitsModal()" title="Click to view full multi-channel limits & usage breakdown in one place">
                     <div class="metric-header" style="margin-bottom: 6px;">
                         <span class="metric-title" style="display:flex; align-items:center; gap:6px;">
-                            Grouped Models Usage
+                            Multi-Channel Usage
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                         </span>
-                        <span class="metric-badge" id="pool-4way-badge" style="color:var(--success); background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3);">All Free</span>
+                        <span class="metric-badge" id="pool-4way-badge" style="color:var(--success); background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3);">All Operational</span>
                     </div>
                     <table style="width:100%; border-collapse:collapse; font-size:0.73rem;">
                         <tbody>
                             <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                                <td style="padding:3px 2px;"><span class="method-badge method-agy" style="font-size:0.65rem; padding:1px 5px;">Claude / agy</span></td>
+                                <td style="padding:3px 2px;"><span class="method-badge method-agy" style="font-size:0.65rem; padding:1px 5px;">agy (Claude+Gemini)</span></td>
                                 <td style="padding:3px 4px; font-weight:600;" id="usage-val-agy">0%</td>
                                 <td style="padding:3px 4px; color:var(--success);" id="rem-val-agy">100% Free</td>
                                 <td style="padding:3px 2px; text-align:right;"><span style="color:var(--text-muted); font-size:0.68rem;" id="status-val-agy">○ Idle</span></td>
@@ -4106,7 +4106,7 @@
 
             const pBadge = document.getElementById('pool-4way-badge');
             if (pBadge) {
-                pBadge.textContent = `All Free (${formatTokens(data.total_tokens_all)} tok)`;
+                pBadge.textContent = `${data.all_healthy ? 'All Operational' : 'Degraded'} (${formatTokens(data.total_tokens_all)} tok)`;
             }
 
             // 3. Update Modal Details if open or present

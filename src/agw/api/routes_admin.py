@@ -828,7 +828,7 @@ def create_admin_router(
         gcli_accs = [a for a in acc_summaries if a.get("oauth_verified")]
         handy_accs = [a for a in acc_summaries if a.get("cookies_verified") or a.get("tier") == "handy"]
 
-        # Quotas for agy (Cloud Code)
+        # Quotas for agy (Cloud Code) - filter developer-facing models to match Account Cards
         total_g_rem = 0.0
         total_c_rem = 0.0
         g_count = 0
@@ -836,8 +836,20 @@ def create_admin_router(
         for a in agy_accs:
             aid = a["id"]
             quotas = await repo.get_latest_quota(aid)
-            gemini_q = [q["remaining_fraction"] for q in quotas if q.get("model_family") == "gemini" and q.get("remaining_fraction") is not None]
-            claude_q = [q["remaining_fraction"] for q in quotas if q.get("model_family") == "claude" and q.get("remaining_fraction") is not None]
+            gemini_q = [
+                q["remaining_fraction"]
+                for q in quotas
+                if q.get("model_family") == "gemini"
+                and is_developer_facing_model(q.get("model_id", ""))
+                and q.get("remaining_fraction") is not None
+            ]
+            claude_q = [
+                q["remaining_fraction"]
+                for q in quotas
+                if q.get("model_family") == "claude"
+                and is_developer_facing_model(q.get("model_id", ""))
+                and q.get("remaining_fraction") is not None
+            ]
             if gemini_q:
                 total_g_rem += sum(gemini_q) / len(gemini_q)
                 g_count += 1
