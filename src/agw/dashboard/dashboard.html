@@ -2072,33 +2072,83 @@
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 0.75rem;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <h3 style="font-size:0.98rem; font-weight:700; color:var(--text-main); margin:0;">🔑 The 5 Categorized Provider APIs Matrix</h3>
-                        <span class="count-badge">Direct External Software Setup</span>
+                        <span class="count-badge">Connection Type Groups</span>
                     </div>
-                    <span style="font-size:0.75rem; color:var(--text-muted);">Use these keys & base URLs to bind each provider group in Claude Code, OpenCode, Cursor & Hermes</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Organized by Connection Type — Each group shows all models routed through that upstream pipe</span>
                 </div>
                 <div class="table-container">
                     <table class="data-table" id="providers-matrix-table">
                         <thead>
                             <tr>
-                                <th style="min-width: 170px;">Provider Name</th>
+                                <th style="min-width: 180px;">Provider Name</th>
                                 <th style="min-width: 210px;">API Key Token</th>
                                 <th style="min-width: 190px;">Base URL Endpoint</th>
-                                <th style="min-width: 210px;">Curated Models Bound</th>
-                                <th style="min-width: 260px;">Primary Role & Best For</th>
+                                <th style="min-width: 320px;">All Models Exposed</th>
+                                <th style="min-width: 260px;">Connection Role &amp; Protocol</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Row 1: agy (Google Cloud Code OAuth) -->
                             <tr>
                                 <td>
                                     <div style="display:flex; align-items:center; gap:8px;">
-                                        <span class="provider-badge prov-frontier">🔮 claude-frontier</span>
+                                        <span class="provider-badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);">🛸 agy</span>
                                     </div>
-                                    <div style="font-size:0.75rem; color:var(--text-main); font-weight:600; margin-top:3px;">Claude 5.5 Frontier Flagship</div>
+                                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Cloud Code OAuth &rarr; cloudcode-pa.googleapis.com</div>
                                 </td>
                                 <td>
                                     <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-frontier-local</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-frontier-local', 'Copied Frontier API Key!')" title="Copy Key">
+                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-agy-local</span>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-agy-local', 'Copied agy API Key!')" title="Copy Key">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
+                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">http://127.0.0.1:8999/v1</span>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('http://127.0.0.1:8999/v1', 'Copied Base URL!')" title="Copy Base URL">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td style="max-width: 380px;">
+                                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">claude-sonnet-5.5</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">claude-opus-5.5</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">frontier-5.1</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">claude-sonnet-5[1m]</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">claude-opus-5[1m]</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">1m-mega</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">claude-fable-5</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">claude-sonnet-5</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">claude-opus-5</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">gemini-3.8-flash-high</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">gemini-pro-agent</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">gemini-3.1-pro-low</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">speed-flash</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">agentic-pro</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(56, 189, 248, 0.35); color: #7dd3fc; background: rgba(56, 189, 248, 0.08);">gpt-oss-120b-medium</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-size:0.75rem; color:var(--text-sub); line-height:1.4;">
+                                        <strong>Google Cloud Code Assist OAuth:</strong> Claude 5 Series, Gemini 3 Series, GPT-OSS all via <code>cloudcode-pa.googleapis.com</code>. No billing, uses Cloud Code monthly quota.
+                                    </span>
+                                </td>
+                            </tr>
+                            <!-- Row 2: gweb (Gemini Web Session) -->
+                            <tr>
+                                <td>
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <span class="provider-badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);">🍪 gweb</span>
+                                    </div>
+                                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Web Cookies &rarr; gemini.google.com/u/{authuser}/...</div>
+                                </td>
+                                <td>
+                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
+                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-gweb-local</span>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-gweb-local', 'Copied gweb API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
                                     </div>
@@ -2113,27 +2163,30 @@
                                 </td>
                                 <td>
                                     <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                        <span class="prov-model-pill">claude-sonnet-5.5</span>
-                                        <span class="prov-model-pill">claude-opus-5.5</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #d8b4fe; background: rgba(168, 85, 247, 0.08);">gemini-advanced</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #d8b4fe; background: rgba(168, 85, 247, 0.08);">gemini-2.5-pro</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #d8b4fe; background: rgba(168, 85, 247, 0.08);">gemini-2.5-flash</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #d8b4fe; background: rgba(168, 85, 247, 0.08);">gemini-2.0-flash-thinking-exp</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span style="font-size:0.75rem; color:var(--text-sub); line-height:1.4;">
-                                        <strong>Frontier Flagship Reasoning:</strong> Deep logic, systems architecture, comprehensive design docs, Claude Code developer brain.
+                                        <strong>Gemini Web Session Extraction:</strong> Reverse-engineered Gemini Web sessions. Uses Google One AI Pro consumer quota (2,400 credits/5h). TLS-fingerprint impersonation via <code>curl_cffi</code>.
                                     </span>
                                 </td>
                             </tr>
+                            <!-- Row 3: studio (Google AI Studio API Keys) -->
                             <tr>
                                 <td>
                                     <div style="display:flex; align-items:center; gap:8px;">
-                                        <span class="provider-badge prov-megacontext">🧠 mega-context-1m</span>
+                                        <span class="provider-badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35);">🔑 studio</span>
                                     </div>
-                                    <div style="font-size:0.75rem; color:var(--text-main); font-weight:600; margin-top:3px;">Claude 5 1M Mega-Context</div>
+                                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Vertex AI REST &rarr; generativelanguage.googleapis.com</div>
                                 </td>
                                 <td>
                                     <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-megacontext-local</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-megacontext-local', 'Copied Mega-Context API Key!')" title="Copy Key">
+                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-studio-local</span>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-studio-local', 'Copied studio API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
                                     </div>
@@ -2148,27 +2201,34 @@
                                 </td>
                                 <td>
                                     <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                        <span class="prov-model-pill">claude-sonnet-5[1m]</span>
-                                        <span class="prov-model-pill">claude-opus-5[1m]</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-2.5-pro</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-2.5-flash</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-2.5-flash-lite</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-2.0-flash</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-2.0-flash-thinking-exp</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-1.5-pro</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-1.5-flash</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-1.5-flash-8b</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span style="font-size:0.75rem; color:var(--text-sub); line-height:1.4;">
-                                        <strong>1M Token Mega-Context:</strong> Whole-repository code audits, massive log traces, multi-thousand page document ingestion.
+                                        <strong>Google AI Studio Free API Keys:</strong> Direct Vertex AI REST keys via <code>generativelanguage.googleapis.com</code>. 15 RPM / 1,500 RPD. No consumer quota consumed.
                                     </span>
                                 </td>
                             </tr>
+                            <!-- Row 4: gcli (Gemini CLI OAuth) -->
                             <tr>
                                 <td>
                                     <div style="display:flex; align-items:center; gap:8px;">
-                                        <span class="provider-badge prov-speed">⚡ gemini-speed-flash</span>
+                                        <span class="provider-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35);">⚡ gcli</span>
                                     </div>
-                                    <div style="font-size:0.75rem; color:var(--text-main); font-weight:600; margin-top:3px;">Gemini 3.8 Ultra-Fast Intelligence</div>
+                                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Cloud CLI OAuth &rarr; cloudcode-pa.googleapis.com</div>
                                 </td>
                                 <td>
                                     <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-speed-local</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-speed-local', 'Copied Speed Flash API Key!')" title="Copy Key">
+                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-gcli-local</span>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-gcli-local', 'Copied gcli API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
                                     </div>
@@ -2183,61 +2243,28 @@
                                 </td>
                                 <td>
                                     <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                        <span class="prov-model-pill">gemini-3.8-flash-high</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(16, 185, 129, 0.35); color: #6ee7b7; background: rgba(16, 185, 129, 0.08);">gemini-code-assist</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(16, 185, 129, 0.35); color: #6ee7b7; background: rgba(16, 185, 129, 0.08);">gemini-1.5-pro</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span style="font-size:0.75rem; color:var(--text-sub); line-height:1.4;">
-                                        <strong>High-Speed Pure Coding:</strong> Sub-second interactive latency, high-throughput edits, test generation, OpenCode default engine.
+                                        <strong>Gemini CLI Developer Channel:</strong> Google Cloud CLI protocol to <code>cloudcode-pa.googleapis.com</code> via separate OAuth scope. Code completions via Cloud Shell/CLI integration.
                                     </span>
                                 </td>
                             </tr>
+                            <!-- Row 5: handy (Google Labs / DeepMind) -->
                             <tr>
                                 <td>
                                     <div style="display:flex; align-items:center; gap:8px;">
-                                        <span class="provider-badge prov-agentic">🛠️ gemini-agentic-pro</span>
+                                        <span class="provider-badge" style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.35);">🎨 handy</span>
                                     </div>
-                                    <div style="font-size:0.75rem; color:var(--text-main); font-weight:600; margin-top:3px;">Gemini 3 Agentic & Pro Workflows</div>
-                                </td>
-                                <td>
-                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-agentic-local</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-agentic-local', 'Copied Agentic Pro API Key!')" title="Copy Key">
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">http://127.0.0.1:8999/v1</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('http://127.0.0.1:8999/v1', 'Copied Base URL!')" title="Copy Base URL">
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                        <span class="prov-model-pill">gemini-pro-agent</span>
-                                        <span class="prov-model-pill">gemini-3.1-pro-low</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span style="font-size:0.75rem; color:var(--text-sub); line-height:1.4;">
-                                        <strong>Autonomous Agentic & Pro Workflows:</strong> Difficult bugs, multi-file refactoring, step-by-step diagnostic reasoning.
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="display:flex; align-items:center; gap:8px;">
-                                        <span class="provider-badge prov-handy">🎨 handy</span>
-                                    </div>
-                                    <div style="font-size:0.75rem; color:var(--text-main); font-weight:600; margin-top:3px;">Handy Creative Media Suite</div>
+                                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Labs Cookies &rarr; aisandbox-pa / DeepMind</div>
                                 </td>
                                 <td>
                                     <div class="provider-key-box" style="margin:0; max-width:230px;">
                                         <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-handy-local</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-handy-local', 'Copied Handy API Key!')" title="Copy Key">
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-handy-local', 'Copied handy API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
                                     </div>
@@ -2252,26 +2279,27 @@
                                 </td>
                                 <td>
                                     <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                        <span class="prov-model-pill">handy-veo-video</span>
-                                        <span class="prov-model-pill">handy-flow-music</span>
-                                        <span class="prov-model-pill">handy-musicfx-dj</span>
-                                        <span class="prov-model-pill">handy-project-genie</span>
-                                        <span class="prov-model-pill">handy-google-flow</span>
-                                        <span class="prov-model-pill">handy-google-playground</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(236, 72, 153, 0.35); color: #f472b6; background: rgba(236, 72, 153, 0.08);" title="WebGL/HTML5 game gen via batchexecute">handy-google-playground</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(236, 72, 153, 0.35); color: #f472b6; background: rgba(236, 72, 153, 0.08);" title="DeepMind interactive world models">handy-project-genie</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(236, 72, 153, 0.35); color: #f472b6; background: rgba(236, 72, 153, 0.08);" title="Multi-shot storyboarding &amp; Veo cinematic rendering">handy-google-flow</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(236, 72, 153, 0.35); color: #f472b6; background: rgba(236, 72, 153, 0.08);" title="Veo text-to-video via aisandbox-pa runVideoFx">handy-veo-video</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(236, 72, 153, 0.35); color: #f472b6; background: rgba(236, 72, 153, 0.08);" title="MusicFX Lyria audio gen via aisandbox-pa soundFx">handy-flow-music</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(236, 72, 153, 0.35); color: #f472b6; background: rgba(236, 72, 153, 0.08);" title="Real-time DJ web audio mixing &amp; Lyria live stems">handy-musicfx-dj</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span style="font-size:0.75rem; color:var(--text-sub); line-height:1.4;">
-                                        <strong>Google Labs & Creative Media:</strong> DeepMind Veo (text-to-video), Lyria (MusicFX/DJ), Project Genie (world models), Google Flow (storyboard), and Playground (WebGL games).
+                                        <strong>Google Labs &amp; DeepMind Creative Extraction:</strong> Shared <code>__Secure-1PSID</code> cookies &rarr; multiple Google Labs endpoints. WebGL/HTML5 games, DeepMind Genie world models, Veo video (<code>runVideoFx</code>), and MusicFX/DJ (<code>soundFx</code>). No token billing.
                                     </span>
                                 </td>
                             </tr>
+                            <!-- Row 6: Master Gateway -->
                             <tr>
                                 <td>
                                     <div style="display:flex; align-items:center; gap:8px;">
-                                        <span class="provider-badge" style="background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.3);">👑 Master Gateway</span>
+                                        <span class="provider-badge" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25)); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.45);">👑 Master Gateway</span>
                                     </div>
-                                    <div style="font-size:0.75rem; color:var(--text-main); font-weight:600; margin-top:3px;">Universal Administrative Key</div>
+                                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Universal Loopback &rarr; 127.0.0.1:8999/v1</div>
                                 </td>
                                 <td>
                                     <div class="provider-key-box" style="margin:0; max-width:230px;">
@@ -2290,11 +2318,11 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="prov-model-pill" style="border-color:#a855f7; color:#c084fc;">All 7 Curated Models</span>
+                                    <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.5); color: #e9d5ff; background: rgba(168, 85, 247, 0.15); font-weight: 600;">All 35 Models</span>
                                 </td>
                                 <td>
                                     <span style="font-size:0.75rem; color:var(--text-sub); line-height:1.4;">
-                                        <strong>Unrestricted Universal Access:</strong> Full catalog authorization for administration and automation scripts.
+                                        <strong>Unrestricted Universal Access:</strong> Full catalog authorization across all models for administration and automation scripts.
                                     </span>
                                 </td>
                             </tr>
