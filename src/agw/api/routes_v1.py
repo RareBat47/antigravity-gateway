@@ -73,6 +73,8 @@ def create_v1_router(
     geminiweb_client: Optional[GeminiWebClient] = None,
     handy_client: Optional[HandyClient] = None,
     quota_monitor: Optional[QuotaMonitor] = None,
+    telemetry_store: Optional[Any] = None,
+    load_balancer: Optional[Any] = None,
 ) -> APIRouter:
     verify_key = get_api_key_auth(config)
     router = APIRouter(prefix="/v1", tags=["OpenAI Compatible API"], dependencies=[Depends(verify_key)])
@@ -308,12 +310,28 @@ def create_v1_router(
             )
 
         for attempt in range(max_attempts):
-            # Select best account considering health, quota, cooldowns
-            selected_account = await scheduler.select_account(
-                model_family=family,
-                exclude_account_ids=attempted_accounts,
-                requested_model_id=upstream_id,
-            )
+            # Level 1 Load Balancer: Resolve target provider group (handy, agy, gweb, studio, gcli)
+            if load_balancer:
+                channel_used = load_balancer.resolve_level1_group(
+                    model_id=model_id,
+                    family=family,
+                    key_info=key_info,
+                    model_def=m_def,
+                )
+                # Level 2 Load Balancer: Pick account with pre-flight concurrency lease check
+                selected_account, lb_err = await load_balancer.select_level2_account(
+                    group=channel_used,
+                    model_family=family,
+                    upstream_model_id=upstream_id,
+                    attempted_accounts=attempted_accounts,
+                )
+            else:
+                channel_used = "agy"
+                selected_account = await scheduler.select_account(
+                    model_family=family,
+                    exclude_account_ids=attempted_accounts,
+                    requested_model_id=upstream_id,
+                )
 
             if not selected_account:
                 break
@@ -337,22 +355,6 @@ def create_v1_router(
             acc_tier = selected_account.get("tier", "pro")
             access_tok = None
             raw_cred = None
-
-            # Determine the active upstream channel for this account request
-            m_prov = (m_def.get("provider_id") or "").lower()
-            m_lower = str(model_id).lower()
-            key_prof = (key_info.get("profile") or "").lower() if key_info else ""
-
-            if family == "handy" or m_lower.startswith("handy-") or key_prof == "handy":
-                channel_used = "handy"
-            elif key_prof == "studio" or m_prov == "studio" or "studio" in m_lower:
-                channel_used = "studio"
-            elif key_prof == "gweb" or m_prov == "gweb" or "web" in m_lower or "advanced" in m_lower:
-                channel_used = "gweb"
-            elif acc_tier in ("studio", "gweb", "handy"):
-                channel_used = acc_tier
-            else:
-                channel_used = "agy"
 
             # Extract the correct credential for the active channel
             if channel_used == "handy":
@@ -495,19 +497,28 @@ def create_v1_router(
                             ):
                                 yield chunk
                         finally:
-                            scheduler.release_request(acc_id)
+                            if load_balancer:
+                                await load_balancer.release_execution(acc_id, channel_used)
+                            else:
+                                scheduler.release_request(acc_id)
 
                         # Bug #1: After streaming completes, update usage_events with
                         # actual token counts from the final SSE usage chunk.
+                        p_toks = 0
+                        c_toks = 0
+                        t_toks = 0
                         if usage_out:
                             final_usage = usage_out[-1]
+                            p_toks = final_usage.get("prompt_tokens", 0)
+                            c_toks = final_usage.get("completion_tokens", 0)
+                            t_toks = final_usage.get("total_tokens", 0)
                             try:
                                 await repo.record_usage_event(
                                     request_id=req_id,
                                     account_id=acc_id,
                                     model_id=model_id,
-                                    prompt_tokens=final_usage.get("prompt_tokens", 0),
-                                    completion_tokens=final_usage.get("completion_tokens", 0),
+                                    prompt_tokens=p_toks,
+                                    completion_tokens=c_toks,
                                     latency_ms=latency_ms,
                                     status_code=200,
                                     is_streaming=True,
@@ -515,7 +526,7 @@ def create_v1_router(
                                 # Also update the aggregate token counter for this account
                                 await repo.record_account_usage(
                                     acc_id,
-                                    final_usage.get("total_tokens", 0),
+                                    t_toks,
                                     True,
                                 )
                             except Exception as e:
@@ -535,6 +546,18 @@ def create_v1_router(
                                 )
                             except Exception:
                                 pass
+
+                        # Ingest into SharedTelemetryStore
+                        if telemetry_store:
+                            await telemetry_store.record_execution(
+                                account_id=acc_id,
+                                group=channel_used,
+                                model_id=model_id,
+                                prompt_tokens=p_toks,
+                                completion_tokens=c_toks,
+                                latency_ms=latency_ms,
+                                status_code=200,
+                            )
 
                     return StreamingResponse(
                         stream_wrapper(),
@@ -653,6 +676,22 @@ def create_v1_router(
                     is_streaming=False,
                 )
 
+                if load_balancer:
+                    await load_balancer.release_execution(acc_id, channel_used)
+                else:
+                    scheduler.release_request(acc_id)
+
+                if telemetry_store:
+                    await telemetry_store.record_execution(
+                        account_id=acc_id,
+                        group=channel_used,
+                        model_id=model_id,
+                        prompt_tokens=usage.get("prompt_tokens", 0),
+                        completion_tokens=usage.get("completion_tokens", 0),
+                        latency_ms=latency_ms,
+                        status_code=200,
+                    )
+
                 response = Response(
                     content=json.dumps(resp_oai),
                     media_type="application/json",
@@ -661,6 +700,10 @@ def create_v1_router(
                 return response
 
             # Failure Handling
+            if load_balancer:
+                await load_balancer.release_execution(acc_id, channel_used)
+            else:
+                scheduler.release_request(acc_id)
             err_category, action, cooldown_sec = classify_upstream_error(status_code, raw_text)
             logger.warning(
                 f"Request failed on account {acc_id} (HTTP {status_code}): {err_category}, action={action}"

@@ -104,6 +104,7 @@ def create_admin_router(
     aistudio_client: Optional[Any] = None,
     geminiweb_client: Optional[Any] = None,
     provisioning_agent: Optional[Any] = None,
+    telemetry_store: Optional[Any] = None,
 ) -> APIRouter:
     from agw.aistudio.client import AIStudioClient
     from agw.geminiweb.client import GeminiWebClient
@@ -992,6 +993,13 @@ def create_admin_router(
             "total_requests_all": sum(c["requests"] for c in result.values()),
             "checked_at": int(time.time()),
         }
+
+    @router.get("/telemetry/snapshot", dependencies=[Depends(verify_admin)])
+    async def get_telemetry_snapshot():
+        """Get live central shared state telemetry across all 7 accounts & 5 provider groups."""
+        if telemetry_store:
+            return await telemetry_store.get_cluster_snapshot()
+        return {"global": {}, "groups": {}, "timestamp": int(time.time())}
 
     @router.get("/api-keys", dependencies=[Depends(verify_admin)])
     async def list_api_keys():

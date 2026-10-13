@@ -80,12 +80,22 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     health_tracker = AccountHealthTracker()
     model_registry = ModelRegistry(cfg.models)
 
+    # Central In-Memory Shared State Store with SQLite WAL persistence
+    from agw.telemetry.store import SharedTelemetryStore
+    from agw.routing.balancer import DualLayerLoadBalancer
+    telemetry_store = SharedTelemetryStore(repo=repo)
+
     scheduler = AccountScheduler(
         repo=repo,
         cooldown_mgr=cooldown_mgr,
         health_tracker=health_tracker,
         settings=cfg.scheduler,
         vault=vault,
+    )
+
+    load_balancer = DualLayerLoadBalancer(
+        scheduler=scheduler,
+        telemetry_store=telemetry_store,
     )
 
     quota_monitor = QuotaMonitor(
@@ -101,6 +111,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Startup
         await repo.init_db()
+        await telemetry_store.initialize()
+        telemetry_store.start()
         if cfg.quota_monitor.enabled:
             quota_monitor.start()
         logging.getLogger("agw").info(
@@ -108,6 +120,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         )
         yield
         # Shutdown
+        await telemetry_store.stop()
         await quota_monitor.stop()
 
     app = FastAPI(
@@ -157,6 +170,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             geminiweb_client=geminiweb_client,
             handy_client=handy_client,
             quota_monitor=quota_monitor,
+            telemetry_store=telemetry_store,
+            load_balancer=load_balancer,
         )
     )
     app.include_router(
@@ -171,6 +186,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             aistudio_client=aistudio_client,
             geminiweb_client=geminiweb_client,
             provisioning_agent=provisioning_agent,
+            telemetry_store=telemetry_store,
         )
     )
 
