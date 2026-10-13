@@ -2080,11 +2080,12 @@
                     <table class="data-table" id="providers-matrix-table">
                         <thead>
                             <tr>
-                                <th style="min-width: 170px;">Provider Group</th>
-                                <th style="min-width: 250px;">Standardized API Keys (Primary &amp; Secondary)</th>
-                                <th style="min-width: 190px;">Base URL Endpoint</th>
-                                <th style="min-width: 320px;">All Models Exposed</th>
-                                <th style="min-width: 260px;">Connection Role &amp; Protocol</th>
+                                <th style="min-width: 160px;">Provider Group</th>
+                                <th style="min-width: 240px;">Standardized API Keys (Primary &amp; Secondary)</th>
+                                <th style="min-width: 220px;">📊 Usage Limit &amp; Live Availability Tracker</th>
+                                <th style="min-width: 170px;">Base URL Endpoint</th>
+                                <th style="min-width: 280px;">All Models Exposed</th>
+                                <th style="min-width: 240px;">Connection Role &amp; Protocol</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2116,6 +2117,22 @@
                                         <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-agy-secondary', 'Copied agy Secondary API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display:flex; flex-direction:column; gap:5px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <span id="matrix-lim-status-agy" style="font-size:0.7rem; font-weight:700; color:var(--success); display:flex; align-items:center; gap:4px;">● Ready to Route</span>
+                                            <span id="matrix-lim-leases-agy" style="font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">0 in-flight</span>
+                                        </div>
+                                        <div style="background:rgba(255,255,255,0.08); border-radius:4px; height:5px; overflow:hidden;">
+                                            <div id="matrix-lim-bar-agy" style="height:100%; width:42%; background:var(--primary); transition:width 0.4s;"></div>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-muted);">
+                                            <span>Quota: <strong id="matrix-lim-free-agy" style="color:#fff;">42% Free</strong></span>
+                                            <span id="matrix-lim-accounts-agy">8/8 Accs</span>
+                                        </div>
+                                        <div id="matrix-lim-detail-agy" style="font-size:0.65rem; color:var(--text-sub); border-top:1px solid rgba(255,255,255,0.04); padding-top:3px;">Claude: 42% • Gemini: 42%</div>
                                     </div>
                                 </td>
                                 <td>
@@ -2182,6 +2199,22 @@
                                     </div>
                                 </td>
                                 <td>
+                                    <div style="display:flex; flex-direction:column; gap:5px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <span id="matrix-lim-status-gweb" style="font-size:0.7rem; font-weight:700; color:var(--success); display:flex; align-items:center; gap:4px;">● Ready to Route</span>
+                                            <span id="matrix-lim-leases-gweb" style="font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">0 in-flight</span>
+                                        </div>
+                                        <div style="background:rgba(255,255,255,0.08); border-radius:4px; height:5px; overflow:hidden;">
+                                            <div id="matrix-lim-bar-gweb" style="height:100%; width:100%; background:#c084fc; transition:width 0.4s;"></div>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-muted);">
+                                            <span>Quota: <strong id="matrix-lim-free-gweb" style="color:#fff;">100% Free</strong></span>
+                                            <span id="matrix-lim-accounts-gweb">8/8 Accs</span>
+                                        </div>
+                                        <div id="matrix-lim-detail-gweb" style="font-size:0.65rem; color:var(--text-sub); border-top:1px solid rgba(255,255,255,0.04); padding-top:3px;">2,400 creds/5h • 1.0 Pro Multiplier</div>
+                                    </div>
+                                </td>
+                                <td>
                                     <div class="provider-key-box" style="margin:0; max-width:230px;">
                                         <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">http://127.0.0.1:8999/v1</span>
                                         <button class="btn-copy-mini" onclick="copyTextToClipboard('http://127.0.0.1:8999/v1', 'Copied Base URL!')" title="Copy Base URL">
@@ -2231,6 +2264,22 @@
                                         <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-studio-secondary', 'Copied studio Secondary API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display:flex; flex-direction:column; gap:5px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <span id="matrix-lim-status-studio" style="font-size:0.7rem; font-weight:700; color:var(--success); display:flex; align-items:center; gap:4px;">● Ready to Route</span>
+                                            <span id="matrix-lim-leases-studio" style="font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">0 in-flight</span>
+                                        </div>
+                                        <div style="background:rgba(255,255,255,0.08); border-radius:4px; height:5px; overflow:hidden;">
+                                            <div id="matrix-lim-bar-studio" style="height:100%; width:100%; background:#fbbf24; transition:width 0.4s;"></div>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-muted);">
+                                            <span>Quota: <strong id="matrix-lim-free-studio" style="color:#fff;">100% Free</strong></span>
+                                            <span id="matrix-lim-accounts-studio">7/8 Accs</span>
+                                        </div>
+                                        <div id="matrix-lim-detail-studio" style="font-size:0.65rem; color:var(--text-sub); border-top:1px solid rgba(255,255,255,0.04); padding-top:3px;">15 RPM • 1,500 RPD per key</div>
                                     </div>
                                 </td>
                                 <td>
@@ -2290,6 +2339,22 @@
                                     </div>
                                 </td>
                                 <td>
+                                    <div style="display:flex; flex-direction:column; gap:5px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <span id="matrix-lim-status-gcli" style="font-size:0.7rem; font-weight:700; color:var(--success); display:flex; align-items:center; gap:4px;">● Ready to Route</span>
+                                            <span id="matrix-lim-leases-gcli" style="font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">0 in-flight</span>
+                                        </div>
+                                        <div style="background:rgba(255,255,255,0.08); border-radius:4px; height:5px; overflow:hidden;">
+                                            <div id="matrix-lim-bar-gcli" style="height:100%; width:100%; background:#34d399; transition:width 0.4s;"></div>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-muted);">
+                                            <span>Quota: <strong id="matrix-lim-free-gcli" style="color:#fff;">100% Free</strong></span>
+                                            <span id="matrix-lim-accounts-gcli">8/8 Accs</span>
+                                        </div>
+                                        <div id="matrix-lim-detail-gcli" style="font-size:0.65rem; color:var(--text-sub); border-top:1px solid rgba(255,255,255,0.04); padding-top:3px;">CLI OAuth completions channel</div>
+                                    </div>
+                                </td>
+                                <td>
                                     <div class="provider-key-box" style="margin:0; max-width:230px;">
                                         <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">http://127.0.0.1:8999/v1</span>
                                         <button class="btn-copy-mini" onclick="copyTextToClipboard('http://127.0.0.1:8999/v1', 'Copied Base URL!')" title="Copy Base URL">
@@ -2340,6 +2405,22 @@
                                     </div>
                                 </td>
                                 <td>
+                                    <div style="display:flex; flex-direction:column; gap:5px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <span id="matrix-lim-status-handy" style="font-size:0.7rem; font-weight:700; color:var(--success); display:flex; align-items:center; gap:4px;">● Ready to Route</span>
+                                            <span id="matrix-lim-leases-handy" style="font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">0 in-flight</span>
+                                        </div>
+                                        <div style="background:rgba(255,255,255,0.08); border-radius:4px; height:5px; overflow:hidden;">
+                                            <div id="matrix-lim-bar-handy" style="height:100%; width:100%; background:#f472b6; transition:width 0.4s;"></div>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-muted);">
+                                            <span>Quota: <strong id="matrix-lim-free-handy" style="color:#fff;">100% Free</strong></span>
+                                            <span id="matrix-lim-accounts-handy">8/8 Accs</span>
+                                        </div>
+                                        <div id="matrix-lim-detail-handy" style="font-size:0.65rem; color:var(--text-sub); border-top:1px solid rgba(255,255,255,0.04); padding-top:3px;">Google Labs &amp; Veo/Lyria extractors</div>
+                                    </div>
+                                </td>
+                                <td>
                                     <div class="provider-key-box" style="margin:0; max-width:230px;">
                                         <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">http://127.0.0.1:8999/v1</span>
                                         <button class="btn-copy-mini" onclick="copyTextToClipboard('http://127.0.0.1:8999/v1', 'Copied Base URL!')" title="Copy Base URL">
@@ -2380,6 +2461,22 @@
                                         <button class="btn-copy-mini" onclick="copyTextToClipboard('test-gateway-key', 'Copied Master Gateway Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display:flex; flex-direction:column; gap:5px; background:rgba(0,0,0,0.2); border:1px solid rgba(168,85,247,0.3); border-radius:8px; padding:8px 10px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <span style="font-size:0.7rem; font-weight:700; color:#c084fc;">👑 Universal Loopback</span>
+                                            <span style="font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">All 5 Pipes</span>
+                                        </div>
+                                        <div style="background:rgba(255,255,255,0.08); border-radius:4px; height:5px; overflow:hidden;">
+                                            <div style="height:100%; width:100%; background:linear-gradient(90deg, #c084fc, #38bdf8);"></div>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-muted);">
+                                            <span>Full Catalog Access</span>
+                                            <span>8/8 Accs</span>
+                                        </div>
+                                        <div style="font-size:0.65rem; color:var(--text-sub); border-top:1px solid rgba(255,255,255,0.04); padding-top:3px;">Admin &amp; script loopback key</div>
                                     </div>
                                 </td>
                                 <td>
@@ -4166,14 +4263,21 @@ export OPENAI_API_KEY="agw-agy-secondary"</pre>
             fetchChannelsSummary();
         }
 
-        // Fetch and Update 4-Channel Limits & Usage Matrix
+        // Fetch and Update Channel Limits & Usage Matrix + Live Telemetry Snapshot
         async function fetchChannelsSummary(isManual = false) {
             try {
-                const res = await fetch(`${API_BASE}/admin/channels/summary`, {
-                    headers: getAdminHeaders()
-                });
-                if (!res.ok) return null;
-                const data = await res.json();
+                // Fetch both channel limits and live shared telemetry in parallel
+                const [resCh, resTel] = await Promise.all([
+                    fetch(`${API_BASE}/admin/channels/summary`, { headers: getAdminHeaders() }),
+                    fetch(`${API_BASE}/admin/telemetry/snapshot`, { headers: getAdminHeaders() }).catch(() => null)
+                ]);
+
+                if (resTel && resTel.ok) {
+                    window.latestTelemetry = await resTel.json();
+                }
+
+                if (!resCh.ok) return null;
+                const data = await resCh.json();
                 window.channelsSummary = data;
                 renderChannelsMetrics(data);
                 if (isManual) showToast('Live channel usage & limits refreshed', 'success');
@@ -4292,7 +4396,70 @@ export OPENAI_API_KEY="agw-agy-secondary"</pre>
                 pBadge.textContent = `${data.all_healthy ? 'All Operational' : 'Degraded'} (${formatTokens(data.total_tokens_all)} tok)`;
             }
 
-            // 3. Update Modal Details if open or present
+            // 3. Update Providers Matrix Live Usage Limits Tracker
+            for (const grp of ['agy', 'gweb', 'studio', 'gcli', 'handy']) {
+                const info = ch[grp];
+                if (!info) continue;
+
+                // Status Pill
+                const stEl = document.getElementById(`matrix-lim-status-${grp}`);
+                if (stEl) {
+                    if (!info.working || info.connected_accounts === 0) {
+                        stEl.textContent = '○ Offline / Degraded';
+                        stEl.style.color = 'var(--danger)';
+                    } else if (info.quota_used_pct >= 90) {
+                        stEl.textContent = '● High Load / Rate Limited';
+                        stEl.style.color = '#ef4444';
+                    } else if (info.quota_used_pct >= 60) {
+                        stEl.textContent = '● Moderately Busy';
+                        stEl.style.color = '#f59e0b';
+                    } else {
+                        stEl.textContent = '● Ready to Route';
+                        stEl.style.color = 'var(--success)';
+                    }
+                }
+
+                // Progress Bar
+                const barEl = document.getElementById(`matrix-lim-bar-${grp}`);
+                if (barEl) {
+                    barEl.style.width = `${Math.max(4, info.quota_free_pct)}%`;
+                    if (info.quota_free_pct < 20) {
+                        barEl.style.background = '#ef4444';
+                    } else if (info.quota_free_pct < 50) {
+                        barEl.style.background = '#f59e0b';
+                    } else {
+                        barEl.style.background = 'var(--success)';
+                    }
+                }
+
+                // Quota Free Text
+                const frEl = document.getElementById(`matrix-lim-free-${grp}`);
+                if (frEl) frEl.textContent = `${info.quota_free_pct}% Free`;
+
+                // Accounts Count
+                const accEl = document.getElementById(`matrix-lim-accounts-${grp}`);
+                if (accEl) accEl.textContent = `${info.connected_accounts}/8 Accs`;
+
+                // Details
+                const detEl = document.getElementById(`matrix-lim-detail-${grp}`);
+                if (detEl && info.quota_detail) {
+                    detEl.textContent = info.quota_detail;
+                }
+            }
+
+            // 4. Update In-Flight Leases from Live Telemetry Snapshot
+            if (window.latestTelemetry && window.latestTelemetry.groups) {
+                for (const grp of ['agy', 'gweb', 'studio', 'gcli', 'handy']) {
+                    const lEl = document.getElementById(`matrix-lim-leases-${grp}`);
+                    if (lEl) {
+                        const leases = window.latestTelemetry.groups[grp]?.active_leases || 0;
+                        lEl.textContent = leases > 0 ? `${leases} active lease${leases > 1 ? 's' : ''}` : '0 in-flight';
+                        lEl.style.color = leases > 0 ? 'var(--primary)' : 'var(--text-muted)';
+                    }
+                }
+            }
+
+            // 5. Update Modal Details if open or present
             updateChannelLimitsModalContent(data);
         }
 
