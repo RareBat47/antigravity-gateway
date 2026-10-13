@@ -14,75 +14,164 @@ security:
   rate_limit_per_minute: 120
   cors_origins: []
   api_keys:
-    # === 4-WAY CONNECTIONS (agy • gweb • studio • gcli) ===
+    # =========================================================================
+    # THE 10 STANDARDIZED API KEYS MATRIX (5 GROUPS × 2 KEYS: PRIMARY + SECONDARY)
+    # Use these keys across multiple machines/IDEs with built-in failover.
+    # =========================================================================
+
+    # --- 1. AGY (Google Cloud Code OAuth: Claude 5 Series, Gemini 3 Series, GPT-OSS) ---
+    - key: "agw-agy-primary"
+      name: "agy (Primary)"
+      description: "Google Cloud Code OAuth Engine - Primary Workstation Key"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "agy"
+      advertise_all_models: true
+
+    - key: "agw-agy-secondary"
+      name: "agy (Secondary / Failover)"
+      description: "Google Cloud Code OAuth Engine - Secondary / Remote Device Key"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "agy"
+      advertise_all_models: true
+
+    # --- 2. GWEB (Gemini Web Free Sessions: Gemini Advanced via Cookies) ---
+    - key: "agw-gweb-primary"
+      name: "gweb (Primary)"
+      description: "Consumer Gemini Web Session Extractor - Primary Workstation Key"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "gweb"
+      advertise_all_models: true
+
+    - key: "agw-gweb-secondary"
+      name: "gweb (Secondary / Failover)"
+      description: "Consumer Gemini Web Session Extractor - Secondary / Remote Device Key"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "gweb"
+      advertise_all_models: true
+
+    # --- 3. STUDIO (Google AI Studio Free Tier: Vertex AI REST API) ---
+    - key: "agw-studio-primary"
+      name: "studio (Primary)"
+      description: "Google AI Studio Developer API - Primary Workstation Key"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "studio"
+      advertise_all_models: true
+
+    - key: "agw-studio-secondary"
+      name: "studio (Secondary / Failover)"
+      description: "Google AI Studio Developer API - Secondary / Remote Device Key"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "studio"
+      advertise_all_models: true
+
+    # --- 4. GCLI (Gemini Cloud CLI Protocol: Code Assist Engine) ---
+    - key: "agw-gcli-primary"
+      name: "gcli (Primary)"
+      description: "Gemini CLI OAuth Channel - Primary Workstation Key"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "gcli"
+      advertise_all_models: true
+
+    - key: "agw-gcli-secondary"
+      name: "gcli (Secondary / Failover)"
+      description: "Gemini CLI OAuth Channel - Secondary / Remote Device Key"
+      allowed_families: ["all"]
+      allowed_models: []
+      profile: "gcli"
+      advertise_all_models: true
+
+    # --- 5. HANDY (Handy Creative Media Suite: Veo, Lyria, Genie, Flow, Playground) ---
+    - key: "agw-handy-primary"
+      name: "handy (Primary)"
+      description: "Handy Creative Media Suite - Primary Workstation Key"
+      allowed_families: ["handy", "all"]
+      allowed_models: []
+      profile: "handy"
+      advertise_all_models: true
+
+    - key: "agw-handy-secondary"
+      name: "handy (Secondary / Failover)"
+      description: "Handy Creative Media Suite - Secondary / Remote Device Key"
+      allowed_families: ["handy", "all"]
+      allowed_models: []
+      profile: "handy"
+      advertise_all_models: true
+
+    # --- Backwards-Compatibility Aliases (Legacy Local Keys) ---
     - key: "agw-agy-local"
-      name: "Antigravity OAuth Engine (agy)"
-      description: "Google Antigravity Cloud Code channel (Claude 5, Gemini 3, GPT-OSS)"
+      name: "agy (Legacy Local)"
+      description: "Legacy local binding alias for agy"
       allowed_families: ["all"]
       allowed_models: []
       profile: "agy"
       advertise_all_models: true
 
     - key: "agw-gweb-local"
-      name: "Gemini Web Free Sessions (gweb)"
-      description: "Consumer Gemini Advanced Web Session Extractor (Gemini 2.5 Pro via cookies)"
+      name: "gweb (Legacy Local)"
+      description: "Legacy local binding alias for gweb"
       allowed_families: ["all"]
       allowed_models: []
       profile: "gweb"
       advertise_all_models: true
 
     - key: "agw-studio-local"
-      name: "Google AI Studio Free Tier (studio)"
-      description: "Google AI Studio Developer API Channel (Gemini 2.5 Pro, Flash, 2.0 Flash)"
+      name: "studio (Legacy Local)"
+      description: "Legacy local binding alias for studio"
       allowed_families: ["all"]
       allowed_models: []
       profile: "studio"
       advertise_all_models: true
 
     - key: "agw-gcli-local"
-      name: "Gemini CLI OAuth (gcli)"
-      description: "Google Cloud CLI / gcli protocol channel (Gemini Code Assist)"
+      name: "gcli (Legacy Local)"
+      description: "Legacy local binding alias for gcli"
       allowed_families: ["all"]
       allowed_models: []
       profile: "gcli"
       advertise_all_models: true
 
     - key: "agw-handy-local"
-      name: "Handy Creative Media Suite"
-      description: "Google Labs/DeepMind streaming media generation (Playground, Genie, Flow, Veo, MusicFX, MusicFX DJ)"
+      name: "handy (Legacy Local)"
+      description: "Legacy local binding alias for handy"
       allowed_families: ["handy", "all"]
       allowed_models: []
       profile: "handy"
       advertise_all_models: true
 
-    # === WORKSTATION CLIENT KEYS (Fully Unlocked to All Free Models) ===
     - key: "agw-frontier-local"
-      name: "Frontier 5.1 & Claude 5.5 Flagship"
-      description: "Frontier 5.1 Sonnet & Opus Reasoning Models + All Free Google Models"
+      name: "Frontier 5.1 & Claude 5.5 Flagship (Legacy)"
+      description: "Legacy workstation alias"
       allowed_families: ["all"]
       allowed_models: []
       profile: "claude-code"
       advertise_all_models: true
 
     - key: "agw-megacontext-local"
-      name: "Mega Context 1M Deep Research"
-      description: "Claude 1M Token Context Engine for Mass Codebases + All Free Models"
+      name: "Mega Context 1M Deep Research (Legacy)"
+      description: "Legacy workstation alias"
       allowed_families: ["all"]
       allowed_models: []
       profile: "claude-code"
       advertise_all_models: true
 
     - key: "agw-speed-local"
-      name: "Gemini Speed Flash (Coding Workhorse)"
-      description: "Ultra-fast execution model for pure coding in OpenCode"
+      name: "Gemini Speed Flash (Legacy)"
+      description: "Legacy workstation alias"
       allowed_families: ["all"]
       allowed_models: []
       profile: "opencode"
       advertise_all_models: true
 
     - key: "agw-agentic-local"
-      name: "Agentic Pro Reasoning Escalation"
-      description: "Autonomous reasoning and architecture models"
+      name: "Agentic Pro Reasoning (Legacy)"
+      description: "Legacy workstation alias"
       allowed_families: ["all"]
       allowed_models: []
       profile: "opencode"

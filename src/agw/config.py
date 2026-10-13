@@ -147,6 +147,24 @@ def load_config(config_path: Optional[str] = None) -> AppConfig:
         sec_data["encryption_key"] = enc_key
     if local_trust_env := os.environ.get("GATEWAY_LOCAL_TRUST"):
         sec_data["local_trust"] = local_trust_env.lower() in ("true", "1", "yes")
+
+    # Ensure all 10 standardized provider API keys are always present
+    existing_keys = {k.get("key") for k in sec_data.get("api_keys", []) if isinstance(k, dict)}
+    from agw.constants import TEN_STANDARDIZED_API_KEYS
+    configured_api_keys = list(sec_data.get("api_keys", []))
+    for std_entry in TEN_STANDARDIZED_API_KEYS:
+        if std_entry["key"] not in existing_keys:
+            configured_api_keys.append({
+                "key": std_entry["key"],
+                "name": std_entry["name"],
+                "description": std_entry["description"],
+                "allowed_families": ["all"],
+                "allowed_models": [],
+                "profile": std_entry["profile"],
+                "advertise_all_models": True,
+            })
+            existing_keys.add(std_entry["key"])
+    sec_data["api_keys"] = configured_api_keys
     cfg_data["security"] = sec_data
 
     oauth_data = cfg_data.get("oauth", {})

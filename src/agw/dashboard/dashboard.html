@@ -2067,21 +2067,21 @@
                 </div>
             </div>
 
-            <!-- README Table 1: The 5 Categorized Provider APIs Table -->
+            <!-- README Table 1: The 10 Categorized Provider APIs Table (5 Groups x 2 Keys) -->
             <div style="margin-top: 1.5rem; margin-bottom: 2rem;">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 0.75rem;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <h3 style="font-size:0.98rem; font-weight:700; color:var(--text-main); margin:0;">🔑 The 5 Categorized Provider APIs Matrix</h3>
-                        <span class="count-badge">Connection Type Groups</span>
+                        <h3 style="font-size:0.98rem; font-weight:700; color:var(--text-main); margin:0;">🔑 Standardized 10 Provider API Keys (5 Groups &times; 2 Keys)</h3>
+                        <span class="count-badge">Multi-Device &amp; Failover Matrix</span>
                     </div>
-                    <span style="font-size:0.75rem; color:var(--text-muted);">Organized by Connection Type — Each group shows all models routed through that upstream pipe</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Primary (Main Workstation) &amp; Secondary (Remote Device / Failover) keys for each connection group</span>
                 </div>
                 <div class="table-container">
                     <table class="data-table" id="providers-matrix-table">
                         <thead>
                             <tr>
-                                <th style="min-width: 180px;">Provider Name</th>
-                                <th style="min-width: 210px;">API Key Token</th>
+                                <th style="min-width: 170px;">Provider Group</th>
+                                <th style="min-width: 250px;">Standardized API Keys (Primary &amp; Secondary)</th>
                                 <th style="min-width: 190px;">Base URL Endpoint</th>
                                 <th style="min-width: 320px;">All Models Exposed</th>
                                 <th style="min-width: 260px;">Connection Role &amp; Protocol</th>
@@ -2097,9 +2097,23 @@
                                     <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Cloud Code OAuth &rarr; cloudcode-pa.googleapis.com</div>
                                 </td>
                                 <td>
-                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-agy-local</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-agy-local', 'Copied agy API Key!')" title="Copy Key">
+                                    <!-- Primary -->
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(56,189,248,0.25); border-radius:6px; padding:3px 8px; margin-bottom:5px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:#38bdf8; font-weight:700; text-transform:uppercase;">Primary</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">agw-agy-primary</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-agy-primary', 'Copied agy Primary API Key!')" title="Copy Key">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </button>
+                                    </div>
+                                    <!-- Secondary -->
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:3px 8px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Secondary / Failover</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">agw-agy-secondary</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-agy-secondary', 'Copied agy Secondary API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
                                     </div>
@@ -2146,9 +2160,23 @@
                                     <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Web Cookies &rarr; gemini.google.com/u/{authuser}/...</div>
                                 </td>
                                 <td>
-                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-gweb-local</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-gweb-local', 'Copied gweb API Key!')" title="Copy Key">
+                                    <!-- Primary -->
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(168,85,247,0.25); border-radius:6px; padding:3px 8px; margin-bottom:5px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:#c084fc; font-weight:700; text-transform:uppercase;">Primary</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">agw-gweb-primary</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-gweb-primary', 'Copied gweb Primary API Key!')" title="Copy Key">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </button>
+                                    </div>
+                                    <!-- Secondary -->
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:3px 8px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Secondary / Failover</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">agw-gweb-secondary</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-gweb-secondary', 'Copied gweb Secondary API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
                                     </div>
@@ -2163,15 +2191,15 @@
                                 </td>
                                 <td>
                                     <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #d8b4fe; background: rgba(168, 85, 247, 0.08);">gemini-advanced</span>
-                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #d8b4fe; background: rgba(168, 85, 247, 0.08);">gemini-2.5-pro</span>
-                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #d8b4fe; background: rgba(168, 85, 247, 0.08);">gemini-2.5-flash</span>
-                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #d8b4fe; background: rgba(168, 85, 247, 0.08);">gemini-2.0-flash-thinking-exp</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #c084fc; background: rgba(168, 85, 247, 0.08);">gemini-advanced</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #c084fc; background: rgba(168, 85, 247, 0.08);">gemini-2.5-pro</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #c084fc; background: rgba(168, 85, 247, 0.08);">gemini-2.5-flash</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(168, 85, 247, 0.35); color: #c084fc; background: rgba(168, 85, 247, 0.08);">gemini-2.0-flash-thinking-exp</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span style="font-size:0.75rem; color:var(--text-sub); line-height:1.4;">
-                                        <strong>Gemini Web Session Extraction:</strong> Reverse-engineered Gemini Web sessions. Uses Google One AI Pro consumer quota (2,400 credits/5h). TLS-fingerprint impersonation via <code>curl_cffi</code>.
+                                        <strong>Gemini Web Session Extraction:</strong> <code>__Secure-1PSID</code> cookies &rarr; <code>gemini.google.com/u/{authuser}/...</code>. Uses Google One AI Pro consumer quota (2,400 credits/5h). TLS-fingerprint impersonation via <code>curl_cffi</code>.
                                     </span>
                                 </td>
                             </tr>
@@ -2184,9 +2212,23 @@
                                     <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Vertex AI REST &rarr; generativelanguage.googleapis.com</div>
                                 </td>
                                 <td>
-                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-studio-local</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-studio-local', 'Copied studio API Key!')" title="Copy Key">
+                                    <!-- Primary -->
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(245,158,11,0.25); border-radius:6px; padding:3px 8px; margin-bottom:5px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:#fbbf24; font-weight:700; text-transform:uppercase;">Primary</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">agw-studio-primary</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-studio-primary', 'Copied studio Primary API Key!')" title="Copy Key">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </button>
+                                    </div>
+                                    <!-- Secondary -->
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:3px 8px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Secondary / Failover</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">agw-studio-secondary</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-studio-secondary', 'Copied studio Secondary API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
                                     </div>
@@ -2201,14 +2243,14 @@
                                 </td>
                                 <td>
                                     <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-2.5-pro</span>
-                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-2.5-flash</span>
-                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-2.5-flash-lite</span>
-                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-2.0-flash</span>
-                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-2.0-flash-thinking-exp</span>
-                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-1.5-pro</span>
-                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-1.5-flash</span>
-                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fde68a; background: rgba(245, 158, 11, 0.08);">gemini-1.5-flash-8b</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fbbf24; background: rgba(245, 158, 11, 0.08);">gemini-2.5-pro</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fbbf24; background: rgba(245, 158, 11, 0.08);">gemini-2.5-flash</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fbbf24; background: rgba(245, 158, 11, 0.08);">gemini-2.5-flash-lite</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fbbf24; background: rgba(245, 158, 11, 0.08);">gemini-2.0-flash</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fbbf24; background: rgba(245, 158, 11, 0.08);">gemini-2.0-flash-thinking-exp</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fbbf24; background: rgba(245, 158, 11, 0.08);">gemini-1.5-pro</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fbbf24; background: rgba(245, 158, 11, 0.08);">gemini-1.5-flash</span>
+                                        <span class="prov-model-pill" style="border-color: rgba(245, 158, 11, 0.35); color: #fbbf24; background: rgba(245, 158, 11, 0.08);">gemini-1.5-flash-8b</span>
                                     </div>
                                 </td>
                                 <td>
@@ -2217,18 +2259,32 @@
                                     </span>
                                 </td>
                             </tr>
-                            <!-- Row 4: gcli (Gemini CLI OAuth) -->
+                            <!-- Row 4: gcli (Gemini CLI Protocol) -->
                             <tr>
                                 <td>
                                     <div style="display:flex; align-items:center; gap:8px;">
                                         <span class="provider-badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35);">⚡ gcli</span>
                                     </div>
-                                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Cloud CLI OAuth &rarr; cloudcode-pa.googleapis.com</div>
+                                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">CLI OAuth &rarr; cloudcode-pa.googleapis.com</div>
                                 </td>
                                 <td>
-                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-gcli-local</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-gcli-local', 'Copied gcli API Key!')" title="Copy Key">
+                                    <!-- Primary -->
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(16,185,129,0.25); border-radius:6px; padding:3px 8px; margin-bottom:5px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:#34d399; font-weight:700; text-transform:uppercase;">Primary</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">agw-gcli-primary</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-gcli-primary', 'Copied gcli Primary API Key!')" title="Copy Key">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </button>
+                                    </div>
+                                    <!-- Secondary -->
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:3px 8px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Secondary / Failover</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">agw-gcli-secondary</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-gcli-secondary', 'Copied gcli Secondary API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
                                     </div>
@@ -2262,9 +2318,23 @@
                                     <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Labs Cookies &rarr; aisandbox-pa / DeepMind</div>
                                 </td>
                                 <td>
-                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-handy-local</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-handy-local', 'Copied handy API Key!')" title="Copy Key">
+                                    <!-- Primary -->
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(236,72,153,0.25); border-radius:6px; padding:3px 8px; margin-bottom:5px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:#f472b6; font-weight:700; text-transform:uppercase;">Primary</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">agw-handy-primary</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-handy-primary', 'Copied handy Primary API Key!')" title="Copy Key">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        </button>
+                                    </div>
+                                    <!-- Secondary -->
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:3px 8px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Secondary / Failover</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">agw-handy-secondary</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-handy-secondary', 'Copied handy Secondary API Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
                                     </div>
@@ -2293,7 +2363,7 @@
                                     </span>
                                 </td>
                             </tr>
-                            <!-- Row 6: Master Gateway -->
+                            <!-- Row 6: Master Gateway Key -->
                             <tr>
                                 <td>
                                     <div style="display:flex; align-items:center; gap:8px;">
@@ -2302,9 +2372,12 @@
                                     <div style="font-size:0.72rem; color:var(--text-muted); margin-top:5px; line-height:1.35; font-family:'JetBrains Mono', monospace;">Universal Loopback &rarr; 127.0.0.1:8999/v1</div>
                                 </td>
                                 <td>
-                                    <div class="provider-key-box" style="margin:0; max-width:230px;">
-                                        <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace;">agw-local-dE9Xb...</span>
-                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('agw-local-dE9XbJxEmq2AJpjsk1zTPxbF0O7f2Q2WyQO8g5GQgOM', 'Copied Master Gateway API Key!')" title="Copy Key">
+                                    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.25); border:1px solid rgba(168,85,247,0.3); border-radius:6px; padding:3px 8px;">
+                                        <div>
+                                            <span style="font-size:0.65rem; color:#c084fc; font-weight:700; text-transform:uppercase;">Master / Universal</span>
+                                            <span class="provider-key-text" style="font-family:'JetBrains Mono', monospace; font-size:0.72rem; display:block;">test-gateway-key</span>
+                                        </div>
+                                        <button class="btn-copy-mini" onclick="copyTextToClipboard('test-gateway-key', 'Copied Master Gateway Key!')" title="Copy Key">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                                         </button>
                                     </div>
@@ -2330,6 +2403,88 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Client & Multi-Device Setup Documentation -->
+            <div style="margin-top: 2rem; margin-bottom: 2rem; background: rgba(17, 24, 39, 0.65); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.75rem;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <h3 style="font-size:1.02rem; font-weight:700; color:var(--text-main); margin:0;">📋 Multi-Device Client Setup Documentation</h3>
+                        <span class="count-badge">Copy-Paste Configurations</span>
+                    </div>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Use these exact code snippets to connect your IDEs, CLIs, and remote machines</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px;">
+                    <!-- Card 1: Claude Code CLI -->
+                    <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:12px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                            <span style="font-weight:600; font-size:0.82rem; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+                                🔮 Claude Code CLI
+                            </span>
+                            <button class="btn-copy-mini" onclick="copyTextToClipboard('export ANTHROPIC_BASE_URL="http://127.0.0.1:8999"
+export ANTHROPIC_API_KEY="agw-agy-primary"', 'Copied Claude Code config!')">Copy Snippet</button>
+                        </div>
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px;">Add to <code>~/.bashrc</code> or run in your shell:</div>
+                        <pre style="background:rgba(0,0,0,0.5); padding:8px 10px; border-radius:6px; font-size:0.72rem; color:#a5f3fc; font-family:'JetBrains Mono',monospace; overflow-x:auto; margin:0;">export ANTHROPIC_BASE_URL="http://127.0.0.1:8999"
+export ANTHROPIC_API_KEY="agw-agy-primary"</pre>
+                    </div>
+
+                    <!-- Card 2: OpenCode Configuration -->
+                    <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:12px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                            <span style="font-weight:600; font-size:0.82rem; color:#34d399; display:flex; align-items:center; gap:6px;">
+                                ⚡ OpenCode Config (opencode.json)
+                            </span>
+                            <button class="btn-copy-mini" onclick="copyTextToClipboard('{
+  "model": "gemini-speed-flash/gemini-3.8-flash-high",
+  "providers": {
+    "gemini-speed-flash": {
+      "npmPackage": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://127.0.0.1:8999/v1",
+        "apiKey": "agw-agy-primary"
+      }
+    }
+  }
+}', 'Copied OpenCode config!')">Copy JSON</button>
+                        </div>
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px;">In <code>~/.config/opencode/opencode.json</code>:</div>
+                        <pre style="background:rgba(0,0,0,0.5); padding:8px 10px; border-radius:6px; font-size:0.72rem; color:#86efac; font-family:'JetBrains Mono',monospace; overflow-x:auto; margin:0;">"options": {
+  "baseURL": "http://127.0.0.1:8999/v1",
+  "apiKey": "agw-agy-primary"
+}</pre>
+                    </div>
+
+                    <!-- Card 3: Cursor & VSCode Continue -->
+                    <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:12px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                            <span style="font-weight:600; font-size:0.82rem; color:#fbbf24; display:flex; align-items:center; gap:6px;">
+                                💻 Cursor / Continue / Aider
+                            </span>
+                            <button class="btn-copy-mini" onclick="copyTextToClipboard('export OPENAI_BASE_URL="http://127.0.0.1:8999/v1"
+export OPENAI_API_KEY="agw-agy-primary"', 'Copied Cursor/Aider config!')">Copy Snippet</button>
+                        </div>
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px;">OpenAI-compatible environment variables:</div>
+                        <pre style="background:rgba(0,0,0,0.5); padding:8px 10px; border-radius:6px; font-size:0.72rem; color:#fde68a; font-family:'JetBrains Mono',monospace; overflow-x:auto; margin:0;">export OPENAI_BASE_URL="http://127.0.0.1:8999/v1"
+export OPENAI_API_KEY="agw-agy-primary"</pre>
+                    </div>
+
+                    <!-- Card 4: Multi-Device / Remote LAN Setup -->
+                    <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:12px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                            <span style="font-weight:600; font-size:0.82rem; color:#f472b6; display:flex; align-items:center; gap:6px;">
+                                🌐 Remote Device / Secondary Failover
+                            </span>
+                            <button class="btn-copy-mini" onclick="copyTextToClipboard('export OPENAI_BASE_URL="http://<HOST_IP>:8999/v1"
+export OPENAI_API_KEY="agw-agy-secondary"', 'Copied Remote config!')">Copy Snippet</button>
+                        </div>
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px;">From laptops / remote LAN machines:</div>
+                        <pre style="background:rgba(0,0,0,0.5); padding:8px 10px; border-radius:6px; font-size:0.72rem; color:#fbcfe8; font-family:'JetBrains Mono',monospace; overflow-x:auto; margin:0;">export OPENAI_BASE_URL="http://&lt;HOST_IP&gt;:8999/v1"
+export OPENAI_API_KEY="agw-agy-secondary"</pre>
+                    </div>
+                </div>
+            </div>
+
 
         </section>
     </main>

@@ -103,6 +103,117 @@ FAMILY_GEMINI = "gemini"
 FAMILY_CLAUDE = "claude"
 FAMILY_GPT = "gpt"
 
+# =========================================================================
+# THE 10 STANDARDIZED PROVIDER API KEYS (5 GROUPS × 2 KEYS: PRIMARY + SECONDARY)
+# =========================================================================
+TEN_STANDARDIZED_API_KEYS = [
+    # 1. agy (Google Cloud Code OAuth)
+    {
+        "key": "agw-agy-primary",
+        "name": "agy (Primary)",
+        "group": "agy",
+        "role": "Primary Workstation",
+        "description": "Google Cloud Code OAuth Engine - Primary Workstation Key",
+        "profile": "agy",
+        "badge": "🛸 agy",
+        "base_url": "http://127.0.0.1:8999/v1",
+    },
+    {
+        "key": "agw-agy-secondary",
+        "name": "agy (Secondary / Failover)",
+        "group": "agy",
+        "role": "Secondary / Remote Device",
+        "description": "Google Cloud Code OAuth Engine - Secondary / Remote Device Key",
+        "profile": "agy",
+        "badge": "🛸 agy",
+        "base_url": "http://127.0.0.1:8999/v1",
+    },
+    # 2. gweb (Gemini Web Free Sessions)
+    {
+        "key": "agw-gweb-primary",
+        "name": "gweb (Primary)",
+        "group": "gweb",
+        "role": "Primary Workstation",
+        "description": "Consumer Gemini Web Session Extractor - Primary Workstation Key",
+        "profile": "gweb",
+        "badge": "🍪 gweb",
+        "base_url": "http://127.0.0.1:8999/v1",
+    },
+    {
+        "key": "agw-gweb-secondary",
+        "name": "gweb (Secondary / Failover)",
+        "group": "gweb",
+        "role": "Secondary / Remote Device",
+        "description": "Consumer Gemini Web Session Extractor - Secondary / Remote Device Key",
+        "profile": "gweb",
+        "badge": "🍪 gweb",
+        "base_url": "http://127.0.0.1:8999/v1",
+    },
+    # 3. studio (Google AI Studio Free Tier)
+    {
+        "key": "agw-studio-primary",
+        "name": "studio (Primary)",
+        "group": "studio",
+        "role": "Primary Workstation",
+        "description": "Google AI Studio Developer API - Primary Workstation Key",
+        "profile": "studio",
+        "badge": "🔑 studio",
+        "base_url": "http://127.0.0.1:8999/v1",
+    },
+    {
+        "key": "agw-studio-secondary",
+        "name": "studio (Secondary / Failover)",
+        "group": "studio",
+        "role": "Secondary / Remote Device",
+        "description": "Google AI Studio Developer API - Secondary / Remote Device Key",
+        "profile": "studio",
+        "badge": "🔑 studio",
+        "base_url": "http://127.0.0.1:8999/v1",
+    },
+    # 4. gcli (Gemini Cloud CLI Protocol)
+    {
+        "key": "agw-gcli-primary",
+        "name": "gcli (Primary)",
+        "group": "gcli",
+        "role": "Primary Workstation",
+        "description": "Gemini CLI OAuth Channel - Primary Workstation Key",
+        "profile": "gcli",
+        "badge": "⚡ gcli",
+        "base_url": "http://127.0.0.1:8999/v1",
+    },
+    {
+        "key": "agw-gcli-secondary",
+        "name": "gcli (Secondary / Failover)",
+        "group": "gcli",
+        "role": "Secondary / Remote Device",
+        "description": "Gemini CLI OAuth Channel - Secondary / Remote Device Key",
+        "profile": "gcli",
+        "badge": "⚡ gcli",
+        "base_url": "http://127.0.0.1:8999/v1",
+    },
+    # 5. handy (Handy Creative Media Suite)
+    {
+        "key": "agw-handy-primary",
+        "name": "handy (Primary)",
+        "group": "handy",
+        "role": "Primary Workstation",
+        "description": "Handy Creative Media Suite - Primary Workstation Key",
+        "profile": "handy",
+        "badge": "🎨 handy",
+        "base_url": "http://127.0.0.1:8999/v1",
+    },
+    {
+        "key": "agw-handy-secondary",
+        "name": "handy (Secondary / Failover)",
+        "group": "handy",
+        "role": "Secondary / Remote Device",
+        "description": "Handy Creative Media Suite - Secondary / Remote Device Key",
+        "profile": "handy",
+        "badge": "🎨 handy",
+        "base_url": "http://127.0.0.1:8999/v1",
+    },
+]
+
 # Default Model Specifications — Modern Definitive & Extended Lineup
 # Provider Category Definitions (3-4 Specialized Provider Groups)
 PROVIDER_DEFINITIONS = {
