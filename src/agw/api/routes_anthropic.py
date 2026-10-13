@@ -233,18 +233,21 @@ def create_anthropic_router(
                     usage_out: List[Dict[str, Any]] = []
 
                     async def stream_wrapper():
-                        async def combined_gen():
-                            yield first_status, first_line
-                            async for item in stream_iter:
-                                yield item
+                        try:
+                            async def combined_gen():
+                                yield first_status, first_line
+                                async for item in stream_iter:
+                                    yield item
 
-                        async for chunk in parse_and_transform_anthropic_sse_stream(
-                            combined_gen(),
-                            model_id=raw_model,
-                            request_id=req_id,
-                            usage_out=usage_out,
-                        ):
-                            yield chunk
+                            async for chunk in parse_and_transform_anthropic_sse_stream(
+                                combined_gen(),
+                                model_id=raw_model,
+                                request_id=req_id,
+                                usage_out=usage_out,
+                            ):
+                                yield chunk
+                        finally:
+                            scheduler.release_request(acc_id)
 
                         if usage_out:
                             tokens = usage_out[0].get("total_tokens", 0)
@@ -277,26 +280,29 @@ def create_anthropic_router(
                     continue
             else:
                 # Non-streaming
-                if acc_tier == "studio":
-                    if not aistudio_client:
-                        continue
-                    status, data, raw_text = await aistudio_client.generate_content(raw_cred, envelope)
-                elif acc_tier == "gweb":
-                    if not geminiweb_client:
-                        continue
-                    try:
-                        parsed_cred = json.loads(raw_cred)
-                        web_cookies = parsed_cred.get("cookies", {})
-                        web_snlm0e = parsed_cred.get("snlm0e", "")
-                    except Exception as e:
-                        logger.warning(f"Failed to parse gweb credentials for {acc_id}: {e}")
-                        continue
-                    prompt_txt = _extract_messages_text(messages)
-                    status, data, raw_text = await geminiweb_client.generate_content(
-                        web_cookies, web_snlm0e, prompt_txt
-                    )
-                else:
-                    status, data, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
+                try:
+                    if acc_tier == "studio":
+                        if not aistudio_client:
+                            continue
+                        status, data, raw_text = await aistudio_client.generate_content(raw_cred, envelope)
+                    elif acc_tier == "gweb":
+                        if not geminiweb_client:
+                            continue
+                        try:
+                            parsed_cred = json.loads(raw_cred)
+                            web_cookies = parsed_cred.get("cookies", {})
+                            web_snlm0e = parsed_cred.get("snlm0e", "")
+                        except Exception as e:
+                            logger.warning(f"Failed to parse gweb credentials for {acc_id}: {e}")
+                            continue
+                        prompt_txt = _extract_messages_text(messages)
+                        status, data, raw_text = await geminiweb_client.generate_content(
+                            web_cookies, web_snlm0e, prompt_txt
+                        )
+                    else:
+                        status, data, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
+                finally:
+                    scheduler.release_request(acc_id)
                 latency_ms = (time.time() - start_t) * 1000.0
 
                 if status == 200:

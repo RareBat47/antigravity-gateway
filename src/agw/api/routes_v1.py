@@ -338,35 +338,75 @@ def create_v1_router(
             access_tok = None
             raw_cred = None
 
-            if family == "handy" or acc_tier == "handy":
-                # Handy models extract and use the account's existing Google session cookies
+            # Determine the active upstream channel for this account request
+            m_prov = (m_def.get("provider_id") or "").lower()
+            m_lower = str(model_id).lower()
+            key_prof = (key_info.get("profile") or "").lower() if key_info else ""
+
+            if family == "handy" or m_lower.startswith("handy-") or key_prof == "handy":
+                channel_used = "handy"
+            elif key_prof == "studio" or m_prov == "studio" or "studio" in m_lower:
+                channel_used = "studio"
+            elif key_prof == "gweb" or m_prov == "gweb" or "web" in m_lower or "advanced" in m_lower:
+                channel_used = "gweb"
+            elif acc_tier in ("studio", "gweb", "handy"):
+                channel_used = acc_tier
+            else:
+                channel_used = "agy"
+
+            # Extract the correct credential for the active channel
+            if channel_used == "handy":
                 raw_cred = account_mgr.vault.get_token(f"{acc_id}:cookies") or account_mgr.get_token_raw(acc_id)
                 if not raw_cred:
                     logger.warning(f"No cookies found in vault for handy account {acc_id}")
                     continue
-            elif acc_tier == "studio":
-                raw_cred = account_mgr.get_token_raw(acc_id)
+            elif channel_used == "studio":
+                raw_cred = account_mgr.vault.get_token(f"{acc_id}:vertex") or account_mgr.get_token_raw(acc_id)
                 if not raw_cred:
-                    logger.warning(f"No API key found in vault for studio account {acc_id}")
-                    continue
-            elif acc_tier == "gweb":
-                raw_cred = account_mgr.get_token_raw(acc_id)
+                    if family == "gemini":
+                        channel_used = "agy"
+                        try:
+                            access_tok = await account_mgr.get_access_token(acc_id)
+                        except Exception as e:
+                            logger.warning(f"OAuth fallback failed for studio account {acc_id}: {e}")
+                            continue
+                    else:
+                        logger.warning(f"No Vertex/Studio API key found for account {acc_id}")
+                        continue
+            elif channel_used == "gweb":
+                raw_cred = account_mgr.vault.get_token(f"{acc_id}:cookies") or account_mgr.get_token_raw(acc_id)
                 if not raw_cred:
-                    logger.warning(f"No session cookies found in vault for gweb account {acc_id}")
-                    continue
+                    if family == "gemini":
+                        channel_used = "agy"
+                        try:
+                            access_tok = await account_mgr.get_access_token(acc_id)
+                        except Exception as e:
+                            logger.warning(f"OAuth fallback failed for gweb account {acc_id}: {e}")
+                            continue
+                    else:
+                        logger.warning(f"No Web session cookies found for account {acc_id}")
+                        continue
             else:
                 try:
                     access_tok = await account_mgr.get_access_token(acc_id)
                 except Exception as e:
-                    logger.warning(f"Failed to get token for account {acc_id}: {e}")
-                    await repo.record_health_event(acc_id, "auth_error", str(e))
-                    continue
+                    # In-account failover: if OAuth fails on a Gemini model, attempt Vertex or Web cookies
+                    if family == "gemini" and aistudio_client and account_mgr.vault.get_token(f"{acc_id}:vertex"):
+                        channel_used = "studio"
+                        raw_cred = account_mgr.vault.get_token(f"{acc_id}:vertex")
+                    elif family == "gemini" and geminiweb_client and account_mgr.vault.get_token(f"{acc_id}:cookies"):
+                        channel_used = "gweb"
+                        raw_cred = account_mgr.vault.get_token(f"{acc_id}:cookies")
+                    else:
+                        logger.warning(f"Failed to get token for account {acc_id}: {e}")
+                        await repo.record_health_event(acc_id, "auth_error", str(e))
+                        continue
 
             start_t = time.time()
 
             # Handle Streaming Request
             if is_streaming:
-                if family == "handy" or acc_tier == "handy":
+                if channel_used == "handy":
                     if not handy_client:
                         logger.warning("HandyClient not configured")
                         continue
@@ -382,12 +422,12 @@ def create_v1_router(
                         cookies=handy_cookies,
                         prompt=prompt_txt,
                     )
-                elif acc_tier == "studio":
+                elif channel_used == "studio":
                     if not aistudio_client:
                         logger.warning("AIStudioClient not configured")
                         continue
                     stream_iter = aistudio_client.stream_generate_content(raw_cred, envelope)
-                elif acc_tier == "gweb":
+                elif channel_used == "gweb":
                     if not geminiweb_client:
                         logger.warning("GeminiWebClient not configured")
                         continue
@@ -432,7 +472,8 @@ def create_v1_router(
                 first_status, first_line = await anext(stream_iter, (500, "Empty stream"))
 
                 if first_status == 200:
-                    # Account succeeded — record initial usage (tokens updated after stream)
+                    # Account succeeded — track concurrent in-flight slot for multi-session load balancing
+                    scheduler.acquire_request(acc_id)
                     latency_ms = (time.time() - start_t) * 1000.0
                     health_tracker.record(acc_id, True, latency_ms)
                     await cooldown_mgr.record_success(acc_id, family)
@@ -442,16 +483,19 @@ def create_v1_router(
                     usage_out: List[Dict[str, Any]] = []
 
                     async def stream_wrapper():
-                        # Yield first item then rest
-                        async def combined_gen():
-                            yield first_status, first_line
-                            async for item in stream_iter:
-                                yield item
+                        try:
+                            # Yield first item then rest
+                            async def combined_gen():
+                                yield first_status, first_line
+                                async for item in stream_iter:
+                                    yield item
 
-                        async for chunk in parse_and_transform_sse_stream(
-                            combined_gen(), model_id, req_id, usage_out=usage_out
-                        ):
-                            yield chunk
+                            async for chunk in parse_and_transform_sse_stream(
+                                combined_gen(), model_id, req_id, usage_out=usage_out
+                            ):
+                                yield chunk
+                        finally:
+                            scheduler.release_request(acc_id)
 
                         # Bug #1: After streaming completes, update usage_events with
                         # actual token counts from the final SSE usage chunk.
@@ -504,6 +548,7 @@ def create_v1_router(
                     )
 
                 # Streaming failed at onset
+                scheduler.release_request(acc_id)
                 err_category, action, cooldown_sec = classify_upstream_error(first_status, first_line)
                 logger.warning(
                     f"Streaming error on account {acc_id} ({first_status}): {err_category}, action={action}"
@@ -552,7 +597,7 @@ def create_v1_router(
                 continue
 
             # Handle Non-Streaming Request
-            if family == "handy" or acc_tier == "handy":
+            if channel_used == "handy":
                 # Handy models are streaming-only media generators
                 raise HTTPException(
                     status_code=400,
@@ -563,37 +608,30 @@ def create_v1_router(
                         }
                     },
                 )
-            elif acc_tier == "studio":
-                if not aistudio_client:
-                    continue
-                status_code, payload, raw_text = await aistudio_client.generate_content(raw_cred, envelope)
-            elif acc_tier == "gweb":
-                if not geminiweb_client:
-                    continue
-                try:
-                    parsed_cred = json.loads(raw_cred)
-                    web_cookies = parsed_cred.get("cookies", {})
-                    web_snlm0e = parsed_cred.get("snlm0e", "")
-                except Exception as e:
-                    logger.warning(f"Failed to parse gweb credentials for {acc_id}: {e}")
-                    continue
-                prompt_txt = _extract_messages_text(messages)
-                status_code, payload, raw_text = await geminiweb_client.generate_content(
-                    web_cookies, web_snlm0e, prompt_txt
-                )
-            elif acc_tier == "handy":
-                # Handy models are streaming-only media generators
-                raise HTTPException(
-                    status_code=400,
-                    detail={
-                        "error": {
-                            "message": f"Handy model '{model_id}' is a streaming-only media generator. Set 'stream: true' in your request.",
-                            "type": "invalid_request_error",
-                        }
-                    },
-                )
-            else:
-                status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
+            scheduler.acquire_request(acc_id)
+            try:
+                if channel_used == "studio":
+                    if not aistudio_client:
+                        continue
+                    status_code, payload, raw_text = await aistudio_client.generate_content(raw_cred, envelope)
+                elif channel_used == "gweb":
+                    if not geminiweb_client:
+                        continue
+                    try:
+                        parsed_cred = json.loads(raw_cred)
+                        web_cookies = parsed_cred.get("cookies", {})
+                        web_snlm0e = parsed_cred.get("snlm0e", "")
+                    except Exception as e:
+                        logger.warning(f"Failed to parse gweb credentials for {acc_id}: {e}")
+                        continue
+                    prompt_txt = _extract_messages_text(messages)
+                    status_code, payload, raw_text = await geminiweb_client.generate_content(
+                        web_cookies, web_snlm0e, prompt_txt
+                    )
+                else:
+                    status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
+            finally:
+                scheduler.release_request(acc_id)
             latency_ms = (time.time() - start_t) * 1000.0
 
             if status_code == 200:

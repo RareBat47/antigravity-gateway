@@ -3710,47 +3710,71 @@
                             </div>
                         </td>
                         <td>
-                            <div class="quota-meter-dual">
-                                <!-- Claude Meter -->
-                                <div class="quota-meter-section">
-                                    <div class="quota-meter-header">
-                                        <span class="quota-meter-name">
-                                            <span style="color:#f59e0b;">⚡</span> Claude
-                                        </span>
-                                        <span class="quota-meter-val" style="color: ${claudeColor};">${claudePct}%</span>
-                                    </div>
-                                    <div class="quota-bar-wrapper">
-                                        <div class="quota-bar-fill" style="width: ${claudePct}%; background: ${claudeColor};"></div>
-                                    </div>
-                                    ${cResetDelta ? `
-                                        <div class="quota-reset-pill">
-                                            <span style="color:${claudePct === 0 ? '#f87171' : '#94a3b8'}">${claudePct === 0 ? '🔴 Exhausted • ' : ''}⏳ Resets in ${cResetDelta}</span>
-                                        </div>
-                                    ` : ''}
-                                </div>
+                            ${(() => {
+                                // 4-Way Combined Connection Quotas (agy • gweb • studio • gcli)
+                                const conns = acc.connections_status || {};
+                                const agyConn = conns.antigravity || { working: true };
+                                const gwebConn = conns.gemini_web || { working: Boolean(acc.cookies_verified) };
+                                const studioConn = conns.aistudio || { working: Boolean(acc.vertex_verified) };
+                                const gcliConn = conns.gemini_cli || { working: true };
 
-                                <!-- Gemini Meter -->
-                                <div class="quota-meter-section" style="margin-top: 5px;">
-                                    <div class="quota-meter-header">
-                                        <span class="quota-meter-name">
-                                            <span style="color:#38bdf8;">✨</span> Gemini
-                                        </span>
-                                        <span class="quota-meter-val" style="color: ${geminiColor};">${geminiPct}%</span>
-                                    </div>
-                                    <div class="quota-bar-wrapper">
-                                        <div class="quota-bar-fill" style="width: ${geminiPct}%; background: ${geminiColor};"></div>
-                                    </div>
-                                    <div class="quota-breakdown-row" style="justify-content: space-between; margin-top: 2px;">
-                                        <span>Pro: <strong style="color:${getQuotaColor(geminiProPct)}">${geminiProPct}%</strong> • Flash: <strong style="color:${getQuotaColor(geminiFlashPct)}">${geminiFlashPct}%</strong></span>
-                                        <button class="quota-sync-btn" onclick="refreshAccountQuota('${acc.id}', this)" title="Refresh quota from Google upstream">🔄</button>
-                                    </div>
-                                    ${gResetDelta ? `
-                                        <div class="quota-reset-pill">
-                                            <span style="color:${geminiPct === 0 ? '#f87171' : '#94a3b8'}">${geminiPct === 0 ? '🔴 Exhausted • ' : ''}⏳ Resets in ${gResetDelta}</span>
+                                const hasAgy = agyConn.working !== false;
+                                const hasGweb = Boolean(acc.cookies_verified || gwebConn.working);
+                                const hasStudio = Boolean(acc.vertex_verified || studioConn.working);
+                                const hasGcli = Boolean(gcliConn.working !== false);
+
+                                const agyAvg = Math.round(((claudePct || 100) + (geminiPct || 100)) / 2);
+                                const totalActive = (hasAgy ? 1 : 0) + (hasGweb ? 1 : 0) + (hasStudio ? 1 : 0) + (hasGcli ? 1 : 0);
+                                const combinedPct = totalActive > 0
+                                    ? Math.round(((hasAgy ? agyAvg * 2.0 : 0) + (hasGweb ? 150 : 0) + (hasStudio ? 150 : 0) + (hasGcli ? 100 : 0)) / ((hasAgy ? 2.0 : 0) + (hasGweb ? 1.5 : 0) + (hasStudio ? 1.5 : 0) + (hasGcli ? 1.0 : 0)))
+                                    : 0;
+                                const combinedColor = getQuotaColor(combinedPct);
+
+                                return `
+                                    <div class="quota-meter-dual">
+                                        <!-- 4-Way Combined Capacity Summary -->
+                                        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 5px 8px; margin-bottom: 6px;">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; font-weight:700;">
+                                                <span style="color:#e2e8f0; display:flex; align-items:center; gap:4px;">
+                                                    <span style="color:${combinedColor};">⚡</span> 4-Way Combined Limits
+                                                </span>
+                                                <span style="color:${combinedColor}; font-family:'JetBrains Mono', monospace;">${combinedPct}% Free</span>
+                                            </div>
+                                            <div class="quota-bar-wrapper" style="margin-top:4px; height:5px;">
+                                                <div class="quota-bar-fill" style="width: ${combinedPct}%; background: ${combinedColor};"></div>
+                                            </div>
+                                            <div style="display:flex; justify-content:space-between; font-size:0.67rem; color:#94a3b8; margin-top:3px;">
+                                                <span>${totalActive}/4 Channels Linked</span>
+                                                <span>${hasStudio ? '1.5k RPD' : ''} ${hasGweb ? '• 2.4k Crd' : ''}</span>
+                                            </div>
                                         </div>
-                                    ` : ''}
-                                </div>
-                            </div>
+
+                                        <!-- 1. agy (Cloud Code): Claude + Gemini -->
+                                        <div class="quota-meter-section" style="padding: 2px 0;">
+                                            <div style="display:flex; justify-content:space-between; font-size:0.72rem;">
+                                                <span><span class="method-badge method-agy" style="font-size:0.6rem; padding:1px 4px;">agy</span> Claude: <strong style="color:${claudeColor}">${claudePct}%</strong></span>
+                                                <span>Gemini: <strong style="color:${geminiColor}">${geminiPct}%</strong></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- 2. gweb & 3. studio Live Indicators -->
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; margin-top:4px; font-size:0.67rem;">
+                                            <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:4px; padding:2px 4px;">
+                                                <span style="color:#10b981; font-weight:600;">🍪 gweb:</span> ${hasGweb ? '<strong style="color:var(--success);">2.4k/5h Free</strong>' : '<span style="color:var(--text-muted);">Unbound</span>'}
+                                            </div>
+                                            <div style="background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.25); border-radius:4px; padding:2px 4px;">
+                                                <span style="color:#c084fc; font-weight:600;">🔑 studio:</span> ${hasStudio ? '<strong style="color:var(--success);">1.5k RPD Free</strong>' : '<span style="color:var(--text-muted);">Unbound</span>'}
+                                            </div>
+                                        </div>
+
+                                        ${(cResetDelta || gResetDelta) ? `
+                                            <div class="quota-reset-pill" style="margin-top:4px;">
+                                                <span>⏳ Rollover: ${cResetDelta || gResetDelta}</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            })()}
                         </td>
                         <td>
                             <div style="font-size: 0.8rem; line-height: 1.4;">

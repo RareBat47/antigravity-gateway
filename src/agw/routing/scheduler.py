@@ -30,6 +30,22 @@ class AccountScheduler:
         self.settings = settings
         self.vault = vault
         self._last_used_timestamps: Dict[str, float] = {}
+        self._in_flight_requests: Dict[str, int] = {}
+        self._rr_index: int = 0
+
+    def acquire_request(self, account_id: str) -> None:
+        """Track in-flight concurrent request to penalize overloaded accounts."""
+        self._in_flight_requests[account_id] = self._in_flight_requests.get(account_id, 0) + 1
+        self._last_used_timestamps[account_id] = time.time()
+
+    def release_request(self, account_id: str) -> None:
+        """Release concurrent in-flight slot when request/stream finishes."""
+        current = self._in_flight_requests.get(account_id, 1)
+        self._in_flight_requests[account_id] = max(0, current - 1)
+
+    def get_in_flight(self, account_id: str) -> int:
+        """Return count of active requests executing on this account."""
+        return self._in_flight_requests.get(account_id, 0)
 
     def _calculate_score(
         self,
@@ -62,22 +78,30 @@ class AccountScheduler:
                 else:
                     quota_score = rem_frac * 100.0
 
-        # 4. LRU Freshness
+        # 4. LRU Freshness (Enhanced with strong rotation factor)
         last_used = self._last_used_timestamps.get(acc_id, 0.0)
         now = time.time()
         idle_seconds = max(0.0, now - last_used)
-        # Normalize idle time (e.g. capped at 300 seconds -> 0 to 100)
-        lru_score = min(100.0, (idle_seconds / 300.0) * 100.0)
+        # Normalize idle time (e.g. capped at 120 seconds -> 0 to 100)
+        lru_score = min(100.0, (idle_seconds / 120.0) * 100.0)
+
+        # 5. Active In-Flight Penalty (Protects against concurrent session piling)
+        in_flight = self._in_flight_requests.get(acc_id, 0)
+        in_flight_penalty = in_flight * 80.0  # Massive penalty if currently serving another session
 
         # Account priority boost
         priority_boost = (account.get("priority", 1) - 1) * 10.0
+
+        # Effective LRU multiplier: scaled up from 0.1 to 2.5 to ensure sessions fan out
+        lru_weight = max(2.5, w.lru * 25.0)
 
         total = (
             (health_score * w.health)
             + (token_score * w.tokens)
             + (quota_score * w.quota)
-            + (lru_score * w.lru)
+            + (lru_score * lru_weight)
             + priority_boost
+            - in_flight_penalty
         )
         return total
 
@@ -179,7 +203,10 @@ class AccountScheduler:
         exclude_account_ids: Optional[List[str]] = None,
         requested_model_id: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
-        """Select the single best account for a request."""
+        """
+        Select the optimal account using Least-Connections + LRU Idle Rotation.
+        Guarantees that multiple concurrent sessions fan out across all healthy accounts.
+        """
         candidates = await self.get_candidate_accounts(
             model_family=model_family,
             exclude_account_ids=exclude_account_ids,
@@ -188,6 +215,24 @@ class AccountScheduler:
         if not candidates:
             return None
 
-        best_account = candidates[0][0]
-        self._last_used_timestamps[best_account["id"]] = time.time()
+        # Filter for viable candidates (non-negative score)
+        viable = [c for c in candidates if c[1] > 0]
+        pool = viable if viable else candidates
+
+        # Multi-session load balancing sort:
+        # 1. Least active in-flight requests (primary: 0 active wins over 1 active)
+        # 2. Oldest last-used timestamp (secondary: idle longer wins)
+        # 3. Overall health & quota score (tertiary: higher wins)
+        def sort_key(item):
+            acc, score = item
+            aid = acc["id"]
+            in_flight = self._in_flight_requests.get(aid, 0)
+            last_used = self._last_used_timestamps.get(aid, 0.0)
+            return (in_flight, last_used, -score)
+
+        pool.sort(key=sort_key)
+        best_account = pool[0][0]
+
+        # Instantly acquire in-flight slot so rapid concurrent requests disperse
+        self.acquire_request(best_account["id"])
         return best_account
