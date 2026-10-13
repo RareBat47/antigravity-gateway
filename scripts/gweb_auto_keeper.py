@@ -120,17 +120,38 @@ async def harvest_all_user_sessions(
                 m = re.search(r'\"SNlM0e\":\s*\"(.*?)\"', content)
                 snlm0e = m.group(1) if m else None
 
-                # Extract signed-in user email
-                emails = set(re.findall(r"[\w\.-]+@[\w\.-]+\.\w+", content))
-                target_emails = [
-                    e.lower()
-                    for e in emails
-                    if any(domain in e.lower() for domain in ["gmail.com", "ruet.ac.bd", "google.com"])
-                    and not e.lower().startswith("googlers")
-                ]
+                # Extract exact signed-in user email for this /u/{idx}/ session from page JS context
+                email = None
+                try:
+                    wiz = await page.evaluate("() => window.WIZ_global_data || {}")
+                    for k, v in wiz.items():
+                        if isinstance(v, str) and "@" in v and any(d in v for d in ["gmail.com", "ruet.ac.bd"]):
+                            email = v.lower().strip()
+                            break
+                except Exception:
+                    pass
 
-                if snlm0e and target_emails:
-                    email = target_emails[0]
+                if not email:
+                    btn = await page.query_selector('a[aria-label*="Google Account"], button[aria-label*="Google Account"]')
+                    if btn:
+                        aria = await btn.get_attribute("aria-label")
+                        m_email = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", aria or "")
+                        if m_email:
+                            email = m_email.group(0).lower().strip()
+
+                if not email:
+                    # Final fallback: regex on page content
+                    emails = set(re.findall(r"[\w\.-]+@[\w\.-]+\.\w+", content))
+                    target_emails = [
+                        e.lower()
+                        for e in emails
+                        if any(domain in e.lower() for domain in ["gmail.com", "ruet.ac.bd"])
+                        and not e.lower().startswith("googlers")
+                    ]
+                    if target_emails:
+                        email = target_emails[0]
+
+                if snlm0e and email:
                     ctx_cookies = await context.cookies([url])
                     cookie_dict = {ck["name"]: ck["value"] for ck in ctx_cookies}
                     cookie_dict["authuser"] = str(idx)

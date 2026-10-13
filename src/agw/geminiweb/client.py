@@ -161,9 +161,15 @@ class GeminiWebClient:
             psid = cookies.get("__Secure-1PSID")
             psidts = cookies.get("__Secure-1PSIDTS")
             client = GeminiClient(secure_1psid=psid, secure_1psidts=psidts)
+            
+            # Explicitly set all session cookies including the user index
             for k, v in cookies.items():
-                if k != "authuser":
-                    client._cookies.set(k, v, domain=".google.com", secure=True)
+                client._cookies.set(k, str(v), domain=".google.com", secure=True)
+            client._cookies.set("authuser", str(authuser), domain=".google.com", secure=True)
+
+            # Essential: Bind the account-specific SNlM0e token
+            if snlm0e:
+                client.access_token = snlm0e
 
             await client.init(timeout=self.timeout, auto_refresh=False)
             res = await client.generate_content(prompt, temporary=True)
