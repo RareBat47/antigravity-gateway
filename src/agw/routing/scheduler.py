@@ -142,14 +142,29 @@ class AccountScheduler:
             quotas = await self.repo.get_latest_quota(acc_id)
             quota_record = None
 
-            # 1. Match specific model if requested
+            # 1. Match specific upstream model if requested (highest priority — exact match)
             if requested_model_id:
                 for q in quotas:
                     if q.get("model_id") == requested_model_id:
                         quota_record = q
                         break
 
-            # 2. Otherwise match developer-facing models of that family (skip chat_ / tab_ previews)
+            # 2. If exact upstream model had rem=0 but reset_time has elapsed, treat as recovered
+            if quota_record and quota_record.get("remaining_fraction", 1.0) < self.settings.global_quota_threshold:
+                reset_t = quota_record.get("reset_time")
+                if reset_t:
+                    try:
+                        r_dt = datetime.datetime.fromisoformat(reset_t.replace("Z", "+00:00"))
+                        if now_utc >= r_dt:
+                            # Window has rolled over — treat as recovered, don't penalize
+                            quota_record = dict(quota_record)
+                            quota_record["remaining_fraction"] = 0.8
+                    except Exception:
+                        pass
+
+            # 3. If no exact match found, fall back to the BEST (highest remaining) dev-facing
+            #    quota for the family — NOT the worst (min) — to avoid one exhausted model
+            #    poisoning the whole account for the family.
             if not quota_record:
                 dev_quotas = [
                     q for q in quotas
@@ -158,8 +173,9 @@ class AccountScheduler:
                     and q.get("remaining_fraction") is not None
                 ]
                 if dev_quotas:
-                    # Sort so the lowest remaining fraction of the family represents the quota record (conservative)
-                    dev_quotas.sort(key=lambda x: x["remaining_fraction"])
+                    # Use the HIGHEST remaining fraction — one exhausted model shouldn't
+                    # mark the whole account unavailable for other models in the family.
+                    dev_quotas.sort(key=lambda x: x["remaining_fraction"], reverse=True)
                     quota_record = dev_quotas[0]
                 else:
                     family_quotas = [q for q in quotas if q.get("model_family") == model_family]
@@ -170,12 +186,12 @@ class AccountScheduler:
             if quota_record and quota_record.get("remaining_fraction") is not None:
                 rem = quota_record["remaining_fraction"]
                 reset_t = quota_record.get("reset_time")
-                # Check if reset time has already elapsed
+                # Check if reset time has already elapsed (belt-and-suspenders for fallback path)
                 if rem < self.settings.global_quota_threshold and reset_t:
                     try:
                         r_dt = datetime.datetime.fromisoformat(reset_t.replace("Z", "+00:00"))
                         if now_utc >= r_dt:
-                            # Quota window has rolled over
+                            # Quota window has rolled over — treat as recovered
                             rem = 0.8
                             quota_record = dict(quota_record)
                             quota_record["remaining_fraction"] = 0.8

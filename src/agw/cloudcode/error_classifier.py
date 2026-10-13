@@ -35,6 +35,16 @@ def parse_quota_reset_delay(error_text: str) -> Optional[int]:
         unit = m_delay.group(2).lower()
         return int(val / 1000.0) if unit == "ms" else max(1, int(val))
 
+    # Matches: "Resets in 27m27s" or "Resets in 5m" or "Resets in 45s"  (Google One format)
+    m_resets_in = re.search(r'[Rr]esets?\s+in\s+(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?', error_text, re.IGNORECASE)
+    if m_resets_in and any(m_resets_in.group(i) for i in (1, 2, 3)):
+        hours = int(m_resets_in.group(1) or 0)
+        mins  = int(m_resets_in.group(2) or 0)
+        secs  = int(m_resets_in.group(3) or 0)
+        total = hours * 3600 + mins * 60 + secs
+        if total > 0:
+            return total
+
     # Matches: quota will reset after 120s or 5m
     m_reset = re.search(r'quota will reset after\s+([0-9]+)\s*(s|m|h)?', error_text, re.IGNORECASE)
     if m_reset:

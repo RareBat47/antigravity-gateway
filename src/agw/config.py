@@ -71,7 +71,7 @@ class SchedulerSettings(BaseModel):
     strategy: str = "hybrid"
     weights: SchedulerWeights = Field(default_factory=SchedulerWeights)
     global_quota_threshold: float = 0.05
-    max_account_retries: int = 3
+    max_account_retries: int = 8  # Must be >= total account count (7) to exhaust full pool
     default_cooldown_seconds: int = 60
     cooldown_tiers_seconds: List[int] = Field(
         default_factory=lambda: list(QUOTA_EXHAUSTED_BACKOFF_TIERS_SECONDS)

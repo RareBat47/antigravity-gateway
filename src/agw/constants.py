@@ -92,8 +92,11 @@ CLIENT_METADATA = {
     "pluginType": PLUGIN_TYPE_GEMINI,
 }
 
-# Backoff tiers for rate limit / quota exhaustion (ms / seconds)
-QUOTA_EXHAUSTED_BACKOFF_TIERS_SECONDS = [60, 300, 1800, 7200]
+# Backoff tiers for rate limit / quota exhaustion (seconds).
+# Cap at 30 minutes max — the upstream "Resets in Xm" message now drives the
+# actual delay, so the tier is only used as a fallback for unrecognised errors.
+# Multi-day values (7200+) caused stale cooldowns that blocked all accounts.
+QUOTA_EXHAUSTED_BACKOFF_TIERS_SECONDS = [30, 60, 180, 600, 1800]
 
 # Supported model family identifiers
 FAMILY_GEMINI = "gemini"
