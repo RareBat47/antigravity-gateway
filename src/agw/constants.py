@@ -432,17 +432,17 @@ DEFAULT_MODELS = {
 
     # Free Google Models across 4-Way Connections (agy • gweb • studio • gcli)
     "gemini-2.5-pro": {
-        "upstream_id": "gemini-2.5-pro",
+        "upstream_id": "gemini-3.8-flash-tiered",
         "family": FAMILY_GEMINI,
         "provider_id": "gweb",
-        "provider_name": "Google AI Studio & Web Pro",
+        "provider_name": "Gemini Web Free Sessions",
         "category": "Consumer & Studio Pro Free Tier",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 65536,
         "description": "Gemini 2.5 Pro (Google AI Studio & Gemini Web Free Tier)",
     },
     "gemini-advanced": {
-        "upstream_id": "gemini-2.5-pro",
+        "upstream_id": "gemini-3.8-flash-tiered",
         "family": FAMILY_GEMINI,
         "provider_id": "gweb",
         "provider_name": "Gemini Web Free Sessions",

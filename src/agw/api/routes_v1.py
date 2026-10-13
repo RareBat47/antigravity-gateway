@@ -447,13 +447,20 @@ def create_v1_router(
                     gweb_status, gweb_payload, gweb_raw = await geminiweb_client.generate_content(
                         web_cookies, web_snlm0e, prompt_txt, authuser=target_authuser
                     )
-                    async def _gweb_stream(st=gweb_status, pl=gweb_payload, rw=gweb_raw):
-                        if st == 200:
+                    if gweb_status != 200:
+                        try:
+                            access_tok = await account_mgr.get_access_token(acc_id)
+                            stream_iter = cloudcode_client.stream_generate_content(access_tok, envelope)
+                            channel_used = "agy"
+                        except Exception:
+                            async def _gweb_stream(st=gweb_status, pl=gweb_payload, rw=gweb_raw):
+                                yield st, rw
+                            stream_iter = _gweb_stream()
+                    else:
+                        async def _gweb_stream(st=gweb_status, pl=gweb_payload, rw=gweb_raw):
                             yield 200, f"data: {json.dumps(pl)}\n\n"
                             yield 200, "data: [DONE]\n\n"
-                        else:
-                            yield st, rw
-                    stream_iter = _gweb_stream()
+                        stream_iter = _gweb_stream()
                 elif acc_tier == "handy":
                     if not handy_client:
                         logger.warning("HandyClient not configured")
@@ -640,6 +647,14 @@ def create_v1_router(
                     if not aistudio_client:
                         continue
                     status_code, payload, raw_text = await aistudio_client.generate_content(raw_cred, envelope)
+                    if status_code != 200 and family == "gemini":
+                        try:
+                            access_tok = await account_mgr.get_access_token(acc_id)
+                            status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
+                            if status_code == 200:
+                                channel_used = "agy"
+                        except Exception:
+                            pass
                 elif channel_used == "gweb":
                     if not geminiweb_client:
                         continue
@@ -655,6 +670,15 @@ def create_v1_router(
                     status_code, payload, raw_text = await geminiweb_client.generate_content(
                         web_cookies, web_snlm0e, prompt_txt, authuser=target_authuser
                     )
+                    # Resilient In-Account Failover: If consumer web returns 302 CAPTCHA, immediately failover to Cloud Code OAuth
+                    if status_code != 200:
+                        try:
+                            access_tok = await account_mgr.get_access_token(acc_id)
+                            status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
+                            if status_code == 200:
+                                channel_used = "agy"
+                        except Exception:
+                            pass
                 else:
                     status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
             finally:
@@ -775,6 +799,58 @@ def create_v1_router(
                 )
             else:
                 last_error_detail = f"Connected accounts are disabled or lack credentials for family '{family}'."
+
+        # RESILIENT POOL RESCUE:
+        # If all accounts failed on requested model (e.g. 503 No capacity on Google servers for 2.5-pro,
+        # or 429 Claude rolling cooldown), attempt emergency fulfillment via high-capacity Gemini 3.8 Flash
+        # on the healthiest account so the user NEVER receives a 503 error in their IDE / OpenCode!
+        rescue_upstream = "gemini-3.8-flash-tiered"
+        if upstream_id != rescue_upstream and not is_streaming:
+            logger.warning(
+                f"Attempting resilient rescue for '{model_id}' ({upstream_id}) via high-capacity {rescue_upstream}..."
+            )
+            # Find healthiest account with valid OAuth token
+            candidate_accounts = await repo.list_accounts()
+            for cand in candidate_accounts:
+                cand_id = cand["id"]
+                try:
+                    tok = await account_mgr.get_access_token(cand_id)
+                    rescue_env = build_rpc_envelope(
+                        project_id=cand.get("project_id", ""),
+                        upstream_model_id=rescue_upstream,
+                        contents=contents,
+                        system_instruction=system_inst,
+                        tools=tools,
+                        tool_config=tool_config,
+                        generation_config=gen_config,
+                    )
+                    r_status, r_payload, r_raw = await cloudcode_client.generate_content(tok, rescue_env)
+                    if r_status == 200:
+                        logger.info(f"Resilient rescue successful for '{model_id}' via account {cand_id}!")
+                        r_resp_oai = gemini_response_to_openai(r_payload, model_id, req_id)
+                        r_usage = r_resp_oai.get("usage", {})
+                        await repo.record_account_usage(cand_id, r_usage.get("total_tokens", 0), True)
+                        await repo.record_usage_event(
+                            request_id=req_id,
+                            account_id=cand_id,
+                            model_id=model_id,
+                            prompt_tokens=r_usage.get("prompt_tokens", 0),
+                            completion_tokens=r_usage.get("completion_tokens", 0),
+                            latency_ms=(time.time() - start_t) * 1000.0,
+                            status_code=200,
+                            is_streaming=False,
+                        )
+                        rescue_resp = Response(
+                            content=json.dumps(r_resp_oai),
+                            media_type="application/json",
+                        )
+                        rescue_resp.headers["x-agw-account"] = cand_id
+                        rescue_resp.headers["x-agw-rescued"] = "true"
+                        rescue_resp.headers["x-agw-fallback-model"] = rescue_upstream
+                        return rescue_resp
+                except Exception as r_err:
+                    logger.debug(f"Rescue attempt on {cand_id} failed: {r_err}")
+                    continue
 
         raise HTTPException(
             status_code=503,
