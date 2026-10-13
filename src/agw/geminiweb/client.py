@@ -208,8 +208,9 @@ class GeminiWebClient:
             except Exception:
                 authuser = 0
 
-        # Primary engine: gemini_webapi with browser TLS impersonation
+        # Primary engine: gemini_webapi with direct chrome131 session injection
         try:
+            from curl_cffi.requests import AsyncSession
             from gemini_webapi import GeminiClient
             psid = cookies.get("__Secure-1PSID")
             psidts = cookies.get("__Secure-1PSIDTS")
@@ -217,16 +218,20 @@ class GeminiWebClient:
             
             # Explicitly set all session cookies including the user index
             for k, v in cookies.items():
-                client._cookies.set(k, str(v), domain=".google.com", secure=True)
+                if k != "authuser":
+                    client._cookies.set(k, str(v), domain=".google.com", secure=True)
             client._cookies.set("authuser", str(authuser), domain=".google.com", secure=True)
 
-            # Essential: Bind the account-specific SNlM0e token
+            # Essential: Inject pre-authenticated Chrome 131 AsyncSession directly.
+            # Bypasses client.init() which triggers Google's IP 429 bot check on naked GET requests.
+            session = AsyncSession(impersonate="chrome131")
+            session.cookies.update(client._cookies)
+            client.client = session
             if snlm0e:
                 client.access_token = snlm0e
 
-            await client.init(timeout=self.timeout, auto_refresh=False)
             res = await client.generate_content(prompt, temporary=True)
-            await client.close()
+            await session.close()
 
             reply_text = (res.text or "").strip()
             if not reply_text:

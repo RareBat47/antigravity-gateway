@@ -443,8 +443,9 @@ def create_v1_router(
                         logger.warning(f"Failed to parse gweb credentials for {acc_id}: {e}")
                         continue
                     prompt_txt = _extract_messages_text(messages)
+                    target_authuser = int(web_cookies.get("authuser", 0))
                     gweb_status, gweb_payload, gweb_raw = await geminiweb_client.generate_content(
-                        web_cookies, web_snlm0e, prompt_txt
+                        web_cookies, web_snlm0e, prompt_txt, authuser=target_authuser
                     )
                     async def _gweb_stream(st=gweb_status, pl=gweb_payload, rw=gweb_raw):
                         if st == 200:
@@ -650,8 +651,9 @@ def create_v1_router(
                         logger.warning(f"Failed to parse gweb credentials for {acc_id}: {e}")
                         continue
                     prompt_txt = _extract_messages_text(messages)
+                    target_authuser = int(web_cookies.get("authuser", 0))
                     status_code, payload, raw_text = await geminiweb_client.generate_content(
-                        web_cookies, web_snlm0e, prompt_txt
+                        web_cookies, web_snlm0e, prompt_txt, authuser=target_authuser
                     )
                 else:
                     status_code, payload, raw_text = await cloudcode_client.generate_content(access_tok, envelope)
