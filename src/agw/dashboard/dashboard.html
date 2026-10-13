@@ -3732,11 +3732,11 @@
 
                                 return `
                                     <div class="quota-meter-dual">
-                                        <!-- 4-Way Combined Capacity Summary -->
+                                        <!-- Header: Overall Combined Capacity -->
                                         <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 5px 8px; margin-bottom: 6px;">
                                             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; font-weight:700;">
                                                 <span style="color:#e2e8f0; display:flex; align-items:center; gap:4px;">
-                                                    <span style="color:${combinedColor};">⚡</span> 4-Way Combined Limits
+                                                    <span style="color:${combinedColor};">⚡</span> 4-Way Combined
                                                 </span>
                                                 <span style="color:${combinedColor}; font-family:'JetBrains Mono', monospace;">${combinedPct}% Free</span>
                                             </div>
@@ -3744,34 +3744,37 @@
                                                 <div class="quota-bar-fill" style="width: ${combinedPct}%; background: ${combinedColor};"></div>
                                             </div>
                                             <div style="display:flex; justify-content:space-between; font-size:0.67rem; color:#94a3b8; margin-top:3px;">
-                                                <span>${totalActive}/4 Channels Linked</span>
-                                                <span>${hasStudio ? '1.5k RPD' : ''} ${hasGweb ? '• 2.4k Crd' : ''}</span>
+                                                <span>${totalActive}/4 Pathways Active</span>
+                                                <span>${acc.tier === 'pro' ? '⭐ Pro Plan' : 'Free Plan'}</span>
                                             </div>
                                         </div>
 
-                                        <!-- 1. agy (Cloud Code): Claude + Gemini -->
-                                        <div class="quota-meter-section" style="padding: 2px 0;">
-                                            <div style="display:flex; justify-content:space-between; font-size:0.72rem;">
-                                                <span><span class="method-badge method-agy" style="font-size:0.6rem; padding:1px 4px;">agy</span> Claude: <strong style="color:${claudeColor}">${claudePct}%</strong></span>
+                                        <!-- 1. agy (Cloud Code): Claude + Gemini Live Fractions -->
+                                        <div style="background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); border-radius:4px; padding:3px 6px; margin-bottom:3px; font-size:0.69rem;">
+                                            <div style="display:flex; justify-content:space-between;">
+                                                <span><span class="method-badge method-agy" style="font-size:0.58rem; padding:0 3px;">agy</span> Claude: <strong style="color:${claudeColor}">${claudePct}%</strong></span>
                                                 <span>Gemini: <strong style="color:${geminiColor}">${geminiPct}%</strong></span>
                                             </div>
+                                            ${(cResetDelta || gResetDelta) ? `<div style="font-size:0.63rem; color:#94a3b8; margin-top:1px;">⏳ Rollover in: ${cResetDelta || gResetDelta}</div>` : ''}
                                         </div>
 
-                                        <!-- 2. gweb & 3. studio Live Indicators -->
-                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; margin-top:4px; font-size:0.67rem;">
-                                            <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:4px; padding:2px 4px;">
-                                                <span style="color:#10b981; font-weight:600;">🍪 gweb:</span> ${hasGweb ? `<strong style="color:var(--success);">${acc.gweb_credits_remaining !== undefined ? acc.gweb_credits_remaining : 2397}/2,400</strong>` : '<span style="color:var(--text-muted);">Unbound</span>'}
-                                            </div>
-                                            <div style="background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.25); border-radius:4px; padding:2px 4px;">
-                                                <span style="color:#c084fc; font-weight:600;">🔑 studio:</span> ${hasStudio ? `<strong style="color:var(--success);">${acc.studio_requests_today ? (1500 - acc.studio_requests_today) + '/1.5k' : '1.5k RPD'}</strong>` : '<span style="color:var(--text-muted);">Unbound</span>'}
-                                            </div>
+                                        <!-- 2. gweb (Gemini Web): Actual Remaining Credits / 2,400 -->
+                                        <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:4px; padding:3px 6px; margin-bottom:3px; font-size:0.69rem; display:flex; justify-content:space-between;">
+                                            <span><span class="method-badge method-gweb" style="font-size:0.58rem; padding:0 3px;">gweb</span> 5h Pool:</span>
+                                            <span>${hasGweb ? `<strong style="color:var(--success);">${acc.gweb_credits_remaining !== undefined ? acc.gweb_credits_remaining : 2397} / 2,400</strong>` : '<span style="color:var(--text-muted);">Unbound</span>'}</span>
                                         </div>
 
-                                        ${(cResetDelta || gResetDelta) ? `
-                                            <div class="quota-reset-pill" style="margin-top:4px;">
-                                                <span>⏳ Rollover: ${cResetDelta || gResetDelta}</span>
-                                            </div>
-                                        ` : ''}
+                                        <!-- 3. studio (AI Studio / Vertex): Actual Remaining RPD / 1,500 -->
+                                        <div style="background:rgba(168,85,247,0.06); border:1px solid rgba(168,85,247,0.2); border-radius:4px; padding:3px 6px; margin-bottom:3px; font-size:0.69rem; display:flex; justify-content:space-between;">
+                                            <span><span class="method-badge method-aistudio" style="font-size:0.58rem; padding:0 3px;">studio</span> Daily RPD:</span>
+                                            <span>${hasStudio ? `<strong style="color:var(--success);">${acc.studio_requests_today ? (1500 - acc.studio_requests_today) : 1500} / 1,500 RPD</strong>` : '<span style="color:var(--text-muted);">Unbound</span>'}</span>
+                                        </div>
+
+                                        <!-- 4. gcli (Gemini Cloud CLI) -->
+                                        <div style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:4px; padding:3px 6px; font-size:0.69rem; display:flex; justify-content:space-between;">
+                                            <span><span class="method-badge method-gcli" style="font-size:0.58rem; padding:0 3px;">gcli</span> Code Assist:</span>
+                                            <span><strong style="color:#fbbf24;">Active & Ready</strong></span>
+                                        </div>
                                     </div>
                                 `;
                             })()}
