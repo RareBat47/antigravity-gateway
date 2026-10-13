@@ -453,6 +453,22 @@ class DatabaseRepository:
             res = dict(row) if row else {}
             return {k: (v if v is not None else 0) for k, v in res.items()}
 
+    async def get_account_gweb_quota(self, account_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch the latest live Gemini Web credit snapshot for this account."""
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                """
+                SELECT remaining_fraction, reset_time, recorded_at
+                FROM quota_snapshots
+                WHERE account_id = ? AND source = 'gweb'
+                ORDER BY recorded_at DESC LIMIT 1
+                """,
+                (account_id,),
+            )
+            row = await cursor.fetchone()
+            return dict(row) if row else None
+
     async def get_account_window_usage(
         self,
         account_id: str,

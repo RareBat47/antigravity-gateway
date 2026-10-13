@@ -247,6 +247,30 @@ def create_admin_router(
             s["window_5h"] = await repo.get_account_window_usage(aid, hours=5)
             s["window_7d"] = await repo.get_account_window_usage(aid, days=7)
 
+            # Live per-account Gemini Web and Studio individual quota telemetry
+            gweb_info = await repo.get_account_gweb_quota(aid)
+            has_cookies = bool(s.get("cookies_verified"))
+            if gweb_info and has_cookies:
+                rem_frac = gweb_info.get("remaining_fraction", 1.0)
+                s["gweb_credits_remaining"] = int(round(rem_frac * 2400))
+                s["gweb_pct"] = int(round(rem_frac * 100))
+                s["gweb_reset_time"] = gweb_info.get("reset_time")
+            elif has_cookies:
+                s["gweb_credits_remaining"] = 2400
+                s["gweb_pct"] = 100
+                s["gweb_reset_time"] = None
+            else:
+                s["gweb_credits_remaining"] = 0
+                s["gweb_pct"] = 0
+                s["gweb_reset_time"] = None
+
+            # Studio / Vertex per-account usage
+            has_vertex = bool(s.get("vertex_verified"))
+            studio_window = await repo.get_account_window_usage(aid, hours=24)
+            s["studio_requests_today"] = studio_window.get("requests", 0)
+            s["studio_rpd_limit"] = 1500
+            s["studio_pct"] = max(0, 100 - int(round((s["studio_requests_today"] / 1500.0) * 100))) if has_vertex else 0
+
             # Real 4-way Connection Health Matrix
             is_active = bool(s.get("enabled", True))
             has_cd = bool(s.get("active_cooldowns"))
