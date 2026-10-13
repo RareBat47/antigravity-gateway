@@ -5,9 +5,9 @@ server:
   public_base_url: ""
 
 security:
-  gateway_api_key: ""
-  admin_api_key: ""
-  handy_api_key: "agw-handy-local"
+  gateway_api_key: "test-gateway-key"
+  admin_api_key: "test-admin-key"
+  handy_api_key: "agw-handy-primary"
   local_trust: false
   dashboard_local_access: true
   encryption_key: ""
@@ -104,79 +104,6 @@ security:
       profile: "handy"
       advertise_all_models: true
 
-    # --- Backwards-Compatibility Aliases (Legacy Local Keys) ---
-    - key: "agw-agy-local"
-      name: "agy (Legacy Local)"
-      description: "Legacy local binding alias for agy"
-      allowed_families: ["all"]
-      allowed_models: []
-      profile: "agy"
-      advertise_all_models: true
-
-    - key: "agw-gweb-local"
-      name: "gweb (Legacy Local)"
-      description: "Legacy local binding alias for gweb"
-      allowed_families: ["all"]
-      allowed_models: []
-      profile: "gweb"
-      advertise_all_models: true
-
-    - key: "agw-studio-local"
-      name: "studio (Legacy Local)"
-      description: "Legacy local binding alias for studio"
-      allowed_families: ["all"]
-      allowed_models: []
-      profile: "studio"
-      advertise_all_models: true
-
-    - key: "agw-gcli-local"
-      name: "gcli (Legacy Local)"
-      description: "Legacy local binding alias for gcli"
-      allowed_families: ["all"]
-      allowed_models: []
-      profile: "gcli"
-      advertise_all_models: true
-
-    - key: "agw-handy-local"
-      name: "handy (Legacy Local)"
-      description: "Legacy local binding alias for handy"
-      allowed_families: ["handy", "all"]
-      allowed_models: []
-      profile: "handy"
-      advertise_all_models: true
-
-    - key: "agw-frontier-local"
-      name: "Frontier 5.1 & Claude 5.5 Flagship (Legacy)"
-      description: "Legacy workstation alias"
-      allowed_families: ["all"]
-      allowed_models: []
-      profile: "claude-code"
-      advertise_all_models: true
-
-    - key: "agw-megacontext-local"
-      name: "Mega Context 1M Deep Research (Legacy)"
-      description: "Legacy workstation alias"
-      allowed_families: ["all"]
-      allowed_models: []
-      profile: "claude-code"
-      advertise_all_models: true
-
-    - key: "agw-speed-local"
-      name: "Gemini Speed Flash (Legacy)"
-      description: "Legacy workstation alias"
-      allowed_families: ["all"]
-      allowed_models: []
-      profile: "opencode"
-      advertise_all_models: true
-
-    - key: "agw-agentic-local"
-      name: "Agentic Pro Reasoning (Legacy)"
-      description: "Legacy workstation alias"
-      allowed_families: ["all"]
-      allowed_models: []
-      profile: "opencode"
-      advertise_all_models: true
-
 storage:
   database_path: "data/gateway.db"
   vault_key_path: "data/vault.key"
@@ -212,49 +139,57 @@ models:
     family: "gemini"
     capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 65536
-  # 2. Gemini 3.6 (Antigravity Agent Default)
-  gemini-3.6-flash-high:
-    upstream_id: "gemini-3.6-flash-high"
-    family: "gemini"
-    capabilities: ["tools", "streaming", "vision", "thinking"]
-    max_output_tokens: 65536
-  gemini-3.6-flash-medium:
-    upstream_id: "gemini-3.6-flash-medium"
-    family: "gemini"
-    capabilities: ["tools", "streaming", "vision", "thinking"]
-    max_output_tokens: 65536
-  # 3. Pro Reasoning
+  # 2. Agent & Pro Reasoning
   gemini-3.1-pro-low:
-    upstream_id: "gemini-3.1-pro-low"
+    upstream_id: "gemini-3.8-flash-tiered"
     family: "gemini"
     capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 8192
   gemini-pro-agent:
-    upstream_id: "gemini-pro-agent"
+    upstream_id: "gemini-3.8-flash-tiered"
     family: "gemini"
     capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 65535
-  # 4. Claude 5.5 Generation (1M Context / 128k Output)
-  claude-opus-5-5-medium:
-    upstream_id: "claude-opus-5-5-medium"
+  agentic-pro:
+    upstream_id: "gemini-3.8-flash-tiered"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 65535
+  gemini-2.5-pro:
+    upstream_id: "gemini-2.5-pro"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 65536
+  gemini-advanced:
+    upstream_id: "gemini-2.5-pro"
+    family: "gemini"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 65536
+  # 3. Claude Flagships
+  claude-sonnet-5.5:
+    upstream_id: "claude-sonnet-4-6"
     family: "claude"
     capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 128000
-  claude-sonnet-5-5-high:
-    upstream_id: "claude-sonnet-5-5-high"
+  claude-opus-5.5:
+    upstream_id: "claude-opus-4-6-thinking"
     family: "claude"
     capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 128000
-  claude-sonnet-5-5-medium:
-    upstream_id: "claude-sonnet-5-5-medium"
+  claude-sonnet-5[1m]:
+    upstream_id: "claude-sonnet-4-6"
     family: "claude"
     capabilities: ["tools", "streaming", "vision", "thinking"]
     max_output_tokens: 128000
-  # 5. Claude 4.6 Generation
-  # 6. GPT Fallback
+  claude-opus-5[1m]:
+    upstream_id: "claude-opus-4-6-thinking"
+    family: "claude"
+    capabilities: ["tools", "streaming", "vision", "thinking"]
+    max_output_tokens: 128000
+  # 4. Open-Weights Benchmark
   gpt-oss-120b-medium:
     upstream_id: "gpt-oss-120b-medium"
     family: "gpt"
     capabilities: ["tools", "streaming"]
-    max_output_tokens: 16384
+    max_output_tokens: 32768
 

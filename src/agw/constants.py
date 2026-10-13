@@ -215,45 +215,50 @@ TEN_STANDARDIZED_API_KEYS = [
 ]
 
 # Default Model Specifications — Modern Definitive & Extended Lineup
-# Provider Category Definitions (3-4 Specialized Provider Groups)
+# Provider Category Definitions (5 Standardized Core Provider Groups)
 PROVIDER_DEFINITIONS = {
-    # === 4-WAY CONNECTIONS (agy • gweb • studio • gcli) ===
+    # 1. agy (Google Cloud Code OAuth Engine)
     "agy": {
         "id": "agy",
         "name": "Antigravity OAuth Engine (agy)",
         "category": "Google Antigravity Cloud Code",
         "badge": "🛸 agy OAuth",
-        "key": "agw-agy-local",
+        "key": "agw-agy-primary",
+        "secondary_key": "agw-agy-secondary",
         "base_url": "http://127.0.0.1:8999/v1",
         "anthropic_url": "http://127.0.0.1:8999",
-        "description": "Direct Google Antigravity Cloud Code Assist channel providing free access to Claude 5 Series, Gemini 3 Series, and GPT-OSS models.",
+        "description": "Direct Google Antigravity Cloud Code Assist channel providing access to Claude 5 Series, Gemini 3 Series, and GPT-OSS models.",
         "models": [
             "claude-sonnet-5.5", "claude-opus-5.5", "frontier-5.1",
             "claude-sonnet-5[1m]", "claude-opus-5[1m]", "1m-mega",
             "claude-fable-5", "claude-sonnet-5", "claude-opus-5",
             "gemini-3.8-flash-high", "gemini-3.7-flash-high",
-            "gemini-pro-agent", "gemini-3.1-pro-low",
+            "gemini-pro-agent", "gemini-3.1-pro-low", "speed-flash", "agentic-pro",
             "gpt-oss-120b-medium",
         ],
     },
+    # 2. gweb (Gemini Web Free Sessions)
     "gweb": {
         "id": "gweb",
         "name": "Gemini Web Free Sessions (gweb)",
         "category": "Consumer Web Session Extractor",
         "badge": "🌐 gweb Session",
-        "key": "agw-gweb-local",
+        "key": "agw-gweb-primary",
+        "secondary_key": "agw-gweb-secondary",
         "base_url": "http://127.0.0.1:8999/v1",
         "description": "Extracts consumer Google One AI Pro / Gemini Advanced web sessions via cookies (__Secure-1PSID / SNlM0e) for free Pro-tier reasoning.",
         "models": [
             "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash-thinking-exp", "gemini-advanced",
         ],
     },
+    # 3. studio (Google AI Studio Free Tier)
     "studio": {
         "id": "studio",
         "name": "Google AI Studio Free Tier (studio)",
         "category": "Developer Studio Channel",
         "badge": "🔑 studio API",
-        "key": "agw-studio-local",
+        "key": "agw-studio-primary",
+        "secondary_key": "agw-studio-secondary",
         "base_url": "http://127.0.0.1:8999/v1",
         "description": "Google AI Studio free API keys with generous free rate limits for Gemini 2.5 Pro, 2.5 Flash, 2.0 Flash, and experimental thinking models.",
         "models": [
@@ -262,70 +267,28 @@ PROVIDER_DEFINITIONS = {
             "gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.5-flash-8b",
         ],
     },
+    # 4. gcli (Gemini Cloud CLI Protocol)
     "gcli": {
         "id": "gcli",
         "name": "Gemini CLI OAuth (gcli)",
         "category": "Google Cloud CLI Protocol",
         "badge": "💻 gcli OAuth",
-        "key": "agw-gcli-local",
+        "key": "agw-gcli-primary",
+        "secondary_key": "agw-gcli-secondary",
         "base_url": "http://127.0.0.1:8999/v1",
         "description": "Google Cloud Code CLI / gcli protocol channel providing automated developer assistance and coding completions.",
         "models": [
             "gemini-code-assist", "gemini-1.5-pro",
         ],
     },
-
-    # === DUAL-AGENT SPECIALIZED WORKSTATION ALIASES ===
-    "claude-frontier": {
-        "id": "claude-frontier",
-        "name": "Claude 5.5 Frontier Flagship",
-        "category": "Frontier Elite Reasoning",
-        "badge": "🔮 Frontier 5.1",
-        "key": "agw-frontier-local",
-        "base_url": "http://127.0.0.1:8999/v1",
-        "anthropic_url": "http://127.0.0.1:8999",
-        "description": "Anthropic Claude 5.5 Sonnet & Opus flagship models for frontier reasoning, advanced coding, and Claude Code developer brain.",
-        "models": ["claude-sonnet-5.5", "claude-opus-5.5", "frontier-5.1", "frontier-5.1-sonnet", "frontier-5.1-opus"],
-    },
-    "mega-context-1m": {
-        "id": "mega-context-1m",
-        "name": "Claude 5 1M Mega-Context",
-        "category": "Mega-Context 1M Engine",
-        "badge": "🧠 1M Context",
-        "key": "agw-megacontext-local",
-        "base_url": "http://127.0.0.1:8999/v1",
-        "anthropic_url": "http://127.0.0.1:8999",
-        "description": "Ultra-massive 1,000,000 tokens long-context Claude 5 models for whole-repository audits and massive document ingestion.",
-        "models": ["claude-sonnet-5[1m]", "claude-opus-5[1m]", "1m-mega", "1m-mega-sonnet", "1m-mega-opus"],
-    },
-    "gemini-agentic-pro": {
-        "id": "gemini-agentic-pro",
-        "name": "Gemini 3 Agentic & Pro Workflows",
-        "category": "Autonomous Agent & Pro Workflows",
-        "badge": "🛠️ Agentic Pro",
-        "key": "agw-agentic-local",
-        "base_url": "http://127.0.0.1:8999/v1",
-        "description": "Specialized agentic workflow execution and deep Pro-tier reasoning with multi-step tool calling and complex logic.",
-        "models": ["gemini-pro-agent", "gemini-3.1-pro-low", "agentic-pro", "gemini-2.5-pro"],
-    },
-    "gemini-speed-flash": {
-        "id": "gemini-speed-flash",
-        "name": "Gemini 3.8 Ultra-Fast Intelligence",
-        "category": "High-Speed Intelligence & Throughput",
-        "badge": "⚡ Speed Flash",
-        "key": "agw-speed-local",
-        "base_url": "http://127.0.0.1:8999/v1",
-        "description": "Tiered high-speed flash engine delivering sub-second interactive latency and high-throughput streaming.",
-        "models": ["gemini-3.8-flash-high", "speed-flash", "gemini-2.5-flash"],
-    },
-
-    # === HANDY CREATIVE SUITE (Google Labs / DeepMind / Test Kitchen) ===
+    # 5. handy (Handy Creative Media Suite)
     "handy": {
         "id": "handy",
         "name": "Handy Creative Media Suite",
         "category": "Google Labs & Creative Suite Extractors",
         "badge": "🎨 handy",
-        "key": "agw-handy-local",
+        "key": "agw-handy-primary",
+        "secondary_key": "agw-handy-secondary",
         "base_url": "http://127.0.0.1:8999/v1",
         "description": "Reverse-engineered Google Labs creative extractors spanning Google Playground (WebGL game generation), Project Genie (world models), Google Flow & Veo (video generation), and MusicFX / MusicFX DJ (Lyria music generation). Authenticated via shared Google session cookies (__Secure-1PSID / __Secure-1PSIDTS).",
         "models": [
@@ -339,14 +302,14 @@ PROVIDER_DEFINITIONS = {
     },
 }
 
-# The Curated 7-Model System categorized across 4 Provider Groups
+# The Curated 7-Model System categorized across 5 Provider Groups
 DEFAULT_MODELS = {
     # 1. Gemini 3.8 Flash High (Selected #1)
     "gemini-3.8-flash-high": {
         "upstream_id": "gemini-3.8-flash-tiered",
         "family": FAMILY_GEMINI,
-        "provider_id": "gemini-speed-flash",
-        "provider_name": "Gemini 3.8 Ultra-Fast Intelligence",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "High-Speed Intelligence & Throughput",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 65536,
@@ -355,10 +318,10 @@ DEFAULT_MODELS = {
 
     # 2. Gemini 3.1 Pro Low (Selected #5)
     "gemini-3.1-pro-low": {
-        "upstream_id": "gemini-3.1-pro-low",
+        "upstream_id": "gemini-3.8-flash-tiered",
         "family": FAMILY_GEMINI,
-        "provider_id": "gemini-agentic-pro",
-        "provider_name": "Gemini 3 Agentic & Pro Workflows",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "Autonomous Agent & Pro Workflows",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 8192,
@@ -367,10 +330,10 @@ DEFAULT_MODELS = {
 
     # 3. Gemini Pro Agent (Selected #6)
     "gemini-pro-agent": {
-        "upstream_id": "gemini-pro-agent",
+        "upstream_id": "gemini-3.8-flash-tiered",
         "family": FAMILY_GEMINI,
-        "provider_id": "gemini-agentic-pro",
-        "provider_name": "Gemini 3 Agentic & Pro Workflows",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "Autonomous Agent & Pro Workflows",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 65535,
@@ -381,8 +344,8 @@ DEFAULT_MODELS = {
     "claude-sonnet-5.5": {
         "upstream_id": "claude-sonnet-4-6",
         "family": FAMILY_CLAUDE,
-        "provider_id": "claude-frontier",
-        "provider_name": "Claude 5.5 Frontier Flagship",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "Frontier Elite Reasoning",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 128000,
@@ -393,8 +356,8 @@ DEFAULT_MODELS = {
     "claude-opus-5.5": {
         "upstream_id": "claude-opus-4-6-thinking",
         "family": FAMILY_CLAUDE,
-        "provider_id": "claude-frontier",
-        "provider_name": "Claude 5.5 Frontier Flagship",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "Frontier Elite Reasoning",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 128000,
@@ -405,8 +368,8 @@ DEFAULT_MODELS = {
     "claude-sonnet-5[1m]": {
         "upstream_id": "claude-sonnet-4-6",
         "family": FAMILY_CLAUDE,
-        "provider_id": "mega-context-1m",
-        "provider_name": "Claude 5 1M Mega-Context",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "Mega-Context 1M Engine",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 128000,
@@ -417,8 +380,8 @@ DEFAULT_MODELS = {
     "claude-opus-5[1m]": {
         "upstream_id": "claude-opus-4-6-thinking",
         "family": FAMILY_CLAUDE,
-        "provider_id": "mega-context-1m",
-        "provider_name": "Claude 5 1M Mega-Context",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "Mega-Context 1M Engine",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 128000,
@@ -429,8 +392,8 @@ DEFAULT_MODELS = {
     "frontier-5.1": {
         "upstream_id": "claude-sonnet-4-6",
         "family": FAMILY_CLAUDE,
-        "provider_id": "claude-frontier",
-        "provider_name": "Claude 5.5 Frontier Flagship",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "Frontier Elite Reasoning",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 128000,
@@ -439,8 +402,8 @@ DEFAULT_MODELS = {
     "1m-mega": {
         "upstream_id": "claude-sonnet-4-6",
         "family": FAMILY_CLAUDE,
-        "provider_id": "mega-context-1m",
-        "provider_name": "Claude 5 1M Mega-Context",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "Mega-Context 1M Engine",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 128000,
@@ -449,18 +412,18 @@ DEFAULT_MODELS = {
     "speed-flash": {
         "upstream_id": "gemini-3.8-flash-tiered",
         "family": FAMILY_GEMINI,
-        "provider_id": "gemini-speed-flash",
-        "provider_name": "Gemini 3.8 Ultra-Fast Intelligence",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "High-Speed Intelligence & Throughput",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 65536,
         "description": "Speed Flash (Ultra-Fast Coding Workhorse)",
     },
     "agentic-pro": {
-        "upstream_id": "gemini-pro-agent",
+        "upstream_id": "gemini-3.8-flash-tiered",
         "family": FAMILY_GEMINI,
-        "provider_id": "gemini-agentic-pro",
-        "provider_name": "Gemini 3 Agentic & Pro Workflows",
+        "provider_id": "agy",
+        "provider_name": "Antigravity OAuth Engine",
         "category": "Autonomous Agent & Pro Workflows",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 65535,
@@ -469,14 +432,24 @@ DEFAULT_MODELS = {
 
     # Free Google Models across 4-Way Connections (agy • gweb • studio • gcli)
     "gemini-2.5-pro": {
-        "upstream_id": "gemini-3.1-pro-low",
+        "upstream_id": "gemini-2.5-pro",
         "family": FAMILY_GEMINI,
-        "provider_id": "studio",
+        "provider_id": "gweb",
         "provider_name": "Google AI Studio & Web Pro",
         "category": "Consumer & Studio Pro Free Tier",
         "capabilities": ["tools", "streaming", "vision", "thinking"],
         "max_output_tokens": 65536,
         "description": "Gemini 2.5 Pro (Google AI Studio & Gemini Web Free Tier)",
+    },
+    "gemini-advanced": {
+        "upstream_id": "gemini-2.5-pro",
+        "family": FAMILY_GEMINI,
+        "provider_id": "gweb",
+        "provider_name": "Gemini Web Free Sessions",
+        "category": "Consumer Web Session Extractor",
+        "capabilities": ["tools", "streaming", "vision", "thinking"],
+        "max_output_tokens": 65536,
+        "description": "Gemini Advanced (Google One AI Pro Consumer Web Session)",
     },
     "gemini-2.5-flash": {
         "upstream_id": "gemini-3.8-flash-tiered",
@@ -519,7 +492,7 @@ DEFAULT_MODELS = {
         "description": "Gemini 2.0 Flash Thinking Experimental",
     },
     "gemini-1.5-pro": {
-        "upstream_id": "gemini-3.1-pro-low",
+        "upstream_id": "gemini-3.8-flash-tiered",
         "family": FAMILY_GEMINI,
         "provider_id": "studio",
         "provider_name": "Google AI Studio 1.5 Pro",

@@ -78,7 +78,7 @@ flowchart TD
 
     subgraph Gateway["🚪 Antigravity Gateway (127.0.0.1:8999)"]
         direction TB
-        Auth["🛡️ Gateway Auth & Channel Routing<br/><code>agw-local-...</code> • <code>agw-frontier-local</code>"]
+        Auth["🛡️ Gateway Auth & Channel Routing<br/><code>agw-agy-primary</code> • <code>10 Standardized Keys</code>"]
         Registry["🔄 Model Normalizer & Alias Mapper<br/><i>OpenAI & Anthropic &lt;--&gt; Google RPC</i>"]
         Scheduler["⚖️ Hybrid Quota-Aware Scheduler<br/><i>Health + Quota + LRU Balancing</i>"]
         Cooldown["❄️ Cooldown Manager & Failover<br/><i>Independent Family Standby</i>"]
@@ -251,12 +251,12 @@ Your `~/.config/opencode/opencode.json` configuration:
 {
   "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "antigravity": {
+    "agy-primary": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "Antigravity Gateway",
+      "name": "Antigravity OAuth Engine — Primary (agy)",
       "options": {
         "baseURL": "http://127.0.0.1:8999/v1",
-        "apiKey": "agw-frontier-local"
+        "apiKey": "agw-agy-primary"
       }
     }
   },
@@ -266,16 +266,16 @@ Your `~/.config/opencode/opencode.json` configuration:
   "agent": {
     "build": {
       "mode": "primary",
-      "model": "antigravity/claude-opus-5.5",
+      "model": "agy-primary/claude-opus-5.5",
       "prompt": "You are the Lead Architect and primary build agent. You MUST maintain an active, accurate todo list in every interaction using `todowrite`."
     },
     "coder": {
-      "model": "antigravity/gemini-3.8-flash-high",
+      "model": "agy-primary/gemini-3.8-flash-high",
       "mode": "subagent",
       "description": "Ultra-fast code generation subagent."
     },
     "tool-runner": {
-      "model": "antigravity/gemini-pro-agent",
+      "model": "agy-primary/gemini-pro-agent",
       "mode": "subagent",
       "description": "Autonomous tool calling subagent."
     }
@@ -290,7 +290,7 @@ Your `~/.config/opencode/opencode.json` configuration:
     "max_lines": 150,
     "max_bytes": 8192
   },
-  "model": "antigravity/claude-opus-5.5"
+  "model": "agy-primary/claude-opus-5.5"
 }
 ```
 
@@ -356,19 +356,19 @@ Open **[http://127.0.0.1:8999/admin/dashboard](http://127.0.0.1:8999/admin/dashb
 
 ### 1. Cursor IDE Setup
 * **OpenAI Base URL**: `http://127.0.0.1:8999/v1`
-* **API Key**: `agw-frontier-local` (or your dashboard key)
+* **API Key**: `agw-agy-primary` (or any of the 10 standardized keys)
 * **Models**: `claude-sonnet-5.5`, `claude-opus-5.5`, `gemini-3.8-flash-high`, `gemini-advanced`
 
 ### 2. Claude Code CLI Setup
 ```bash
 export ANTHROPIC_BASE_URL="http://127.0.0.1:8999"
-export ANTHROPIC_API_KEY="agw-frontier-local"
+export ANTHROPIC_API_KEY="agw-agy-primary"
 
 claude
 ```
 
 ### 3. OpenCode Web IDE Setup
-Set baseURL to `http://127.0.0.1:8999/v1` with model `claude-opus-5.5` or `speed-flash`.
+Set baseURL to `http://127.0.0.1:8999/v1` with model `claude-opus-5.5` or `gemini-3.8-flash-high`.
 
 ### 4. Claude Desktop GUI Setup
 Configure your `claude_desktop_config.json`:
@@ -397,7 +397,7 @@ pytest tests/ -q
 ```bash
 curl -s -X POST http://127.0.0.1:8999/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer agw-frontier-local" \
+  -H "Authorization: Bearer agw-agy-primary" \
   -d '{
     "model": "gemini-3.8-flash-high",
     "messages": [{"role": "user", "content": "What is 10 + 20?"}]

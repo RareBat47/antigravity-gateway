@@ -340,10 +340,12 @@ def create_v1_router(
             attempted_accounts.append(acc_id)
             project_id = selected_account.get("project_id", "")
 
-            # Build Cloud Code Assist request envelope
+            # Build request envelope
+            # For studio, preserve the native model_id so Vertex AI endpoint resolves (e.g. gemini-2.5-flash)
+            target_model_for_envelope = model_id if channel_used == "studio" else upstream_id
             envelope = build_rpc_envelope(
                 project_id=project_id,
-                upstream_model_id=upstream_id,
+                upstream_model_id=target_model_for_envelope,
                 contents=contents,
                 system_instruction=system_inst,
                 tools=tools,
