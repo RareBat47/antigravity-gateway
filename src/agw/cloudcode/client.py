@@ -152,34 +152,48 @@ class CloudCodeClient:
         headers = self._build_headers(access_token)
         last_err_tuple = (500, {}, "Unknown upstream error")
 
-        async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
-            for endpoint in self.endpoints:
-                url = f"{endpoint}/{RPC_GENERATE_CONTENT}"
-                try:
-                    resp = await client.post(url, headers=headers, json=envelope)
-                    raw_text = resp.text
-                    try:
-                        parsed = resp.json()
-                    except Exception:
-                        parsed = {}
+        from agw.network.resilience import is_transient_network_error, wait_for_connectivity
 
-                    if resp.status_code == 200:
-                        return resp.status_code, parsed, raw_text
-                    last_err_tuple = (resp.status_code, parsed, raw_text)
-                    # For 429, attempt fallback to stream aggregation for streaming-only models like gpt-oss
-                    if resp.status_code == 429:
+        max_network_retries = 3
+        for attempt in range(max_network_retries):
+            async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
+                for endpoint in self.endpoints:
+                    url = f"{endpoint}/{RPC_GENERATE_CONTENT}"
+                    try:
+                        resp = await client.post(url, headers=headers, json=envelope)
+                        raw_text = resp.text
                         try:
-                            aggregated = await self._aggregate_stream_response(access_token, envelope)
-                            if aggregated:
-                                return 200, aggregated, json.dumps(aggregated)
+                            parsed = resp.json()
                         except Exception:
-                            pass
-                        return resp.status_code, parsed, raw_text
-                    # For other non-network 4xx errors (e.g. bad request, auth error), don't blindly re-hit next endpoint
-                    if resp.status_code in (400, 401, 403):
-                        return resp.status_code, parsed, raw_text
-                except Exception as e:
-                    last_err_tuple = (503, {}, str(e))
+                            parsed = {}
+
+                        if resp.status_code == 200:
+                            return resp.status_code, parsed, raw_text
+                        last_err_tuple = (resp.status_code, parsed, raw_text)
+                        # For 429, attempt fallback to stream aggregation for streaming-only models like gpt-oss
+                        if resp.status_code == 429:
+                            try:
+                                aggregated = await self._aggregate_stream_response(access_token, envelope)
+                                if aggregated:
+                                    return 200, aggregated, json.dumps(aggregated)
+                            except Exception:
+                                pass
+                            return resp.status_code, parsed, raw_text
+                        # For other non-network 4xx errors (e.g. bad request, auth error), don't blindly re-hit next endpoint
+                        if resp.status_code in (400, 401, 403):
+                            return resp.status_code, parsed, raw_text
+                    except Exception as e:
+                        last_err_tuple = (503, {}, str(e))
+                        if is_transient_network_error(e):
+                            logger.warning(
+                                f"Router/network disconnect detected during call to {endpoint} ({e}). "
+                                f"Holding request open and waiting for reconnection (attempt {attempt + 1}/{max_network_retries})..."
+                            )
+                            # Wait for router to reconnect before trying again
+                            reconnected = await wait_for_connectivity(max_wait_seconds=20.0, check_interval=2.0)
+                            if reconnected:
+                                break  # Break endpoint loop to retry full request cycle
+                            continue
 
         return last_err_tuple
 
@@ -254,24 +268,37 @@ class CloudCodeClient:
         headers = self._build_headers(access_token)
         headers["Accept"] = "text/event-stream"
 
-        for endpoint in self.endpoints:
-            url = f"{endpoint}/{RPC_STREAM_GENERATE_CONTENT}?alt=sse"
-            try:
-                async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
-                    async with client.stream("POST", url, headers=headers, json=envelope) as resp:
-                        if resp.status_code != 200:
-                            err_content = await resp.aread()
-                            yield resp.status_code, err_content.decode("utf-8", errors="ignore")
-                            return
+        from agw.network.resilience import is_transient_network_error, wait_for_connectivity
 
-                        async for line in resp.aiter_lines():
-                            yield 200, line
-                        return
-            except Exception as e:
-                # Bug #14: Log the network failure and continue to next endpoint.
-                # Previously this was a bare `pass`, meaning the caller could not
-                # tell if ALL endpoints failed due to network errors.
-                logger.warning(f"Network error streaming from {endpoint}: {type(e).__name__}: {e}")
-                continue
+        max_stream_retries = 3
+        for attempt in range(max_stream_retries):
+            for endpoint in self.endpoints:
+                url = f"{endpoint}/{RPC_STREAM_GENERATE_CONTENT}?alt=sse"
+                try:
+                    async with httpx.AsyncClient(timeout=self.httpx_timeout) as client:
+                        async with client.stream("POST", url, headers=headers, json=envelope) as resp:
+                            if resp.status_code != 200:
+                                err_content = await resp.aread()
+                                yield resp.status_code, err_content.decode("utf-8", errors="ignore")
+                                return
+
+                            async for line in resp.aiter_lines():
+                                yield 200, line
+                            return
+                except Exception as e:
+                    if is_transient_network_error(e):
+                        logger.warning(
+                            f"Router/network disconnect during SSE stream from {endpoint} ({e}). "
+                            f"Emitting keep-alive comment and holding stream open (attempt {attempt + 1}/{max_stream_retries})..."
+                        )
+                        # Keep-alive comment: keeps OpenCode's HTTP connection alive without parsing as a token chunk
+                        yield 200, ": keep-alive (router/network reconnecting...)"
+                        reconnected = await wait_for_connectivity(max_wait_seconds=20.0, check_interval=2.0)
+                        if reconnected:
+                            break  # Retry outer stream loop
+                        continue
+                    else:
+                        logger.warning(f"Error streaming from {endpoint}: {type(e).__name__}: {e}")
+                        continue
 
         yield 503, json.dumps({"error": "Failed to establish stream with upstream"})
